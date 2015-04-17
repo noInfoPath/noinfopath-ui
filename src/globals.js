@@ -7,7 +7,7 @@
 	angular.module("noinfopath.ui", [
 		'ngLodash', 
 		'noinfopath.helpers', 
-		'noinfopath-kendo'
+		'noinfopath.kendo'
 	]);
 
 	var noInfoPath = {};
