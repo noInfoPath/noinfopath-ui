@@ -1,5 +1,5 @@
 /*
-	noinfopath-ui@0.0.1
+	noinfopath-ui@0.0.2
 */
 
 //globals.js
