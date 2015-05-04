@@ -1,4 +1,4 @@
-//breadcrumb.js
+//autocomplete.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 

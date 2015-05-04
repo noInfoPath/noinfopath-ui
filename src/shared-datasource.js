@@ -1,4 +1,4 @@
-//breadcrumb.js
+//shared-datasource.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 

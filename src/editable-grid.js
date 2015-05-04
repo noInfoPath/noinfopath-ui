@@ -1,4 +1,4 @@
-//breadcrumb.js
+//editable-grid.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 

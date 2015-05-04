@@ -1,4 +1,4 @@
-//breadcrumb.js
+//resize.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
