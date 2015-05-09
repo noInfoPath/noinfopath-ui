@@ -133,7 +133,9 @@
                                 tableName = attrs.noGridDatasource;
                                 
                             if(!noArea) throw "noArea missing from config.json";
-
+                            if(!areaName) throw "noArea is a required noGrid attribute.";
+                            if(!routeName) throw "noAreaRoute is a required noGrid attribute."
+                            
                             if(viewName){
                                 config = noArea[areaName][routeName][viewName];
                             }else{
@@ -167,3 +169,5 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
+
+

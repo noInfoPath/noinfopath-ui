@@ -82,7 +82,7 @@
                         //noBreadcrumb will refresh itself based on the current state's 
                         //properties.
                         scope.$on("$stateChangeSuccess", function(e, toState, toParams, fromState, fromParams){
-                            console.log(toState, toParams, fromState, fromParams);
+                            //console.log(toState, toParams, fromState, fromParams);
 
                             var c = config[toState.name];
                             if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
@@ -189,7 +189,6 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 
