@@ -29,7 +29,7 @@
                                 params[config.primaryKey] = data[config.primaryKey];
 
                                 if(config.toState){
-                                    $state.go($state.current.data.areaName + "." + config.toState, params);
+                                    $state.go(config.toState, params);
                                 }else{
                                     var tableName = this.dataSource.transport.tableName;
                                     scope.$root.$broadcast("noGrid::change+" + tableName, data);
@@ -44,8 +44,6 @@
                         if(config.altRowTemplate){
                             grid.altRowTemplate = kendo.template($(config.altRowTemplate).html())
                         }
-
-
 
                         if(config.toolbar){
                             grid.toolbar = kendo.template($(config.toolbar).html());
@@ -125,40 +123,12 @@
 
                             });
                         }else{
-                            var config, noTable, noGrid,
-                                noArea = noConfig.current.noArea,
-                                areaName = attrs.noArea,
-                                routeName = attrs.noAreaRoute,
-                                viewName = attrs.noAreaView,
-                                tableName = attrs.noGridDatasource;
+                            var noComponentKey = attrs.noGrid || "noGrid",
+                                noGrid = $state.current.data && $state.current.data ? $state.current.data[noComponentKey] : null;
                                 
-                            if(!noArea) throw "noArea missing from config.json";
-                            if(!areaName) throw "noArea is a required noGrid attribute.";
-                            if(!routeName) throw "noAreaRoute is a required noGrid attribute."
-                            
-                            if(viewName){
-                                config = noArea[areaName][routeName][viewName];
-                            }else{
-                                config = noArea[areaName][routeName];
-                            }
-                                
-                            if(config){
-                                noGrid = config.data && config.data.noGrid ? config.data.noGrid : null;
-
-                                if(!noGrid) throw "noGrid configuration missing";
-
-                                if(config.values){
-                                    _resolveLookups(config)
-                                        .then(_bindDS.bind(this, tableName, config))
-                                        .catch(function(err){
-                                            console.log(err);
-                                        });             
-                                }else{
-                                    _bindDS(noGrid.tableName, noGrid);
-                                } 
-                            }else{
-                                throw "noGrid configuration found.";
-                            }  
+                            if(!noGrid) throw "noGrid configuration missing";
+                                                
+                            _bindDS(noGrid.tableName, noGrid); 
                         }            
                     }
                 }
@@ -169,5 +139,4 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
 

@@ -1,5 +1,5 @@
 /*
-	noinfopath-ui@0.0.3
+	noinfopath-ui@0.0.6
 */
 
 //globals.js
@@ -271,7 +271,7 @@
                         //noBreadcrumb will refresh itself based on the current state's 
                         //properties.
                         scope.$on("$stateChangeSuccess", function(e, toState, toParams, fromState, fromParams){
-                            console.log(toState, toParams, fromState, fromParams);
+                            //console.log(toState, toParams, fromState, fromParams);
 
                             var c = config[toState.name];
                             if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
@@ -378,7 +378,6 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 
@@ -498,8 +497,6 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        //> noGrid currently use Kendo UI Grid. This will be changed in the future
-        //> to use an abstraction that will allow other grids to be swapped in.
         .directive("noGrid", ['$state','$q','lodash', 'noConfig', 'noManifest', 'noKendo', 'noIndexedDB', function($state, $q, _, noConfig, noManifest, noKendo, noIndexedDB){
             return {                
                 link: function(scope, el, attrs){
@@ -512,8 +509,6 @@
                         });
 
                     function _bindGrid(ds, config){
-                        if(!config.columns) throw "noGridConfig must have columns defined.";
-
                         var grid = {
                             groupable: config.groupable || false,
                             pageSize: config.pageSize || 10,
@@ -529,11 +524,11 @@
                                 params[config.primaryKey] = data[config.primaryKey];
 
                                 if(config.toState){
-                                    $state.go($state.current.data.areaName + "." + config.toState, params);
+                                    $state.go(config.toState, params);
                                 }else{
                                     var tableName = this.dataSource.transport.tableName;
                                     scope.$root.$broadcast("noGrid::change+" + tableName, data);
-                                }
+                                }                            
                             }                              
                         };  
 
@@ -545,8 +540,6 @@
                             grid.altRowTemplate = kendo.template($(config.altRowTemplate).html())
                         }
 
-
-
                         if(config.toolbar){
                             grid.toolbar = kendo.template($(config.toolbar).html());
                         }
@@ -556,7 +549,6 @@
                     }
 
                     function _bindDS(tableName, config){
-                        if(!config.model) throw tableName + " noGridConfig must have a model defined.";
 
                         var ds = noKendo.makeKendoDataSource(tableName, noIndexedDB, {
                                 serverFiltering: true, 
@@ -620,34 +612,18 @@
                                 var area = attrs.noGridArea,
                                     tableName = attrs.noSharedDatasource,
                                     noTable = noManifest.current.indexedDB[tableName],
-                                    config = noConfig.current.noArea[area][tableName];
+                                    config = noConfig.current[area][tableName];
 
                                 _bindGrid(ds, config);                                      
 
                             });
-                        }else if($state.current.data && $state.current.data.noGrid){
-                            var config = $state.current.data.noGrid;
-
-                            _bindDS(config.tableName, config);
                         }else{
-                            var area = attrs.noGridArea,
-                                tableName = attrs.noGridDatasource,
-                                noTable = noManifest.current.indexedDB[tableName],
-                                config = noConfig.current[area][tableName];
+                            var noComponentKey = attrs.noGrid || "noGrid",
+                                noGrid = $state.current.data && $state.current.data ? $state.current.data[noComponentKey] : null;
                                 
-                            if(config){
-                                if(config.values){
-                                    _resolveLookups(config)
-                                        .then(_bindDS.bind(this, tableName, config))
-                                        .catch(function(err){
-                                            console.log(err);
-                                        });             
-                                }else{
-                                    _bindDS(tableName, config);
-                                } 
-                            }else{
-                                throw "noGrid configuration found.";
-                            }  
+                            if(!noGrid) throw "noGrid configuration missing";
+                                                
+                            _bindDS(noGrid.tableName, noGrid); 
                         }            
                     }
                 }
@@ -657,8 +633,9 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
+
+
 //resize.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
@@ -699,6 +676,90 @@
 
 })(angular);
 
+
+
+//menu.js
+(function(angular, undefined){
+    function menuItem(){
+        if(arguments.length == 1 && angular.isObject(arguments[0])){
+            this.title = arguments[0].title;
+            this.state = arguments[0].state;
+            this.glyph = arguments[0].glyph;
+            this.children = []
+        }else if(arguments.length > 1){
+            this.title = arguments[0];
+            this.state = arguments[1];
+            this.children = arguments.length == 3 ? arguments[2] : [];
+        }else{
+            this.title = "";
+            this.state = "";
+            this.children = [];
+        }
+    }    
+
+    function _buildMenuItem(menuItem, el){
+        if(menuItem.title){
+            var li = angular.element("<li></li>"),
+                a = angular.element("<a></a>");
+            
+            a.text(menuItem.title);
+            li.append(a);     
+            el.append(li);
+            
+            if(menuItem.glyph){
+                a.append(menuItem.glyph);
+            }
+            
+            if(menuItem.state){
+                a.attr("ui-sref", menuItem.state);      
+              
+            }else{
+                li.attr("dropdown","");
+                li.addClass("dropdown");
+                a.attr("href", "#");
+                a.attr("dropdown-toggle","");
+                a.addClass("dropdown-toggle");
+
+                if(menuItem.children.length){
+                    var ul = angular.element("<ul class=\"dropdown-menu\" role=\"menu\"></ul>");
+                    li.append(ul);
+                    angular.forEach(menuItem.children, function(childMenu){
+                        _buildMenuItem(childMenu,ul);
+                    });
+                }
+            }
+        }else{
+            if(menuItem.children.length){
+                angular.forEach(menuItem.children, function(childMenu){
+                    _buildMenuItem(childMenu,el);
+                });
+            }            
+        }
+    }
+
+    angular.module("noinfopath.ui")
+        .directive("noAreaMenu", ["noArea", "$compile", "lodash", function(noArea, $compile, _){
+            var directive = {
+                restrict: "A",
+                transclude: true,
+                link: function(scope, el, attrs){
+                    noArea.whenReady()
+                        .then(function(){
+                            _buildMenuItem(new menuItem("","",noArea.menuConfig), el);
+                            $compile(el.contents())(scope);
+                        })
+                }
+            };
+
+            return directive;
+        }])        
+    ;
+
+    var noInfoPath = {};
+    noInfoPath.menuItem  = menuItem;
+    window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
+
+})(angular);
 
 
 //shared-datasource.js

@@ -15,6 +15,7 @@ module.exports = function(grunt) {
 		        	'src/editable-grid.js',
 		        	'src/grid.js',
 		        	'src/resize.js',
+		        	'src/menu.js',
 		        	'src/shared-datasource.js'
 
 		        ],
