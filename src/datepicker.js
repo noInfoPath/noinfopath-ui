@@ -103,6 +103,7 @@
             }
             return {
                 restrict: "E",
+                scope: {},
                 link: function(scope, el, attrs){
                     _buildDatePicker(el,attrs);
                     _configureScope(scope, attrs);
