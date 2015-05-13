@@ -1,5 +1,6 @@
 /*
-	noinfopath-ui@0.0.6
+	noinfopath-ui
+	@version 0.0.7
 */
 
 //globals.js

@@ -16,7 +16,9 @@ module.exports = function(grunt) {
 		        	'src/grid.js',
 		        	'src/resize.js',
 		        	'src/menu.js',
-		        	'src/shared-datasource.js'
+		        	'src/shared-datasource.js',
+		        	'src/datepicker.js',
+		        	'src/lookup'
 
 		        ],
 		        dest: 'dist/noinfopath-ui.js'
@@ -31,15 +33,28 @@ module.exports = function(grunt) {
             singleRun: true,
             browsers: ['PhantomJS']
           }
-        }		
+        },
+        bumpup: {
+        	file: 'package.json'
+    	},
+    	version: {
+    		options: {
+        		prefix: '@version\\s*'
+      		},
+    		defaults: {
+    			src: ['src/globals.js']
+    		}
+    	}		
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-karma');
+	grunt.loadNpmTasks('grunt-bumpup');
+	grunt.loadNpmTasks('grunt-version');
  
 	//Default task(s).
-	grunt.registerTask('build', ['karma:continuous', 'concat:noinfopath']);
+	grunt.registerTask('build', ['bumpup','version','karma:continuous', 'concat:noinfopath']);
 
 };
