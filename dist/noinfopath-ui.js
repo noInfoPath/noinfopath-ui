@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.9
+	@version 0.0.10
 */
 
 //globals.js
@@ -938,20 +938,19 @@
 //lookup.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
-    .directive("noLookup",[ "$compile", "noSessionStorage", function($compile, noSessionStorage){
-        var link = function(scope, el, attrs){
+        .directive("noLookup",[ "$compile", "noSessionStorage", function($compile, noSessionStorage){
+            var link = function(scope, el, attrs){
                 function _buildLookUp(){
-                        var sel = angular.element("<select></select>");
+                    var sel = angular.element("<select></select>");
 
-                        sel.addClass("form-control");
-                        sel.attr("ng-model", attrs.model);
+                    sel.addClass("form-control");
+                    sel.attr("ng-model", attrs.model);
 
-                        var opts = "cat." + attrs.textField + " for cat in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "' track by cat." + attrs.valueField;
+                    var opts = "cat." + attrs.textField + " for cat in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "' track by cat." + attrs.valueField;
 
-                        sel.attr("ng-options", opts);
+                    sel.attr("ng-options", opts);
 
-                        el.append(sel);
-
+                    el.append(sel);
                 }       
 
                 _buildLookUp(); 
@@ -968,14 +967,70 @@
                 // }
 
                 $compile(el.contents())(scope);                 
-        },
+            },
 
-        directive = {
+            directive = {
+                restrict:"E",
+                //scope: {},
+                link:link
+            }
+
+            return directive;
+        }])
+    ;
+})(angular);
+//tabs.js
+
+(function(angular){
+    angular.module("noinfopath.ui")
+        .directive("noTabs",[ "$compile", function($compile){
+            var link = function(scope, el, attrs){
+                var lis = el.find("li"),
+                    pnls = el.find("no-tab-panels").children(),
+                    def = el.find("li.active"), defNdx;
+
+                pnls.addClass("ng-hide");
+
+                angular.forEach(lis, function(li, ndx){
+                    angular.element(li).attr("ndx", ndx);
+                    console.log(ndx, li);
+                })
+
+                lis.click(function(e){
+                    e.preventDefault();
+
+                    var tab = el.find("li.active"),
+                        pnlNdx = Number(tab.attr("ndx")),
+                        pnl = angular.element(pnls[pnlNdx]);
+
+                    tab.toggleClass("active");
+                    pnl.toggleClass("ng-hide");
+
+                    tab = angular.element(e.target).closest("li");
+                    pnlNdx = Number(tab.attr("ndx"))
+                    pnl = angular.element(pnls[pnlNdx]);
+                    
+                    tab.toggleClass("active");
+                    pnl.toggleClass("ng-hide");
+
+                    //console.log()
+                });
+
+                //$compile(el.contents())(scope);                 
+
+                //Show defaul tab panel
+                defNdx = Number(def.attr("ndx"));
+                angular.element(pnls[defNdx]).toggleClass("ng-hide");
+
+            },
+
+            directive = {
                 restrict:"E",
                 link:link
-        }
+            }
 
-        return directive;
+            return directive;
         }])
+
     ;
 })(angular);
