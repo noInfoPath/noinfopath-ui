@@ -18,7 +18,8 @@ module.exports = function(grunt) {
 		        	'src/menu.js',
 		        	'src/shared-datasource.js',
 		        	'src/datepicker.js',
-		        	'src/lookup.js'
+		        	'src/lookup.js',
+		        	'src/tabs.js'
 
 		        ],
 		        dest: 'dist/noinfopath-ui.js'

@@ -1,20 +1,19 @@
 //lookup.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
-    .directive("noLookup",[ "$compile", "noSessionStorage", function($compile, noSessionStorage){
-        var link = function(scope, el, attrs){
+        .directive("noLookup",[ "$compile", "noSessionStorage", function($compile, noSessionStorage){
+            var link = function(scope, el, attrs){
                 function _buildLookUp(){
-                        var sel = angular.element("<select></select>");
+                    var sel = angular.element("<select></select>");
 
-                        sel.addClass("form-control");
-                        sel.attr("ng-model", attrs.model);
+                    sel.addClass("form-control");
+                    sel.attr("ng-model", attrs.model);
 
-                        var opts = "cat." + attrs.textField + " for cat in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "' track by cat." + attrs.valueField;
+                    var opts = "cat." + attrs.textField + " for cat in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "' track by cat." + attrs.valueField;
 
-                        sel.attr("ng-options", opts);
+                    sel.attr("ng-options", opts);
 
-                        el.append(sel);
-
+                    el.append(sel);
                 }       
 
                 _buildLookUp(); 
@@ -31,14 +30,15 @@
                 // }
 
                 $compile(el.contents())(scope);                 
-        },
+            },
 
-        directive = {
+            directive = {
                 restrict:"E",
+                //scope: {},
                 link:link
-        }
+            }
 
-        return directive;
+            return directive;
         }])
     ;
 })(angular);
