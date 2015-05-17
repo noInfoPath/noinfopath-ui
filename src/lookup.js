@@ -4,12 +4,14 @@
         .directive("noLookup",[ "$compile", "noSessionStorage", function($compile, noSessionStorage){
             var link = function(scope, el, attrs){
                 function _buildLookUp(){
-                    var sel = angular.element("<select></select>");
+                    var sel = angular.element("<select></select>"),
+                        modParts = attrs.model.split("."),
+                        modObj = modParts[0] + "._" + modParts[1];
 
                     sel.addClass("form-control");
                     sel.attr("ng-model", attrs.model);
 
-                    var opts = "cat." + attrs.textField + " for cat in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "' track by cat." + attrs.valueField;
+                    var opts = "item." + attrs.valueField + " as item." + attrs.textField + " for item in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "'";
 
                     sel.attr("ng-options", opts);
 
@@ -42,3 +44,4 @@
         }])
     ;
 })(angular);
+

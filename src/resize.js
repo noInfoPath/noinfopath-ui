@@ -35,7 +35,6 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 

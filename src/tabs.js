@@ -1,5 +1,4 @@
 //tabs.js
-
 (function(angular){
     angular.module("noinfopath.ui")
         .directive("noTabs",[ "$compile", function($compile){
@@ -53,3 +52,4 @@
 
     ;
 })(angular);
+

@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.11
+	@version 0.0.12
 */
 
 //globals.js
@@ -16,6 +16,8 @@
 	window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 
 })(angular);
+
+
 //progressbar.js
 (function(angular, undefined){
 	angular.module("noinfopath.ui")
@@ -124,8 +126,9 @@
 	var noInfoPath = {};
 
 	window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
+
+
 //autocomplete.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
@@ -183,9 +186,7 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
-
 
 
 //breadcrumb.js
@@ -489,7 +490,6 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 
@@ -718,7 +718,6 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 
@@ -803,7 +802,6 @@
     var noInfoPath = {};
     noInfoPath.menuItem  = menuItem;
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 
@@ -851,7 +849,6 @@
     var noInfoPath = {};
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
 
@@ -979,18 +976,22 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
+
+
 //lookup.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
         .directive("noLookup",[ "$compile", "noSessionStorage", function($compile, noSessionStorage){
             var link = function(scope, el, attrs){
                 function _buildLookUp(){
-                    var sel = angular.element("<select></select>");
+                    var sel = angular.element("<select></select>"),
+                        modParts = attrs.model.split("."),
+                        modObj = modParts[0] + "._" + modParts[1];
 
                     sel.addClass("form-control");
                     sel.attr("ng-model", attrs.model);
 
-                    var opts = "cat." + attrs.textField + " for cat in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "' track by cat." + attrs.valueField;
+                    var opts = "item." + attrs.valueField + " as item." + attrs.textField + " for item in " + attrs.listSource + " | orderBy : '" + attrs.orderBy + "'";
 
                     sel.attr("ng-options", opts);
 
@@ -1023,8 +1024,9 @@
         }])
     ;
 })(angular);
-//tabs.js
 
+
+//tabs.js
 (function(angular){
     angular.module("noinfopath.ui")
         .directive("noTabs",[ "$compile", function($compile){
@@ -1078,3 +1080,4 @@
 
     ;
 })(angular);
+

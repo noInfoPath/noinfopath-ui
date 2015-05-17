@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.11
+	@version 0.0.12
 */
 
 //globals.js
@@ -16,3 +16,4 @@
 	window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 
 })(angular);
+

@@ -78,6 +78,5 @@
     var noInfoPath = {};
     noInfoPath.menuItem  = menuItem;
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
-
 })(angular);
 
