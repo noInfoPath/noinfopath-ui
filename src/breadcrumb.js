@@ -83,7 +83,8 @@
                         //properties.
                         scope.$on("$stateChangeSuccess", function(e, toState, toParams, fromState, fromParams){
                             //console.log(toState, toParams, fromState, fromParams);
-
+                            return;
+                            
                             var c = config[toState.name];
                             if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
                             if(!c.title) throw "noBreadcrumb.title is a required property in config.json";
@@ -190,5 +191,4 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
 

@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.10
+	@version 0.0.11
 */
 
 //globals.js
@@ -273,7 +273,8 @@
                         //properties.
                         scope.$on("$stateChangeSuccess", function(e, toState, toParams, fromState, fromParams){
                             //console.log(toState, toParams, fromState, fromParams);
-
+                            return;
+                            
                             var c = config[toState.name];
                             if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
                             if(!c.title) throw "noBreadcrumb.title is a required property in config.json";
@@ -380,7 +381,6 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
 
 
 //editable-grid.js
@@ -549,6 +549,39 @@
                         el.kendoGrid(grid);                   
                     }
 
+                    function _makeFilters(filters){
+                        var _filters = [];
+
+                        angular.forEach(filters, function(filter){
+                            var v;
+
+                            if(angular.isObject(filter.value)){
+                                //When it is an object the value is coming
+                                //from a source.
+                                switch(filter.value.source){
+                                    case "state":
+                                        v = $state.params[filter.value.field];
+                                        break;
+                                    case "scope":
+                                        v = scope[filter.value.location][filter.value.field];
+                                        break;
+                                }  
+
+                                if(v){
+                                    v = Number(v) === Number.NaN ? v : Number(v);
+                                    _filters.push({field: filter.field, operator: filter.operator, value: v});                             
+                                }
+                            }else{
+                                //static value
+                                _filters.push(filter);
+                            }
+                        });
+
+                        return _filters;
+                    }
+
+
+
                     function _bindDS(tableName, config){
 
                         var ds = noKendo.makeKendoDataSource(tableName, noIndexedDB, {
@@ -559,10 +592,12 @@
                                 batch: false,
                                 schema: {
                                     model: config.model
-                                },
-                                filter: noKendo.makeKeyPathFiltersFromHashTable($state.params)
+                                }
                             });
 
+                        if(config.filters){
+                            ds.filter = _makeFilters(config.filters);
+                        }
 
                         if(config.sort){
                             ds.sort = config.sort;
@@ -624,7 +659,16 @@
                                 
                             if(!noGrid) throw "noGrid configuration missing";
                                                 
-                            _bindDS(noGrid.tableName, noGrid); 
+                            if(noGrid.waitFor){
+                                scope.$root.$watch(noGrid.waitFor, function(newval, oldval){
+                                    if(newval && newval !== oldval){
+                                        _bindDS(noGrid.tableName, noGrid); 
+                                    }
+                                });
+                            }else{
+                                _bindDS(noGrid.tableName, noGrid); 
+                            }
+                            
                         }            
                     }
                 }
