@@ -91,6 +91,8 @@
                             });  
                         }
 
+                        _bind(_dataSource, gridConfig);
+
                     }
                 }
             };

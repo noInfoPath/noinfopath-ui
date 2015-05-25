@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.14
+	@version 0.0.15
 */
 
 //globals.js
@@ -656,6 +656,8 @@
                             });  
                         }
 
+                        _bind(_dataSource, gridConfig);
+
                     }
                 }
             };
@@ -665,6 +667,7 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
+
 //resize.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
