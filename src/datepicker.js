@@ -1,4 +1,4 @@
-//datepiker.js
+//datepicker.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 

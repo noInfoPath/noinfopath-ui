@@ -2,12 +2,10 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noAutoComplete", ['$parse', '$state', 'noAppStatus', 'noKendo', 'noIndexedDB', function($parse, $state, noAppStatus, noKendo, noIndexedDB){
+        .directive("noAutoComplete", ['$injector', '$parse', '$state', 'noAppStatus', function($injector, $parse, $state, noAppStatus){
             return {
                 restrict: "A",
-                compile: function(el, attrs){
-
-                    
+                compile: function(el, attrs){                    
                     var _ngModel = el.attr("no-ng-model"), 
                         _noNgModel = _ngModel + "_display";
 
@@ -20,23 +18,25 @@
                     el.attr("no-ng-model", _ngModel);
 
                     return function (scope, el, attrs){
-                        //if(!attrs.ngModel) throw "ngModel is a required attribute for noAutoComplete";
-
+                        if(!attrs.noAutoComplete) throw "noAutoComplete requires a value. The value should be noKendo."
+                        if(!attrs.noDataSource) throw "noAutoComplete requires a noDataSource attribute."
+                        
                         noAppStatus.whenReady()
                             .then(_start)
                             .catch(function(err){
                                 console.error(err);
                             });
 
-                        function _bindCtrl(ds, config){
-                            var autoComplete = {
+                        function _bind(ds, config){
+                            var componentBinder = $injector.get(attrs.noAutoComplete);
+
+                            var options = {
                                 valuePrimitive: true, 
-                                dataTextField: config.textField,
+                                dataTextField: attrs.noTextField,
+                                filter: attrs.noComparison,
                                 dataSource: ds,
                                 select: function(e){
-                                    var getter = $parse(attrs.noNgModel),
-                                        setter = getter.assign,
-                                        item = this.dataItem(e.item), 
+                                    var item = this.dataItem(e.item), 
                                         val = item ? item[attrs.noValueField] : undefined,
                                         txt = item ? item[attrs.noTextField]: "";
 
@@ -58,39 +58,18 @@
                             };
                           
                             el.empty();
-                            el.kendoAutoComplete(autoComplete); 
+
+                            componentBinder.noAutoComplete(el, options); 
                         }
 
-                        function _bindDS(tableName, config){
-                            var ds = noKendo.makeKendoDataSource(tableName, noIndexedDB, {
-                                        serverFiltering: true,
-                                        schema: {
-                                            model: config.model
-                                        }
-                                    });
-                            if(config.sort){
-                                ds.sort = config.sort;
-                            }       
-                            _bindCtrl(ds, config);   
-                        }
 
                         function _start(){
-                            if(attrs.noSharedDatasource){
-                                scope.$watch(attrs.noSharedDatasource, function(ds){
-                                    _bindCtrl(ds, config);
-                                });
-                            }else if(attrs.noArea){
-                                var area = attrs.noArea,
-                                    tableName = attrs.noDatasource,
-                                    noTable = noManifest.current.indexedDB[tableName],
-                                    config = noConfig.current[area][tableName];
+                            if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
+                            if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
 
-                                _bindDS(tableName, config);                                
-                            }else{
-                                //Use $state.current.data
-                                var cfg = $state.current.data[attrs.noAutoComplete];
-                                _bindDS(cfg.tableName, cfg);
-                            }
+                            var ds = new window.noInfoPath.noDataSource(attrs.noAutoComplete, $state.current.data.noDataSources[attrs.noDataSource], $state.params, scope);
+
+                            _bind(ds, $state.current.data);
                         }
                     };
 

@@ -2,19 +2,26 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noGrid", ['$state','$q','lodash', 'noConfig', 'noManifest', 'noKendo', 'noIndexedDB', function($state, $q, _, noConfig, noManifest, noKendo, noIndexedDB){
+        .directive("noGrid", ['$injector', '$state','$q','lodash', 'noConfig', 'noManifest', 'noAppStatus', function($injector, $state, $q, _, noConfig, noManifest, noAppStatus){
             return {                
                 link: function(scope, el, attrs){
-                    //Ensure with have a propertly configured application.
+                    if(!attrs.noGrid) throw "noGrid requires a value. The value should be noKendo."
+                    if(!attrs.noDataSource) throw "noGrid requires a noDataSource attribute."
+
+                    var _dataSource, _grid;
+
+                     //Ensure with have a propertly configured application.
                     //In this case a properly configured IndexedDB also.
-                    noIndexedDB.whenReady()
+                    noAppStatus.whenReady()
                         .then(_start)
                         .catch(function(err){
                             console.error(err);
                         });
 
-                    function _bindGrid(ds, config){
-                        var grid = {
+                    function _bind(ds, config){
+                        var componentBinder = $injector.get(attrs.noGrid);
+
+                        var options = {
                             groupable: config.groupable || false,
                             pageSize: config.pageSize || 10,
                             sortable: true,                                
@@ -34,8 +41,8 @@
                                     var tableName = this.dataSource.transport.tableName;
                                     scope.$root.$broadcast("noGrid::change+" + tableName, data);
                                 }                            
-                            }                              
-                        };  
+                            }                                       
+                        };
 
                         if(config.rowTemplate){
                             grid.rowTemplate = kendo.template($(config.rowTemplate).html())
@@ -50,130 +57,40 @@
                         }
 
                         el.empty();
-                        el.kendoGrid(grid);                   
+
+                        _grid = componentBinder.noGrid(el, options); 
                     }
 
-                    function _makeFilters(filters){
-                        var _filters = [];
+                    function _watch(newval, oldval, scope){
+                        if(newval && newval !== oldval){
+                            var filters = window.noInfoPath.bindFilters(this.filter, scope, $state.params)
+                            console.log("watch", this, _grid, filters);
+                            var curFilters = _grid.dataSource.filter();
 
-                        angular.forEach(filters, function(filter){
-                            var v;
-
-                            if(angular.isObject(filter.value)){
-                                //When it is an object the value is coming
-                                //from a source.
-                                switch(filter.value.source){
-                                    case "state":
-                                        v = $state.params[filter.value.field];
-                                        break;
-                                    case "scope":
-                                        v = scope[filter.value.location][filter.value.field];
-                                        break;
-                                }  
-
-                                if(v){
-                                    v = Number(v) === Number.NaN ? v : Number(v);
-                                    _filters.push({field: filter.field, operator: filter.operator, value: v});                             
-                                }
-                            }else{
-                                //static value
-                                _filters.push(filter);
-                            }
-                        });
-
-                        return _filters;
-                    }
-
-
-
-                    function _bindDS(tableName, config){
-
-                        var ds = noKendo.makeKendoDataSource(tableName, noIndexedDB, {
-                                serverFiltering: true, 
-                                serverPaging: true, 
-                                serverSorting: true, 
-                                pageSize: config.pageSize || 10 ,
-                                batch: false,
-                                schema: {
-                                    model: config.model
-                                }
-                            });
-
-                        if(config.filters){
-                            ds.filter = _makeFilters(config.filters);
+                            _grid.dataSource.filter(filters);
                         }
-
-                        if(config.sort){
-                            ds.sort = config.sort;
-                        }
-
-                        _bindGrid(ds, config);
                     }
 
-                    function _resolveLookups(config){
-                        var deferred = $q.defer();
-
-                        function _recurse(){
-                            var luv = config.values.pop(), tbl, col;
-
-                            if(luv){
-                                tbl = noIndexedDB[luv.tableName];
-
-                                tbl.toArray().then(function(resp){
-                                    var data = [];
-                                    _.each(resp, function(item){
-                                        var t = {
-                                            text: item[luv.textField],
-                                            value: item[luv.valueField]
-                                        }
-                                        data.push(t);
-                                    })
-
-                                    col = _.find(config.columns, {field: luv.columnName});
-                                    col.values = data;
-                                    _recurse();
-                                }); 
-                            } else {
-                                deferred.resolve();
-                            }
-                        }
-
-                        _recurse();
-
-                        return deferred.promise;                
-                    }
 
                     function _start(){
-                        //wire up watch on scope variable that contains
-                        //the IndexedDB table to bind to.
-                        if(attrs.noSharedDatasource){
-                            scope.$watch(attrs.noSharedDatasource, function(ds){
+                        if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
+                        if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
+                        if(!$state.current.data.noComponents) throw "Current state is expected to have a noComponents configuration.";
 
-                                var area = attrs.noGridArea,
-                                    tableName = attrs.noSharedDatasource,
-                                    noTable = noManifest.current.indexedDB[tableName],
-                                    config = noConfig.current[area][tableName];
+                        var dsConfig = $state.current.data.noDataSources[attrs.noDataSource],
+                            gridConfig = $state.current.data.noComponents[attrs.noComponent];
 
-                                _bindGrid(ds, config);                                      
+                        _dataSource = new window.noInfoPath.noDataSource(attrs.noGrid, dsConfig, $state.params, scope);
 
-                            });
-                        }else{
-                            var noComponentKey = attrs.noGrid || "noGrid",
-                                noGrid = $state.current.data && $state.current.data ? $state.current.data[noComponentKey] : null;
-                                
-                            if(!noGrid) throw "noGrid configuration missing";
-                                                
-                            if(noGrid.waitFor){
-                                scope.$root.$watch(noGrid.waitFor, function(newval, oldval){
-                                    if(newval && newval !== oldval){
-                                        _bindDS(noGrid.tableName, noGrid); 
-                                    }
-                                });
-                            }else{
-                                _bindDS(noGrid.tableName, noGrid); 
-                            }
-                            
-                        }            
+                        if(dsConfig.filter){
+                            //watch each dynamic filter's property if it is on the scope
+                            angular.forEach(dsConfig.filter, function(fltr){
+                                if(angular.isObject(fltr.value) && fltr.value.source === "scope"){
+                                    scope.$watch(fltr.value.property, _watch.bind(dsConfig));
+                                }
+                            });  
+                        }
+
                     }
                 }
             };
@@ -183,4 +100,3 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-

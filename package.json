@@ -1,6 +1,6 @@
 {
   "name": "noinfopath-ui",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "noInfoPath UI module",
   "main": "noinfopath-ui.js",
   "directories": {
