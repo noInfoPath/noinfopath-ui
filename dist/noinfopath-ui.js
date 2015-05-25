@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.15
+	@version 0.0.16
 */
 
 //globals.js
@@ -977,7 +977,7 @@
                 if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
 
                 var dsConfig = $state.current.data.noDataSources[attrs.noDataSource],
-                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig. $state.params, scope);
+                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope);
 
                 window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
 
@@ -1011,6 +1011,7 @@
         }])
     ;
 })(angular);
+
 //tabs.js
 (function(angular){
     angular.module("noinfopath.ui")
