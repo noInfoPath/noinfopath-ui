@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.16
+	@version 0.0.17
 */
 
 //globals.js
@@ -194,11 +194,11 @@
                         if(!attrs.noAutoComplete) throw "noAutoComplete requires a value. The value should be noKendo."
                         if(!attrs.noDataSource) throw "noAutoComplete requires a noDataSource attribute."
                         
-                        noAppStatus.whenReady()
-                            .then(_start)
-                            .catch(function(err){
-                                console.error(err);
-                            });
+                        // noAppStatus.whenReady()
+                        //     .then(_start)
+                        //     .catch(function(err){
+                        //         console.error(err);
+                        //     });
 
                         function _bind(ds, config){
                             var componentBinder = $injector.get(attrs.noAutoComplete);
@@ -235,7 +235,6 @@
                             componentBinder.noAutoComplete(el, options); 
                         }
 
-
                         function _start(){
                             if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
                             if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
@@ -244,6 +243,8 @@
 
                             _bind(ds, $state.current.data);
                         }
+
+                        _start();
                     };
 
                     
@@ -977,13 +978,22 @@
                 if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
 
                 var dsConfig = $state.current.data.noDataSources[attrs.noDataSource],
-                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope);
-
+                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
+                    req = {
+                        data: {
+                            "sort": [{"field": "Description", "dir": "asc"}]
+                        }
+                    };
+                    
                 window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
 
-                if(attrs.noDataSource){
-                    scope[attrs.noDataSource] = []; //clear out array
-                }
+                ds.transport.read(req)
+                    .then(function(data){
+                        scope[attrs.noDataSource] = data;
+                    })
+                    .catch(function(err){
+                        console.error(err);
+                    })  
             }
 
             function _compile(el, attrs){
