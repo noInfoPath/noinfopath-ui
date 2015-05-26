@@ -57,6 +57,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-version');
  
 	//Default task(s).
-	grunt.registerTask('build', ['bumpup','version','karma:continuous', 'concat:noinfopath']);
+	grunt.registerTask('build', ['karma:continuous', 'bumpup','version','concat:noinfopath']);
 
 };

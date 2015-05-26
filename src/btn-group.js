@@ -25,7 +25,7 @@
             }
 
             function _compile(el, attrs){
-                var template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="{{v.{noValueField}}}">{{v.{noTextField}}}</label></div>';
+                var template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="\'{{v.{noValueField}}}\'">{{v.{noTextField}}}</label></div>';
 
                 angular.forEach(attrs.$attr, function(attr, name){
                     template = template.replace("{" +name + "}",  attrs[name]);
