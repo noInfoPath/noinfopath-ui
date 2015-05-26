@@ -21,11 +21,11 @@
                         if(!attrs.noAutoComplete) throw "noAutoComplete requires a value. The value should be noKendo."
                         if(!attrs.noDataSource) throw "noAutoComplete requires a noDataSource attribute."
                         
-                        noAppStatus.whenReady()
-                            .then(_start)
-                            .catch(function(err){
-                                console.error(err);
-                            });
+                        // noAppStatus.whenReady()
+                        //     .then(_start)
+                        //     .catch(function(err){
+                        //         console.error(err);
+                        //     });
 
                         function _bind(ds, config){
                             var componentBinder = $injector.get(attrs.noAutoComplete);
@@ -62,7 +62,6 @@
                             componentBinder.noAutoComplete(el, options); 
                         }
 
-
                         function _start(){
                             if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
                             if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
@@ -71,6 +70,8 @@
 
                             _bind(ds, $state.current.data);
                         }
+
+                        _start();
                     };
 
                     
