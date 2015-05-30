@@ -12,11 +12,11 @@
 
                      //Ensure with have a propertly configured application.
                     //In this case a properly configured IndexedDB also.
-                    noAppStatus.whenReady()
-                        .then(_start)
-                        .catch(function(err){
-                            console.error(err);
-                        });
+                    // noAppStatus.whenReady()
+                    //     .then(_start)
+                    //     .catch(function(err){
+                    //         console.error(err);
+                    //     });
 
                     function _bind(ds, config){
                         var componentBinder = $injector.get(attrs.noGrid);
@@ -45,15 +45,15 @@
                         };
 
                         if(config.rowTemplate){
-                            grid.rowTemplate = kendo.template($(config.rowTemplate).html())
+                            options.rowTemplate = kendo.template($(config.rowTemplate).html())
                         }
 
                         if(config.altRowTemplate){
-                            grid.altRowTemplate = kendo.template($(config.altRowTemplate).html())
+                            options.altRowTemplate = kendo.template($(config.altRowTemplate).html())
                         }
 
                         if(config.toolbar){
-                            grid.toolbar = kendo.template($(config.toolbar).html());
+                            options.toolbar = kendo.template($(config.toolbar).html());
                         }
 
                         el.empty();
@@ -94,9 +94,11 @@
                         _bind(_dataSource, gridConfig);
 
                     }
+
+                    _start();
                 }
             };
-        }])    
+        }]);    
 
     var noInfoPath = {};
 
