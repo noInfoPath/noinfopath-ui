@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.20
+	@version 0.0.21
 */
 
 //globals.js
@@ -630,7 +630,7 @@
                     function _watch(newval, oldval, scope){
                         if(newval && newval !== oldval){
                             var filters = window.noInfoPath.bindFilters(this.filter, scope, $state.params)
-                            console.log("watch", this, _grid, filters);
+                            //console.log("watch", this, _grid, filters);
                             var curFilters = _grid.dataSource.filter();
 
                             _grid.dataSource.filter(filters);
@@ -983,10 +983,12 @@
                     ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
                     req = {
                         data: {
-                            "sort": [{"field": "Description", "dir": "asc"}]
-                        }
+                            "sort": dsConfig.sort,
+                            "filter": dsConfig.filter
+                        },
+                        expand: dsConfig.expand
                     };
-                    
+
                 window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
 
                 ds.transport.read(req)
@@ -1037,7 +1039,7 @@
 
                 angular.forEach(lis, function(li, ndx){
                     angular.element(li).attr("ndx", ndx);
-                    console.log(ndx, li);
+                    //console.log(ndx, li);
                 })
 
                 lis.click(function(e){
@@ -1079,7 +1081,6 @@
     ;
 })(angular);
 
-
 //btn-group.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")
@@ -1093,8 +1094,10 @@
                     ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
                     req = {
                         data: {
-                            "sort": [{"field": "Description", "dir": "asc"}]
-                        }
+                            "sort": dsConfig.sort,
+                            "filter": dsConfig.filter
+                        },
+                        expand: dsConfig.expand
                     };
 
                 ds.transport.read(req)

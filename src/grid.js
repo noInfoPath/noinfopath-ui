@@ -64,7 +64,7 @@
                     function _watch(newval, oldval, scope){
                         if(newval && newval !== oldval){
                             var filters = window.noInfoPath.bindFilters(this.filter, scope, $state.params)
-                            console.log("watch", this, _grid, filters);
+                            //console.log("watch", this, _grid, filters);
                             var curFilters = _grid.dataSource.filter();
 
                             _grid.dataSource.filter(filters);

@@ -11,7 +11,7 @@
 
                 angular.forEach(lis, function(li, ndx){
                     angular.element(li).attr("ndx", ndx);
-                    console.log(ndx, li);
+                    //console.log(ndx, li);
                 })
 
                 lis.click(function(e){
@@ -52,4 +52,3 @@
 
     ;
 })(angular);
-

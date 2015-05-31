@@ -13,10 +13,12 @@
                     ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
                     req = {
                         data: {
-                            "sort": [{"field": "Description", "dir": "asc"}]
-                        }
+                            "sort": dsConfig.sort,
+                            "filter": dsConfig.filter
+                        },
+                        expand: dsConfig.expand
                     };
-                    
+
                 window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
 
                 ds.transport.read(req)
