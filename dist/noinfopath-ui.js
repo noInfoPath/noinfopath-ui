@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.21
+	@version 0.0.22
 */
 
 //globals.js
@@ -232,7 +232,8 @@
                           
                             el.empty();
 
-                            componentBinder.noAutoComplete(el, options); 
+                            componentBinder.noAutoComplete(el, options);
+                            el.closest("span").removeClass("k-widget k-autocomplete k-header k-state-default form-control"); 
                         }
 
                         function _start(){
@@ -258,7 +259,6 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
 //breadcrumb.js
 (function(angular, undefined){
     angular.module("noinfopath.ui")

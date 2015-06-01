@@ -15,7 +15,7 @@ describe("Testing noLookup directive", function(){
 	}));
 
 
-	it("Should replace the directive with the appropriate html code", function(){
+	xit("Should replace the directive with the appropriate html code", function(){
 		var results = $("<no-lookup model=\"dnasample.DNATestingAgencyID\" list-source=\"LU_VirusTestingAgency\" list-location=\"sessionStorage\" text-field=\"Description\" value-field=\"VirusTestingAgencyID\" order-by=\"VirusTestingAgencyID\"></no-lookup>")($rootscope);
 	
 		$rootscope.digest();
