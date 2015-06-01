@@ -59,7 +59,8 @@
                           
                             el.empty();
 
-                            componentBinder.noAutoComplete(el, options); 
+                            componentBinder.noAutoComplete(el, options);
+                            el.closest("span").removeClass("k-widget k-autocomplete k-header k-state-default form-control"); 
                         }
 
                         function _start(){
