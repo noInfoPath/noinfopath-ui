@@ -24,6 +24,7 @@
                         var options = {
                             groupable: config.groupable || false,
                             pageSize: config.pageSize || 10,
+                            pageable: config.pageable || false,
                             sortable: true,                                
                             scrollable: {virtual: true},
                             selectable: "row",

@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.22
+	@version 0.0.23
 */
 
 //globals.js
@@ -590,6 +590,7 @@
                         var options = {
                             groupable: config.groupable || false,
                             pageSize: config.pageSize || 10,
+                            pageable: config.pageable || false,
                             sortable: true,                                
                             scrollable: {virtual: true},
                             selectable: "row",
