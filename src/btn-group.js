@@ -17,6 +17,8 @@
                         expand: dsConfig.expand
                     };
 
+                window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
+
                 ds.transport.read(req)
                     .then(function(data){
                         scope[attrs.noDataSource] = data;
