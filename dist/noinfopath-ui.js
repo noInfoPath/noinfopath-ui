@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.23
+	@version 0.0.24
 */
 
 //globals.js
@@ -1100,6 +1100,8 @@
                         },
                         expand: dsConfig.expand
                     };
+
+                window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
 
                 ds.transport.read(req)
                     .then(function(data){
