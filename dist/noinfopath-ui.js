@@ -857,26 +857,27 @@
                     button = angular.element("<button></button>"),
                     span = angular.element("<span></span>");
 
-                    p.addClass("input-group");
+                    //p.addClass("input-group");
                     input.attr("type","text");
-                    input.attr("datepicker-popup","{{dateFormat}}");
-                    input.attr("is-open","opened");
-                    input.attr("datepicker-options","{{dateOptions}}");
-                    input.attr("ng-required","true"); 
-                    input.attr("close-text","{{closeText}}");
-                    input.attr("ng-model",attrs.model);
+                    input.attr("kendo-date-picker", "");
+                    //input.attr("datepicker-popup","{{dateFormat}}");
+                    //input.attr("is-open","opened");
+                    //input.attr("datepicker-options","{{dateOptions}}");
+                    //input.attr("ng-required","true"); 
+                    //input.attr("close-text","{{closeText}}");
+                    input.attr("k-ng-model",attrs.model);
                     input.addClass("form-control");
-                    span.addClass("input-group-btn");
-                    button.addClass("btn btn-default");
-                    button.attr("ng-click", "open($event)");
-                    i.addClass("glyphicon glyphicon-calendar");
+                    //span.addClass("input-group-btn");
+                    //button.addClass("btn btn-default");
+                    //button.attr("ng-click", "open($event)");
+                    //i.addClass("glyphicon glyphicon-calendar");
 
-                    button.append(i);
-                    span.append(button);
-                    p.append(input);
-                    p.append(span);
+                    //button.append(i);
+                    //span.append(button);
+                    //p.append(input);
+                    //p.append(span);
 
-                    el.append(p);
+                    el.append(input);
 
             }
 
@@ -1018,7 +1019,7 @@
 
             directive = {
                 restrict:"EA",
-                //scope: {},
+                scope: {},
                 compile: _compile
             }
 

@@ -5,15 +5,15 @@
 
 //globals.js
 (function(angular, undefined){
-	angular.module("noinfopath.ui", [
-		'ngLodash', 
-		'noinfopath.helpers', 
-		'noinfopath.kendo'
-	])
+    angular.module("noinfopath.ui", [
+        'ngLodash', 
+        'noinfopath.helpers', 
+        'noinfopath.kendo'
+    ])
 
         .run(["$injector", function($injector){
             var noInfoPath = {
-                watchFiltersOnScope: function(attrs, dsConfig, ds, scope, $state){
+                watchFiltersOnScope: function(attrs, dsConfig, ds, scope, $state, operation){
                     function _watch(newval, oldval, scope){
                         console.log("watch", newval, oldval);
 
@@ -31,7 +31,7 @@
                                     }
                                 });
 
-                            ds.transport.read(options)
+                            ds.transport[operation || "read"](options)
                                 .then(function(data){
                                     scope[attrs.noDataSource] = data;
                                 })  

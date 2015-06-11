@@ -2,7 +2,7 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noDatePicker", ['$state', '$compile', 'noAppStatus', function($state, $compile, noAppStatus){
+        .directive("noDatePicker", ['$state', '$parse', 'noAppStatus', function($state, $parse, noAppStatus){
 
             function _buildDatePicker(el, attrs) {
                 var p = angular.element("<p></p>"),
@@ -11,26 +11,26 @@
                     button = angular.element("<button></button>"),
                     span = angular.element("<span></span>");
 
-                    p.addClass("input-group");
                     input.attr("type","text");
-                    input.attr("datepicker-popup","{{dateFormat}}");
-                    input.attr("is-open","opened");
-                    input.attr("datepicker-options","{{dateOptions}}");
-                    input.attr("ng-required","true"); 
-                    input.attr("close-text","{{closeText}}");
-                    input.attr("ng-model",attrs.model);
+                    input.attr("kendo-date-picker", "");
+                    //input.attr("datepicker-popup","{{dateFormat}}");
+                    //input.attr("is-open","opened");
+                    //input.attr("datepicker-options","{{dateOptions}}");
+                    //input.attr("ng-required","true"); 
+                    //input.attr("close-text","{{closeText}}");
+                    input.attr("k-ng-model",attrs.model);
                     input.addClass("form-control");
-                    span.addClass("input-group-btn");
-                    button.addClass("btn btn-default");
-                    button.attr("ng-click", "open($event)");
-                    i.addClass("glyphicon glyphicon-calendar");
+                    //span.addClass("input-group-btn");
+                    //button.addClass("btn btn-default");
+                    //button.attr("ng-click", "open($event)");
+                    //i.addClass("glyphicon glyphicon-calendar");
 
-                    button.append(i);
-                    span.append(button);
-                    p.append(input);
-                    p.append(span);
+                    //button.append(i);
+                    //span.append(button);
+                    //p.append(input);
+                    //p.append(span);
 
-                    el.append(p);
+                    el.append(input);
 
             }
 
@@ -101,18 +101,16 @@
                     return '';
                   };
             }
+
+
             return {
                 restrict: "E",
                 scope: {},
-                link: function(scope, el, attrs){
+                compile: function(el, attrs){
                     _buildDatePicker(el,attrs);
-                    _configureScope(scope, attrs);
-
-                    $compile(el.contents())(scope);
-                    // scope.$parent.$on("noSubmit::dataReady", function(e, elm, scope){
-                    //     var noForm = attrs.noForm || "noDatePicker";
-                    //     console.warn("TODO: Implement save form data", scope[noForm]);
-                    // }.bind($state));
+                    return function(scope, el, attrs){
+                        //_configureScope(scope, attrs);
+                    }
                 }
             }
         }])
@@ -121,4 +119,3 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
