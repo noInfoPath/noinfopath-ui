@@ -1,19 +1,19 @@
 /*
 	noinfopath-ui
-	@version 0.0.24
+	@version 0.0.25
 */
 
 //globals.js
 (function(angular, undefined){
-	angular.module("noinfopath.ui", [
-		'ngLodash', 
-		'noinfopath.helpers', 
-		'noinfopath.kendo'
-	])
+    angular.module("noinfopath.ui", [
+        'ngLodash', 
+        'noinfopath.helpers', 
+        'noinfopath.kendo'
+    ])
 
         .run(["$injector", function($injector){
             var noInfoPath = {
-                watchFiltersOnScope: function(attrs, dsConfig, ds, scope, $state){
+                watchFiltersOnScope: function(attrs, dsConfig, ds, scope, $state, operation){
                     function _watch(newval, oldval, scope){
                         console.log("watch", newval, oldval);
 
@@ -31,7 +31,7 @@
                                     }
                                 });
 
-                            ds.transport.read(options)
+                            ds.transport[operation || "read"](options)
                                 .then(function(data){
                                     scope[attrs.noDataSource] = data;
                                 })  
@@ -848,7 +848,7 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noDatePicker", ['$state', '$compile', 'noAppStatus', function($state, $compile, noAppStatus){
+        .directive("noDatePicker", ['$state', '$parse', 'noAppStatus', function($state, $parse, noAppStatus){
 
             function _buildDatePicker(el, attrs) {
                 var p = angular.element("<p></p>"),
@@ -857,7 +857,6 @@
                     button = angular.element("<button></button>"),
                     span = angular.element("<span></span>");
 
-                    //p.addClass("input-group");
                     input.attr("type","text");
                     input.attr("kendo-date-picker", "");
                     //input.attr("datepicker-popup","{{dateFormat}}");
@@ -948,18 +947,16 @@
                     return '';
                   };
             }
+
+
             return {
                 restrict: "E",
                 scope: {},
-                link: function(scope, el, attrs){
+                compile: function(el, attrs){
                     _buildDatePicker(el,attrs);
-                    _configureScope(scope, attrs);
-
-                    $compile(el.contents())(scope);
-                    // scope.$parent.$on("noSubmit::dataReady", function(e, elm, scope){
-                    //     var noForm = attrs.noForm || "noDatePicker";
-                    //     console.warn("TODO: Implement save form data", scope[noForm]);
-                    // }.bind($state));
+                    return function(scope, el, attrs){
+                        //_configureScope(scope, attrs);
+                    }
                 }
             }
         }])
@@ -968,7 +965,6 @@
 
     window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
 
 //lookup.js
 (function(angular, undefined){
@@ -1019,7 +1015,7 @@
 
             directive = {
                 restrict:"EA",
-                scope: {},
+                //scope: {},
                 compile: _compile
             }
 
