@@ -5,6 +5,19 @@ module.exports = function(grunt) {
   	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
+        copy: {
+			test: {
+				files: [
+					//{expand:true, flatten:false, src: [ 'lib/js/noinfopath/*.*'], dest: 'build/'},
+					{
+						expand: true,
+						flatten: true,
+						src: ['dist/*.js'],
+						dest: '../noinfopath-test-server-node/no/lib/js/noinfopath/'
+					},
+				]
+			}
+		},
 	    concat: {
 		    noinfopath: {
 		        src: [
@@ -58,5 +71,6 @@ module.exports = function(grunt) {
 
 	//Default task(s).
 	grunt.registerTask('build', ['karma:continuous', 'bumpup','version','concat:noinfopath']);
+    grunt.registerTask('notest', ['concat:noinfopath', 'copy:test']);
 
 };
