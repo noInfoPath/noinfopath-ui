@@ -1,14 +1,13 @@
 /*
 	noinfopath-ui
-	@version 0.0.26
+	@version 0.0.27
 */
 
 //globals.js
 (function(angular, undefined){
     angular.module("noinfopath.ui", [
-        'ngLodash', 
-        'noinfopath.helpers', 
-        'noinfopath.kendo'
+        'ngLodash',
+        'noinfopath.helpers'
     ])
 
         .run(["$injector", function($injector){
@@ -34,10 +33,10 @@
                             ds.transport[operation || "read"](options)
                                 .then(function(data){
                                     scope[attrs.noDataSource] = data;
-                                })  
-                                .catch(function(err){       
+                                })
+                                .catch(function(err){
                                     console.error(err);
-                                });                                   
+                                });
                         }
                     }
 
