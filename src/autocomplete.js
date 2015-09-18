@@ -5,8 +5,8 @@
         .directive("noAutoComplete", ['$injector', '$parse', '$state', 'noAppStatus', function($injector, $parse, $state, noAppStatus){
             return {
                 restrict: "A",
-                compile: function(el, attrs){                    
-                    var _ngModel = el.attr("no-ng-model"), 
+                compile: function(el, attrs){
+                    var _ngModel = el.attr("no-ng-model"),
                         _noNgModel = _ngModel + "_display";
 
                     if(!_ngModel) throw "noAutoComplete requires attribite ng-model.";
@@ -18,9 +18,9 @@
                     el.attr("no-ng-model", _ngModel);
 
                     return function (scope, el, attrs){
-                        if(!attrs.noAutoComplete) throw "noAutoComplete requires a value. The value should be noKendo."
-                        if(!attrs.noDataSource) throw "noAutoComplete requires a noDataSource attribute."
-                        
+                        if(!attrs.noAutoComplete) throw "noAutoComplete requires a value. The value should be noKendo.";
+                        if(!attrs.noDataSource) throw "noAutoComplete requires a noDataSource attribute.";
+
                         // noAppStatus.whenReady()
                         //     .then(_start)
                         //     .catch(function(err){
@@ -31,12 +31,12 @@
                             var componentBinder = $injector.get(attrs.noAutoComplete);
 
                             var options = {
-                                valuePrimitive: true, 
+                                valuePrimitive: true,
                                 dataTextField: attrs.noTextField,
                                 filter: attrs.noComparison,
                                 dataSource: ds,
                                 select: function(e){
-                                    var item = this.dataItem(e.item), 
+                                    var item = this.dataItem(e.item),
                                         val = item ? item[attrs.noValueField] : undefined,
                                         txt = item ? item[attrs.noTextField]: "";
 
@@ -46,21 +46,21 @@
                                         window.noInfoPath.setItem(scope, attrs.ngModel, txt);
                                     });
 
-                                   // scope[attrs.noNgModel] = 
+                                   // scope[attrs.noNgModel] =
                                 },
                                 change: function(e){
                                     //scope.coolertrial.SelectionID = scope.coolertrial.SelectionID_.SelectionID;
                                     if(el.val() != window.noInfoPath.getItem(scope, attrs.ngModel)){
                                         window.noInfoPath.setItem(scope, attrs.noNgModel, undefined);
-                                        window.noInfoPath.setItem(scope, attrs.ngModel, "");                                       
+                                        window.noInfoPath.setItem(scope, attrs.ngModel, "");
                                     }
-                                }                     
+                                }
                             };
-                          
+
                             el.empty();
 
                             componentBinder.noAutoComplete(el, options);
-                            el.closest("span").removeClass("k-widget k-autocomplete k-header k-state-default form-control"); 
+                            el.closest("span").removeClass("k-widget k-autocomplete k-header k-state-default form-control");
                         }
 
                         function _start(){
@@ -75,14 +75,10 @@
                         _start();
                     };
 
-                    
+
                 }
 
-            }
+            };
         }])
     ;
-
-    var noInfoPath = {};
-
-    window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);

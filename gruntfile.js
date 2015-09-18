@@ -5,19 +5,32 @@ module.exports = function(grunt) {
   	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
+        copy: {
+			test: {
+				files: [
+					//{expand:true, flatten:false, src: [ 'lib/js/noinfopath/*.*'], dest: 'build/'},
+					{
+						expand: true,
+						flatten: true,
+						src: ['dist/*.js'],
+						dest: '../noinfopath-test-server-node/no/lib/js/noinfopath/'
+					},
+				]
+			}
+		},
 	    concat: {
 		    noinfopath: {
 		        src: [
 		        	'src/globals.js',
 		        	'src/progressbar.js',
-		        	'src/autocomplete.js',
+		        	//'src/autocomplete.js',
 		        	'src/breadcrumb.js',
-		        	'src/editable-grid.js',
-		        	'src/grid.js',
+		        	//'src/editable-grid.js',
+		        	//'src/grid.js',
 		        	'src/resize.js',
 		        	'src/menu.js',
 		        	'src/shared-datasource.js',
-		        	'src/datepicker.js',
+		        	//'src/datepicker.js',
 		        	'src/lookup.js',
 		        	'src/tabs.js',
 		        	'src/btn-group.js'
@@ -46,7 +59,7 @@ module.exports = function(grunt) {
     		defaults: {
     			src: ['src/globals.js']
     		}
-    	}		
+    	}
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-concat');
@@ -55,8 +68,9 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-karma');
 	grunt.loadNpmTasks('grunt-bumpup');
 	grunt.loadNpmTasks('grunt-version');
- 
+
 	//Default task(s).
 	grunt.registerTask('build', ['karma:continuous', 'bumpup','version','concat:noinfopath']);
+    grunt.registerTask('notest', ['concat:noinfopath', 'copy:test']);
 
 };
