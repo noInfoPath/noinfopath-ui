@@ -59,7 +59,13 @@ module.exports = function(grunt) {
     		defaults: {
     			src: ['src/globals.js']
     		}
-    	}
+    	},
+        watch: {
+            dev: {
+              files: ['src/**/*.*', 'lib/js/noinfopath/*.*'],
+              tasks: ['notest']
+            }
+        }
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-concat');

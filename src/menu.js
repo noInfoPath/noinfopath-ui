@@ -1,6 +1,6 @@
 //menu.js
 (function(angular, undefined){
-    function menuItem(){
+    function MenuItem(){
         if(arguments.length == 1 && angular.isObject(arguments[0])){
             this.title = arguments[0].title;
             this.state = arguments[0].state;
@@ -16,6 +16,7 @@
             this.children = [];
         }
     }
+    noInfoPath.ui.MenuItem = MenuItem;
 
     function _buildMenuItem(menuItem, el){
         if(menuItem.title){
@@ -65,7 +66,7 @@
                 link: function(scope, el, attrs){
                     noArea.whenReady()
                         .then(function(){
-                            _buildMenuItem(new menuItem("","",noArea.menuConfig), el);
+                            _buildMenuItem(new MenuItem("","",noArea.menuConfig), el);
                             $compile(el.contents())(scope);
                         });
                 }
