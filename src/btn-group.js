@@ -25,7 +25,7 @@
                     })
                     .catch(function(err){
                         console.error(err);
-                    })                
+                    });
             }
 
             function _compile(el, attrs){
@@ -33,8 +33,8 @@
 
                 angular.forEach(attrs.$attr, function(attr, name){
                     template = template.replace("{" +name + "}",  attrs[name]);
-                })
-                              
+                });
+
                 el.append(angular.element(template));
 
                 return _link;
@@ -44,7 +44,7 @@
                 restrict:"EA",
                 //scope: {},
                 compile: _compile
-            }
+            };
 
             return directive;
         }])

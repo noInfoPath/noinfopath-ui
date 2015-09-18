@@ -1,6 +1,6 @@
 /*
 	noinfopath-ui
-	@version 0.0.28
+	@version 0.0.29
 */
 
 //globals.js
@@ -52,8 +52,6 @@
                     }
                 }
             };
-
-            window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 
         }])
     ;

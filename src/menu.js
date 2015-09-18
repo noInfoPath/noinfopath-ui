@@ -5,7 +5,7 @@
             this.title = arguments[0].title;
             this.state = arguments[0].state;
             this.glyph = arguments[0].glyph;
-            this.children = []
+            this.children = [];
         }else if(arguments.length > 1){
             this.title = arguments[0];
             this.state = arguments[1];
@@ -15,24 +15,24 @@
             this.state = "";
             this.children = [];
         }
-    }    
+    }
 
     function _buildMenuItem(menuItem, el){
         if(menuItem.title){
             var li = angular.element("<li></li>"),
                 a = angular.element("<a></a>");
-            
+
             a.text(menuItem.title);
-            li.append(a);     
+            li.append(a);
             el.append(li);
-            
+
             if(menuItem.glyph){
                 a.append(menuItem.glyph);
             }
-            
+
             if(menuItem.state){
-                a.attr("ui-sref", menuItem.state);      
-              
+                a.attr("ui-sref", menuItem.state);
+
             }else{
                 li.attr("dropdown","");
                 li.addClass("dropdown");
@@ -53,7 +53,7 @@
                 angular.forEach(menuItem.children, function(childMenu){
                     _buildMenuItem(childMenu,el);
                 });
-            }            
+            }
         }
     }
 
@@ -67,16 +67,12 @@
                         .then(function(){
                             _buildMenuItem(new menuItem("","",noArea.menuConfig), el);
                             $compile(el.contents())(scope);
-                        })
+                        });
                 }
             };
 
             return directive;
-        }])        
+        }])
     ;
 
-    var noInfoPath = {};
-    noInfoPath.menuItem  = menuItem;
-    window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-

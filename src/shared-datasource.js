@@ -21,27 +21,22 @@
                             config = noConfig.current[area][tableName];
 
                          var ds =  noKendo.makeKendoDataSource(tableName, noIndexedDB, {
-                            serverFiltering: true, 
-                            serverPaging: true, 
-                            serverSorting: true, 
+                            serverFiltering: true,
+                            serverPaging: true,
+                            serverSorting: true,
                             pageSize: config.pageSize || 10 ,
                             batch: false,
                             schema: {
                                 model: config.model
                             },
                             filter: noKendo.makeKeyPathFiltersFromHashTable($state.params)
-                        });   
+                        });
 
-                        scope.$parent[tableName] = new kendo.data.DataSource(ds);                   
+                        scope.$parent[tableName] = new kendo.data.DataSource(ds);
                     }
                 }
-            }
+            };
         }])
 
     ;
-    var noInfoPath = {};
-
-    window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
-

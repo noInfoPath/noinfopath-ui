@@ -6,7 +6,7 @@
             var link = function(scope, el, attr){
                     el.css("height", (window.innerHeight - Number(attr.noResize ? attr.noResize : 90)) + "px");
                     //console.log("height: ", el.height());
-                    
+
                     scope.onResizeFunction = function() {
                         scope.windowHeight = window.innerHeight;
                         scope.windowWidth = window.innerWidth;
@@ -20,7 +20,7 @@
                     angular.element(window).bind('resize', function() {
                         scope.onResizeFunction();
                         scope.$apply();
-                    });             
+                    });
                 },
                 dir = {
                     restrict: "A",
@@ -29,12 +29,6 @@
 
             return dir;
         }])
-    
+
     ;
-    
-    var noInfoPath = {};
-
-    window.noInfoPath = angular.extend(window.noInfoPath || {}, noInfoPath);
 })(angular);
-
-
