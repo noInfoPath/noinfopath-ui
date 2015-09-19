@@ -13,7 +13,7 @@ module.exports = function(grunt) {
 						expand: true,
 						flatten: true,
 						src: ['dist/*.js'],
-						dest: '../noinfopath-test-server-node/no/lib/js/noinfopath/'
+						dest: '/Users/gochinj/ws/fcfn/fcfn-wip-0.7/fcfn-varietydev-forms/lib/js/noinfopath'
 					},
 				]
 			}

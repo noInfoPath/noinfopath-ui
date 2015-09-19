@@ -6,7 +6,7 @@
 //globals.js
 (function(angular, undefined){
     noInfoPath.ui = {};
-    
+
     angular.module("noinfopath.ui", [
         'ngLodash',
         'noinfopath.helpers'

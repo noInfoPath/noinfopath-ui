@@ -6,7 +6,7 @@
 //globals.js
 (function(angular, undefined){
     noInfoPath.ui = {};
-    
+
     angular.module("noinfopath.ui", [
         'ngLodash',
         'noinfopath.helpers'
@@ -132,8 +132,8 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noBreadcrumb", ['$q', '$state', 'noConfig', 'noIndexedDB', function($q, $state, noConfig, _noIndexedDB_){
-            function noBreadcrumb($state, config){
+        .directive("noBreadcrumb", ['$q', '$state', 'noConfig', '$injector', function($q, $state, noConfig, $injector){
+            function NoBreadcrumb($state, config){
 
                 var state = $state, _states = {},
                 _index = [],
@@ -144,7 +144,7 @@
                 this.update = function (toState){
                     var state = toState;
                    _visible = [];
-                   
+
                    for(var i in _index){
                         var item = _index[i];
                         _visible.push(item);
@@ -194,7 +194,7 @@
                 link: function(scope, el, attrs){
                     var state = $state,
                         q = $q,
-                        noIndexedDB = _noIndexedDB_,
+                        db = $injector.get(attrs.noProvider),
                         scopeKey;
 
                     function _start(){
@@ -207,7 +207,7 @@
                         //`noConfig.current.settings` should have a property with a name
                         //that matches `scopeKey`.
                         config = noConfig.current.settings[scopeKey];
-                        scope.noBreadcrumb = new noBreadcrumb($state, config);
+                        scope.noBreadcrumb = new NoBreadcrumb($state, config);
 
                         //whenever ui-router broadcasts the $stateChangeSuccess event
                         //noBreadcrumb will refresh itself based on the current state's
@@ -230,7 +230,7 @@
                                 //is derrived from a database record.  Resolve the
                                 //record before updating the scope.noBreadcrumb
                                 //object.
-                                var _table = noIndexedDB[c.title.dataSource],
+                                var _table = db[c.title.dataSource],
                                     _field = c.title.valueField,
                                     _value = toParams[c.title.valueField],
                                     req = new noInfoPath.noDataReadRequest(q, _table);
@@ -263,7 +263,7 @@
                                 scope[scopeKey].update(toState);
                                 _refresh();
                             }
-                        })
+                        });
                     }
 
                     function _refresh(){
@@ -294,25 +294,25 @@
 
 
                             if(i === this.current.length - 1){
-                                 ol.append("<li>" + title + "</li>")
+                                 ol.append("<li>" + title + "</li>");
                             }else{
                                 if(url){
                                     ol.append("<li><a href=\"" + url + "\">" + title + "</a></li>");
                                 }else{
-                                    ol.append("<li>" + title + "</li>")
+                                    ol.append("<li>" + title + "</li>");
                                 }
                             }
 
                         },scope.noBreadcrumb);
                     }
 
-                    noIndexedDB.whenReady()
-                        .then(_start)
-                        .catch(function(err){
-                            console.error(err);
-                        });
+                    // db.whenReady()
+                    //     .then(_start)
+                    //     .catch(function(err){
+                    //         console.error(err);
+                    //     });
                 }
-            }
+            };
 
             return directive;
         }]);
