@@ -28,8 +28,6 @@ module.exports = function(config) {
         'node_modules/noinfopath-data/node_modules/noinfopath-logger/dist/noinfopath-logger.js',
         'src/globals.js',
         'src/menu.js',
-        'src/progressbar.js',
-        'src/resize.js',
         'test/mock/*.*',
         'test/menu.spec.js'
     ],
@@ -42,20 +40,21 @@ module.exports = function(config) {
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-        'src/*.js': 'coverage'
-    },
+    // preprocessors: {
+    //     'src/*.js': 'coverage'
+    // },
 
-    coverageReporter: {
-        type: 'cobertura',
-        dir: 'coverage/'
-    },
+    // coverageReporter: {
+    //     type: 'cobertura',
+    //     dir: 'coverage/'
+    // },
 
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['verbose','coverage'],
+    //reporters: ['verbose','coverage'],
+    reporters: ['verbose'],
 
 
     // web server port

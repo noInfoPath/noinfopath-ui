@@ -1,10 +1,13 @@
 /*
-	noinfopath-ui
-	@version 0.0.29
+ *  # noinfopath.ui
+ *
+ *  > @version 0.0.30
 */
 
 //globals.js
 (function(angular, undefined){
+    noInfoPath.ui = {};
+
     angular.module("noinfopath.ui", [
         'ngLodash',
         'noinfopath.helpers'
@@ -54,5 +57,7 @@
             };
 
         }])
+
+
     ;
 })(angular);
