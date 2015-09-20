@@ -43,6 +43,9 @@ module.exports = function(grunt) {
           unit: {
             configFile: "karma.conf.js"
           },
+          menu: {
+            configFile: "karma.conf.menu.js",
+          },
           continuous: {
             configFile: 'karma.conf.js',
             singleRun: true,
@@ -62,8 +65,8 @@ module.exports = function(grunt) {
     	},
         watch: {
             dev: {
-              files: ['src/**/*.*', 'lib/js/noinfopath/*.*'],
-              tasks: ['notest']
+              files: ['src/**/*.*', 'test/**/*.spec.js'],
+              tasks: ['test-menu']
             }
         }
 	});
@@ -78,5 +81,7 @@ module.exports = function(grunt) {
 	//Default task(s).
 	grunt.registerTask('build', ['karma:continuous', 'bumpup','version','concat:noinfopath']);
     grunt.registerTask('notest', ['concat:noinfopath', 'copy:test']);
+    grunt.registerTask('test-menu', ['karma:menu']);
+
 
 };
