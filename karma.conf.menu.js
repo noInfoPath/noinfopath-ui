@@ -20,7 +20,7 @@ module.exports = function(config) {
         'node_modules/angular-mocks/angular-mocks.js',
         'bower_components/ng-lodash/build/ng-lodash.js',
         'bower_components/angular-ui-router/release/angular-ui-router.js',
-        'lib/js/kendo/kendo.all.min.js',
+//        'lib/js/kendo/kendo.all.min.js',
         'node_modules/noinfopath/dist/noinfopath.js',
         'node_modules/noinfopath-helpers/src/noinfopath-helpers.js',
         'node_modules/noinfopath-data/dist/noinfopath-dexie.js',

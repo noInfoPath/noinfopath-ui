@@ -1,6 +1,6 @@
 {
   "name": "noinfopath-ui",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "noInfoPath UI module",
   "main": "noinfopath-ui.js",
   "directories": {
@@ -23,6 +23,7 @@
     "grunt-contrib-copy": "^0.8.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-karma": "^0.10.1",
+    "grunt-nodocs": "0.0.11",
     "grunt-version": "^1.0.0",
     "jasmine-ajax": "^3.0.0",
     "jasmine-core": "^2.1.3",

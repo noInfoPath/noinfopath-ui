@@ -1,6 +1,7 @@
 /*
-	noinfopath-ui
-	@version 0.0.29
+ *  # noinfopath.ui
+ *
+ *  > @version 0.0.30
 */
 
 //globals.js
@@ -415,34 +416,35 @@
         }
     }
 
+    var $httpProviderRef, $stateProviderRef;
+
     angular.module("noinfopath.ui")
+        .config(['$httpProvider', '$stateProvider', function($httpProvider, $stateProvider){
+            $httpProviderRef = $httpProvider;
+            $stateProviderRef = $stateProvider;
+        }])
+
         .provider("noArea", [function(){
             var _menuConfig = [];
 
-            function NoArea($state, $rootScope, $q, noConfig, noAppStatus, _, noMenuData){
+            function NoArea($state, $rootScope, $q, noConfig, _, noMenuData){
 
                 function _noMenuRecurse(root, menu){
                     var m;
                     if(root.noMenu){
-                        if(noAppStatus.hasRequiredStatus(root.noMenu.noAppStatus))
-                        {
-                            menu.push(m = new MenuItem(root.noMenu));
+                        menu.push(m = new MenuItem(root.noMenu));
 
-                            if(root.noMenu.state){
-                                angular.noop();
-                            }else{
-                                angular.forEach(root.childAreas, function(area, name){
-                                    if(area.noMenu){
-                                        if(noAppStatus.hasRequiredStatus(area.noMenu.noAppStatus))
-                                        {
-                                            m.children.push(new MenuItem(area.noMenu));
-                                        }
-                                        // if(area.childAreas && area.childAreas.length > 0){
-                                        // 	_noMenuRecurse(area, menu);
-                                        // }
-                                    }
-                                });
-                            }
+                        if(root.noMenu.state){
+                            angular.noop();
+                        }else{
+                            angular.forEach(root.childAreas, function(area, name){
+                                if(area.noMenu){
+                                        m.children.push(new MenuItem(area.noMenu));
+                                    // if(area.childAreas && area.childAreas.length > 0){
+                                    // 	_noMenuRecurse(area, menu);
+                                    // }
+                                }
+                            });
                         }
 
                     }else{
@@ -500,20 +502,19 @@
                 }
 
                 this.whenReady = function(){
-                    var deferred = $q.defer();
-                    if($rootScope.noAreaReady){
-                        deferred.resolve();
-                    }else{
-                        $rootScope.$watch("noAreaReady", function(newval){
-                            if(newval){
-                                deferred.resolve();
-                            }
-                        });
+                    return $q(function(resolve, reject){
+                        if($rootScope.noAreaReady){
+                            resolve();
+                        }else{
+                            $rootScope.$watch("noAreaReady", function(newval){
+                                if(newval){
+                                    resolve();
+                                }
+                            });
 
-                        _start();
-                    }
-
-                    return deferred.promise;
+                            _start();
+                        }
+                    });
                 };
 
                 Object.defineProperties(this, {
@@ -523,21 +524,20 @@
                 });
             }
 
-            this.$get = ['$state','$rootScope', '$q', 'noConfig', 'noAppStatus', 'lodash', function($state, $rootScope, $q, noConfig, noAppStatus, _){
-                return new NoArea($state, $rootScope, $q, noConfig, noAppStatus, _, _menuConfig);
+            this.$get = ['$state','$rootScope', '$q', 'noConfig', 'lodash', function($state, $rootScope, $q, noConfig, _){
+                return new NoArea($state, $rootScope, $q, noConfig, _, _menuConfig);
             }];
         }])
-    
+
         .directive("noAreaMenu", ["noArea", "$compile", "lodash", function(noArea, $compile, _){
             var directive = {
                 restrict: "A",
                 transclude: true,
-                link: function(scope, el, attrs){
-                    noArea.whenReady()
-                        .then(function(){
-                            _buildMenuItem(new MenuItem("","",noArea.menuConfig), el);
-                            $compile(el.contents())(scope);
-                        });
+                compile: function(el, attrs){
+                    _buildMenuItem(new MenuItem("","",noArea.menuConfig), el);
+
+                    return function(scope, el, attrs){
+                    };
                 }
             };
 

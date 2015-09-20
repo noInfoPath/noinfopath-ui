@@ -1,6 +1,7 @@
 /*
-	noinfopath-ui
-	@version 0.0.29
+ *  # noinfopath.ui
+ *
+ *  > @version 0.0.30
 */
 
 //globals.js
