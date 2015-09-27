@@ -2,48 +2,48 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noBtnGroup",["$compile", "$state", "noSessionStorage", function($compile, $state, noSessionStorage){
+        .directive("noBtnGroup",["$compile", "noConfig", "noDataSource", function($compile, noConfig, noDataSource){
             function _link(scope, el, attrs){
-                if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
-                if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
+                var config = noInfoPath.getItem(noConfig.current, attrs.noConfig),
+                    btnGrp = config.noBtnGroup,
+                    dataSource = noDataSource.create(config.noDataSource, scope);
 
-                var dsConfig = $state.current.data.noDataSources[attrs.noDataSource],
-                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
-                    req = {
-                        data: {
-                            "sort": dsConfig.sort,
-                            "filter": dsConfig.filter
-                        },
-                        expand: dsConfig.expand
-                    };
+                dataSource.read()
+					.then(function(data){
+                        var btnGroup = angular.element("<div class=\"btn-group\"></div>"),
+                            btnTemplate = "<label></label>";
 
-                window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
+                        btnGroup.addClass(btnGrp.groupCSS);
 
-                ds.transport.read(req)
-                    .then(function(data){
-                        scope[attrs.noDataSource] = data;
-                    })
+                        for(var i=0; i < data.paged.length; i++){
+                            var item = data.paged[i],
+                                tmpl = angular.element(btnTemplate);
+
+
+                            tmpl.addClass(btnGrp.itemCSS);
+                            tmpl.attr("ng-model", btnGrp.ngModel);
+                            tmpl.attr("btn-radio", "'" + item[btnGrp.valueField] + "'");
+                            tmpl.text(item[btnGrp.textField]);
+
+                            btnGroup.append(tmpl);
+                        }
+
+                        el.append(btnGroup);
+
+                        el.html($compile(el.contents())(scope));
+
+						//scope[config.scopeKey] = data;
+					})
                     .catch(function(err){
                         console.error(err);
                     });
             }
 
-            function _compile(el, attrs){
-                var template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="\'{{v.{noValueField}}}\'">{{v.{noTextField}}}</label></div>';
-
-                angular.forEach(attrs.$attr, function(attr, name){
-                    template = template.replace("{" +name + "}",  attrs[name]);
-                });
-
-                el.append(angular.element(template));
-
-                return _link;
-            }
 
             directive = {
                 restrict:"EA",
                 //scope: {},
-                compile: _compile
+                link: _link
             };
 
             return directive;

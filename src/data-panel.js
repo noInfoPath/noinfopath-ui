@@ -7,7 +7,9 @@
         *   Renders a data bound panel that can contain
         *   any kind of HTML content, which can be bound
         *   data on $scope.  The data sources being bound
-        *   to, are NoInfoPath Data Providers.
+        *   to, are NoInfoPath Data Providers. Note that
+        *   this directive calls noDataSource.one method,
+        *   only returns a single data object, not an array.
         *
         *   ### Sample Usage
         *
@@ -36,41 +38,43 @@
         *   }
         *   ```
         */
-        .directive("noDataPanel", ["$injector", "$http", "$compile", "noConfig", function($injector, $http, $compile, noConfig){
-
+        .directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noConfig", "noDataSource", function($injector, $q, $http, $compile, noConfig, noDataSource){
             return {
                 restrict: "E",
                 compile: function(el, attrs){
                     var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
-
+                    if(!config) throw {error: "noConfig key not found.", key: attrs.noConfig};
                     // attrs.$set("ngInclude", "'" + config.templateUrl  + "'");
 
+
                     return function(scope, el, attrs){
-                        var provider = $injector.get(config.dataProvider),
-                            db = provider.getDatabase(config.databaseName),
-                            entity = db[config.entityName],
-                            luSource = $injector.get(config.lookup.source);
+                        var dataSource;
 
-                        $http.get(config.templateUrl)
-                            .then(function(resp){
-                                var t = $compile(resp.data),
-                                    params = [];
-                                el.html(t(scope));
+                        function finish(data){
+                            scope[config.scopeKey] = data;
+                        }
 
-                                if(entity.constructor.name === "NoView"){
-                                    params[1] = luSource;
-                                    params[0] = config.primaryKey;
-                                }else{
-                                    params[1]  = luSource;
-                                }
+                        if(config.noDataSource){
+                            dataSource = noDataSource.create(config.noDataSource, scope);
+                        }else{
+                            dataSource = noDataSource.create(config, scope);
+                        }
 
-                                entity.noOne.apply(null, params)
-                                    .then(function(data){
-                                        scope[config.scopeKey] = data;
-                                    });
-                            });
+                        if(config.templateUrl){
+                            $http.get(config.templateUrl)
+                                .then(function(resp){
+                                    var t = $compile(resp.data),
+                                        params = [];
 
+                                    el.html(t(scope));
 
+                                    dataSource.one()
+                                        .then(finish);
+                                });
+                        }else{
+                            dataSource.one()
+                                .then(finish);
+                        }
                     };
                 }
             };

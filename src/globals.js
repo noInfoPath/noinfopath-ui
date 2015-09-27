@@ -10,7 +10,8 @@
 
     angular.module("noinfopath.ui", [
         'ngLodash',
-        'noinfopath.helpers'
+        'noinfopath.helpers',
+        'noinfopath.data'
     ])
 
         .run(["$injector", function($injector){

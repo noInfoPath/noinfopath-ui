@@ -10,7 +10,8 @@
 
     angular.module("noinfopath.ui", [
         'ngLodash',
-        'noinfopath.helpers'
+        'noinfopath.helpers',
+        'noinfopath.data'
     ])
 
         .run(["$injector", function($injector){
@@ -594,43 +595,64 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noLookup",["$compile", "$state", "noSessionStorage", function($compile, $state, noSessionStorage){
+        .directive("noLookup",["$compile", "noConfig", "noDataSource", function($compile, noConfig, noDataSource){
 
 
             function _link(scope, el, attrs){
-                if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
-                if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
 
-                var dsConfig = $state.current.data.noDataSources[attrs.noDataSource],
-                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
-                    req = {
-                        data: {
-                            "sort": dsConfig.sort,
-                            "filter": dsConfig.filter
-                        },
-                        expand: dsConfig.expand
-                    };
+                var config = noInfoPath.getItem(noConfig.current, attrs.noConfig),
+                    lookup = config.noLookup,
+                    dataSource = noDataSource.create(config.noDataSource, scope);
 
-                window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
+                    //el.html($compile(el.contents())(scope));
 
-                ds.transport.read(req)
-                    .then(function(data){
-                        scope[attrs.noDataSource] = data;
-                    })
-                    .catch(function(err){
-                        console.error(err);
-                    })  
+                    dataSource.read()
+    					.then(function(data){
+    						scope[config.scopeKey] = data;
+    					})
+                        .catch(function(err){
+                            console.error(err);
+                        });
+
+                    scope.$watch(config.scopeKey, function(newval, oldval, scope){
+                        if(newval){
+                            var lookup = config.noLookup,
+                                sel = angular.element("<select></select>"),
+                                opt = "<option></option>";
+
+                            for(var i in newval){
+                                var item = newval[i],
+                                    tmp = angular.element(opt);
+
+                                tmp.attr("value", item[lookup.valueField]);
+                                tmp.text(item[lookup.textField]);
+
+                                sel.append(tmp);
+                            }
+
+                            sel.addClass("form-control");
+                            sel.attr("ng-model", lookup.ngModel);
+
+                            this.empty();
+                            this.append(sel);
+                            this.html($compile(this.contents())(scope));
+
+                        }
+                    }.bind(el));
             }
 
             function _compile(el, attrs){
-                var sel = angular.element("<select></select>")
+                var config = noInfoPath.getItem(noConfig.current, attrs.noConfig),
+                    lookup = config.noLookup,
+                    sel = angular.element("<select></select>"),
+                    opts = "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + config.scopeKey;
 
-                sel.addClass("form-control");
-                sel.attr("ng-model", attrs.noNgModel);
+                attrs.$addClass("form-control");
 
-                var opts = "item." + attrs.noValueField + " as item." + attrs.noTextField + " for item in " + attrs.noDataSource;
+                attrs.$set("ng-model", config.ngModel);
 
-                sel.attr("ng-options", opts);
+                attrs.$set("ng-options", opts);
+
 
                 el.append(sel);
 
@@ -638,10 +660,9 @@
             }
 
             directive = {
-                restrict:"EA",
-                //scope: {},
-                compile: _compile
-            }
+                restrict:"E",
+                link: _link
+            };
 
             return directive;
         }])
@@ -662,7 +683,7 @@
                 angular.forEach(lis, function(li, ndx){
                     angular.element(li).attr("ndx", ndx);
                     //console.log(ndx, li);
-                })
+                });
 
                 lis.click(function(e){
                     e.preventDefault();
@@ -675,16 +696,16 @@
                     pnl.toggleClass("ng-hide");
 
                     tab = angular.element(e.target).closest("li");
-                    pnlNdx = Number(tab.attr("ndx"))
+                    pnlNdx = Number(tab.attr("ndx"));
                     pnl = angular.element(pnls[pnlNdx]);
-                    
+
                     tab.toggleClass("active");
                     pnl.toggleClass("ng-hide");
 
                     //console.log()
                 });
 
-                //$compile(el.contents())(scope);                 
+                //$compile(el.contents())(scope);
 
                 //Show defaul tab panel
                 defNdx = Number(def.attr("ndx"));
@@ -695,7 +716,7 @@
             directive = {
                 restrict:"E",
                 link:link
-            }
+            };
 
             return directive;
         }])
@@ -707,51 +728,135 @@
 (function(angular, undefined){
     angular.module("noinfopath.ui")
 
-        .directive("noBtnGroup",["$compile", "$state", "noSessionStorage", function($compile, $state, noSessionStorage){
+        .directive("noBtnGroup",["$compile", "noConfig", "noDataSource", function($compile, noConfig, noDataSource){
             function _link(scope, el, attrs){
-                if(!$state.current.data) throw "Current state ($state.current.data) is expected to exist.";
-                if(!$state.current.data.noDataSources) throw "Current state is expected to have a noDataSource configuration.";
+                var config = noInfoPath.getItem(noConfig.current, attrs.noConfig),
+                    btnGrp = config.noBtnGroup,
+                    dataSource = noDataSource.create(config.noDataSource, scope);
 
-                var dsConfig = $state.current.data.noDataSources[attrs.noDataSource],
-                    ds = new window.noInfoPath.noDataSource("noDataService", dsConfig, $state.params, scope),
-                    req = {
-                        data: {
-                            "sort": dsConfig.sort,
-                            "filter": dsConfig.filter
-                        },
-                        expand: dsConfig.expand
-                    };
+                dataSource.read()
+					.then(function(data){
+                        var btnGroup = angular.element("<div class=\"btn-group\"></div>"),
+                            btnTemplate = "<label></label>";
 
-                window.noInfoPath.watchFiltersOnScope(attrs, dsConfig, ds, scope, $state);
+                        btnGroup.addClass(btnGrp.groupCSS);
 
-                ds.transport.read(req)
-                    .then(function(data){
-                        scope[attrs.noDataSource] = data;
-                    })
+                        for(var i=0; i < data.paged.length; i++){
+                            var item = data.paged[i],
+                                tmpl = angular.element(btnTemplate);
+
+
+                            tmpl.addClass(btnGrp.itemCSS);
+                            tmpl.attr("ng-model", btnGrp.ngModel);
+                            tmpl.attr("btn-radio", "'" + item[btnGrp.valueField] + "'");
+                            tmpl.text(item[btnGrp.textField]);
+
+                            btnGroup.append(tmpl);
+                        }
+
+                        el.append(btnGroup);
+
+                        el.html($compile(el.contents())(scope));
+
+						//scope[config.scopeKey] = data;
+					})
                     .catch(function(err){
                         console.error(err);
                     });
             }
 
-            function _compile(el, attrs){
-                var template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="\'{{v.{noValueField}}}\'">{{v.{noTextField}}}</label></div>';
-
-                angular.forEach(attrs.$attr, function(attr, name){
-                    template = template.replace("{" +name + "}",  attrs[name]);
-                });
-
-                el.append(angular.element(template));
-
-                return _link;
-            }
 
             directive = {
                 restrict:"EA",
                 //scope: {},
-                compile: _compile
+                link: _link
             };
 
             return directive;
+        }])
+    ;
+})(angular);
+
+//data-panel.js
+(function(angular, undefined){
+    angular.module("noinfopath.ui")
+        /*
+        *   ##  noDataPanel
+        *
+        *   Renders a data bound panel that can contain
+        *   any kind of HTML content, which can be bound
+        *   data on $scope.  The data sources being bound
+        *   to, are NoInfoPath Data Providers. Note that
+        *   this directive calls noDataSource.one method,
+        *   only returns a single data object, not an array.
+        *
+        *   ### Sample Usage
+        *
+        *   This sample show how to use the noDataPanel
+        *   directive in your HTML markup.
+        *
+        *   ```html
+        *   <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>
+        *   ```
+        *
+        *   ### Sample Configuration
+        *
+        *   ```js
+        *   {
+        *       "selection": {
+        *           "scopeKey": "selection",
+        *           "dataProvider": "noWebSQL",
+        *           "databaseName": "FCFNv2",
+        *           "entityName": "vw_trialplot_selection",
+        *           "primaryKey": "TrialPlotID",
+        *           "lookup": {
+        *               "source": "$stateParams",
+        *           },
+        *           "templateUrl": "observations/selection.html"
+        *       }
+        *   }
+        *   ```
+        */
+        .directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noConfig", "noDataSource", function($injector, $q, $http, $compile, noConfig, noDataSource){
+            return {
+                restrict: "E",
+                compile: function(el, attrs){
+                    var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
+                    if(!config) throw {error: "noConfig key not found.", key: attrs.noConfig};
+                    // attrs.$set("ngInclude", "'" + config.templateUrl  + "'");
+
+
+                    return function(scope, el, attrs){
+                        var dataSource;
+
+                        function finish(data){
+                            scope[config.scopeKey] = data;
+                        }
+
+                        if(config.noDataSource){
+                            dataSource = noDataSource.create(config.noDataSource, scope);
+                        }else{
+                            dataSource = noDataSource.create(config, scope);
+                        }
+
+                        if(config.templateUrl){
+                            $http.get(config.templateUrl)
+                                .then(function(resp){
+                                    var t = $compile(resp.data),
+                                        params = [];
+
+                                    el.html(t(scope));
+
+                                    dataSource.one()
+                                        .then(finish);
+                                });
+                        }else{
+                            dataSource.one()
+                                .then(finish);
+                        }
+                    };
+                }
+            };
         }])
     ;
 })(angular);
