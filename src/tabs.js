@@ -12,7 +12,7 @@
                 angular.forEach(lis, function(li, ndx){
                     angular.element(li).attr("ndx", ndx);
                     //console.log(ndx, li);
-                })
+                });
 
                 lis.click(function(e){
                     e.preventDefault();
@@ -25,16 +25,16 @@
                     pnl.toggleClass("ng-hide");
 
                     tab = angular.element(e.target).closest("li");
-                    pnlNdx = Number(tab.attr("ndx"))
+                    pnlNdx = Number(tab.attr("ndx"));
                     pnl = angular.element(pnls[pnlNdx]);
-                    
+
                     tab.toggleClass("active");
                     pnl.toggleClass("ng-hide");
 
                     //console.log()
                 });
 
-                //$compile(el.contents())(scope);                 
+                //$compile(el.contents())(scope);
 
                 //Show defaul tab panel
                 defNdx = Number(def.attr("ndx"));
@@ -45,7 +45,7 @@
             directive = {
                 restrict:"E",
                 link:link
-            }
+            };
 
             return directive;
         }])

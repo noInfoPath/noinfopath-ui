@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 0.0.30
+ *  > @version 0.0.31
 */
 
 //globals.js
@@ -10,7 +10,8 @@
 
     angular.module("noinfopath.ui", [
         'ngLodash',
-        'noinfopath.helpers'
+        'noinfopath.helpers',
+        'noinfopath.data'
     ])
 
         .run(["$injector", function($injector){
