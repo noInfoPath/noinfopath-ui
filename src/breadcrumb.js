@@ -86,53 +86,53 @@
                             //console.log(toState, toParams, fromState, fromParams);
                             return;
 
-                            var c = config[toState.name];
-                            if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
-                            if(!c.title) throw "noBreadcrumb.title is a required property in config.json";
-
-                            //Is c.title and object or a string?
-                            if(angular.isObject(c.title)){
-                                if(!c.title.dataSource) throw "noBreadcrumb.title.dataSource is a required property in config.json";
-                                if(!c.title.textField) throw "noBreadcrumb.title.textField is a required property in config.json";
-                                if(!c.title.valueField) throw "noBreadcrumb.title.valueField is a required property in config.json";
-
-                                //When c.title is an object the breadcrumb title
-                                //is derrived from a database record.  Resolve the
-                                //record before updating the scope.noBreadcrumb
-                                //object.
-                                var _table = db[c.title.dataSource],
-                                    _field = c.title.valueField,
-                                    _value = toParams[c.title.valueField],
-                                    req = new noInfoPath.noDataReadRequest(q, _table);
-
-                                //Assume that all strings that can be converted to a number
-                                //should be converted to a number.
-                                var num = Number(_value);
-                                if(angular.isNumber(num)){
-                                    _value = Number(num);
-                                }
-
-                                //Configure and execute a noDataReadRequest object
-                                //against noIndexedDB::table.noCRUD::one extention method.
-                                req.addFilter(_field, "eq", _value);
-                                _table.noCRUD.one(req)
-                                    .then(function(data){
-                                        //When the title data is resolved save the data on the
-                                        //toState's data property, then update the appropriate
-                                        //scope item using the current toState.
-                                        toState.data = data;
-                                        scope[scopeKey].update(toState);
-                                        _refresh();
-                                    })
-                                    .catch(function(err){
-                                        console.error(err);
-                                    });
-                            }else{
-                                //If the title is not an object, assume it is a string and
-                                //just update the appropriate scope item using the current toState.
-                                scope[scopeKey].update(toState);
-                                _refresh();
-                            }
+                            // var c = config[toState.name];
+                            // if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
+                            // if(!c.title) throw "noBreadcrumb.title is a required property in config.json";
+                            //
+                            // //Is c.title and object or a string?
+                            // if(angular.isObject(c.title)){
+                            //     if(!c.title.dataSource) throw "noBreadcrumb.title.dataSource is a required property in config.json";
+                            //     if(!c.title.textField) throw "noBreadcrumb.title.textField is a required property in config.json";
+                            //     if(!c.title.valueField) throw "noBreadcrumb.title.valueField is a required property in config.json";
+                            //
+                            //     //When c.title is an object the breadcrumb title
+                            //     //is derrived from a database record.  Resolve the
+                            //     //record before updating the scope.noBreadcrumb
+                            //     //object.
+                            //     var _table = db[c.title.dataSource],
+                            //         _field = c.title.valueField,
+                            //         _value = toParams[c.title.valueField],
+                            //         req = new noInfoPath.noDataReadRequest(q, _table);
+                            //
+                            //     //Assume that all strings that can be converted to a number
+                            //     //should be converted to a number.
+                            //     var num = Number(_value);
+                            //     if(angular.isNumber(num)){
+                            //         _value = Number(num);
+                            //     }
+                            //
+                            //     //Configure and execute a noDataReadRequest object
+                            //     //against noIndexedDB::table.noCRUD::one extention method.
+                            //     req.addFilter(_field, "eq", _value);
+                            //     _table.noCRUD.one(req)
+                            //         .then(function(data){
+                            //             //When the title data is resolved save the data on the
+                            //             //toState's data property, then update the appropriate
+                            //             //scope item using the current toState.
+                            //             toState.data = data;
+                            //             scope[scopeKey].update(toState);
+                            //             _refresh();
+                            //         })
+                            //         .catch(function(err){
+                            //             console.error(err);
+                            //         });
+                            // }else{
+                            //     //If the title is not an object, assume it is a string and
+                            //     //just update the appropriate scope item using the current toState.
+                            //     scope[scopeKey].update(toState);
+                            //     _refresh();
+                            // }
                         });
                     }
 

@@ -34,7 +34,8 @@ module.exports = function(grunt) {
 		        	'src/lookup.js',
 		        	'src/tabs.js',
 		        	'src/btn-group.js',
-                    'src/data-panel.js'
+                    'src/data-panel.js',
+                    'src/misc.js'
 
 		        ],
 		        dest: 'dist/noinfopath-ui.js'

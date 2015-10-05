@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 0.0.30
+ *  > @version 0.0.31
 */
 
 //globals.js
@@ -218,53 +218,53 @@
                             //console.log(toState, toParams, fromState, fromParams);
                             return;
 
-                            var c = config[toState.name];
-                            if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
-                            if(!c.title) throw "noBreadcrumb.title is a required property in config.json";
-
-                            //Is c.title and object or a string?
-                            if(angular.isObject(c.title)){
-                                if(!c.title.dataSource) throw "noBreadcrumb.title.dataSource is a required property in config.json";
-                                if(!c.title.textField) throw "noBreadcrumb.title.textField is a required property in config.json";
-                                if(!c.title.valueField) throw "noBreadcrumb.title.valueField is a required property in config.json";
-
-                                //When c.title is an object the breadcrumb title
-                                //is derrived from a database record.  Resolve the
-                                //record before updating the scope.noBreadcrumb
-                                //object.
-                                var _table = db[c.title.dataSource],
-                                    _field = c.title.valueField,
-                                    _value = toParams[c.title.valueField],
-                                    req = new noInfoPath.noDataReadRequest(q, _table);
-
-                                //Assume that all strings that can be converted to a number
-                                //should be converted to a number.
-                                var num = Number(_value);
-                                if(angular.isNumber(num)){
-                                    _value = Number(num);
-                                }
-
-                                //Configure and execute a noDataReadRequest object
-                                //against noIndexedDB::table.noCRUD::one extention method.
-                                req.addFilter(_field, "eq", _value);
-                                _table.noCRUD.one(req)
-                                    .then(function(data){
-                                        //When the title data is resolved save the data on the
-                                        //toState's data property, then update the appropriate
-                                        //scope item using the current toState.
-                                        toState.data = data;
-                                        scope[scopeKey].update(toState);
-                                        _refresh();
-                                    })
-                                    .catch(function(err){
-                                        console.error(err);
-                                    });
-                            }else{
-                                //If the title is not an object, assume it is a string and
-                                //just update the appropriate scope item using the current toState.
-                                scope[scopeKey].update(toState);
-                                _refresh();
-                            }
+                            // var c = config[toState.name];
+                            // if(!c) throw toState.name + " noBreadcrumb comfig was not found in config.json file.";
+                            // if(!c.title) throw "noBreadcrumb.title is a required property in config.json";
+                            //
+                            // //Is c.title and object or a string?
+                            // if(angular.isObject(c.title)){
+                            //     if(!c.title.dataSource) throw "noBreadcrumb.title.dataSource is a required property in config.json";
+                            //     if(!c.title.textField) throw "noBreadcrumb.title.textField is a required property in config.json";
+                            //     if(!c.title.valueField) throw "noBreadcrumb.title.valueField is a required property in config.json";
+                            //
+                            //     //When c.title is an object the breadcrumb title
+                            //     //is derrived from a database record.  Resolve the
+                            //     //record before updating the scope.noBreadcrumb
+                            //     //object.
+                            //     var _table = db[c.title.dataSource],
+                            //         _field = c.title.valueField,
+                            //         _value = toParams[c.title.valueField],
+                            //         req = new noInfoPath.noDataReadRequest(q, _table);
+                            //
+                            //     //Assume that all strings that can be converted to a number
+                            //     //should be converted to a number.
+                            //     var num = Number(_value);
+                            //     if(angular.isNumber(num)){
+                            //         _value = Number(num);
+                            //     }
+                            //
+                            //     //Configure and execute a noDataReadRequest object
+                            //     //against noIndexedDB::table.noCRUD::one extention method.
+                            //     req.addFilter(_field, "eq", _value);
+                            //     _table.noCRUD.one(req)
+                            //         .then(function(data){
+                            //             //When the title data is resolved save the data on the
+                            //             //toState's data property, then update the appropriate
+                            //             //scope item using the current toState.
+                            //             toState.data = data;
+                            //             scope[scopeKey].update(toState);
+                            //             _refresh();
+                            //         })
+                            //         .catch(function(err){
+                            //             console.error(err);
+                            //         });
+                            // }else{
+                            //     //If the title is not an object, assume it is a string and
+                            //     //just update the appropriate scope item using the current toState.
+                            //     scope[scopeKey].update(toState);
+                            //     _refresh();
+                            // }
                         });
                     }
 
@@ -599,46 +599,20 @@
 
 
             function _link(scope, el, attrs){
-
                 var config = noInfoPath.getItem(noConfig.current, attrs.noConfig),
-                    lookup = config.noLookup,
                     dataSource = noDataSource.create(config.noDataSource, scope);
 
-                    //el.html($compile(el.contents())(scope));
+                dataSource.read()
+                    .then(function(data){
+                        scope[config.scopeKey] = data.paged;
+                        scope.waitingFor[config.scopeKey] = false;
+                    })
+                    .catch(function(err){
 
-                    dataSource.read()
-    					.then(function(data){
-    						scope[config.scopeKey] = data;
-    					})
-                        .catch(function(err){
-                            console.error(err);
-                        });
+                        scope.waitingForError = {error: err, src: config };
 
-                    scope.$watch(config.scopeKey, function(newval, oldval, scope){
-                        if(newval){
-                            var lookup = config.noLookup,
-                                sel = angular.element("<select></select>"),
-                                opt = "<option></option>";
-
-                            for(var i in newval){
-                                var item = newval[i],
-                                    tmp = angular.element(opt);
-
-                                tmp.attr("value", item[lookup.valueField]);
-                                tmp.text(item[lookup.textField]);
-
-                                sel.append(tmp);
-                            }
-
-                            sel.addClass("form-control");
-                            sel.attr("ng-model", lookup.ngModel);
-
-                            this.empty();
-                            this.append(sel);
-                            this.html($compile(this.contents())(scope));
-
-                        }
-                    }.bind(el));
+                        console.error(scope.$root.waitingForError);
+                    });
             }
 
             function _compile(el, attrs){
@@ -647,11 +621,11 @@
                     sel = angular.element("<select></select>"),
                     opts = "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + config.scopeKey;
 
-                attrs.$addClass("form-control");
+                sel.addClass("form-control");
 
-                attrs.$set("ng-model", config.ngModel);
+                sel.attr("ng-model", lookup.ngModel);
 
-                attrs.$set("ng-options", opts);
+                sel.attr("ng-options", opts);
 
 
                 el.append(sel);
@@ -661,7 +635,8 @@
 
             directive = {
                 restrict:"E",
-                link: _link
+                compile: _compile,
+                scope: false
             };
 
             return directive;
@@ -731,45 +706,42 @@
         .directive("noBtnGroup",["$compile", "noConfig", "noDataSource", function($compile, noConfig, noDataSource){
             function _link(scope, el, attrs){
                 var config = noInfoPath.getItem(noConfig.current, attrs.noConfig),
-                    btnGrp = config.noBtnGroup,
                     dataSource = noDataSource.create(config.noDataSource, scope);
 
                 dataSource.read()
-					.then(function(data){
-                        var btnGroup = angular.element("<div class=\"btn-group\"></div>"),
-                            btnTemplate = "<label></label>";
-
-                        btnGroup.addClass(btnGrp.groupCSS);
-
-                        for(var i=0; i < data.paged.length; i++){
-                            var item = data.paged[i],
-                                tmpl = angular.element(btnTemplate);
-
-
-                            tmpl.addClass(btnGrp.itemCSS);
-                            tmpl.attr("ng-model", btnGrp.ngModel);
-                            tmpl.attr("btn-radio", "'" + item[btnGrp.valueField] + "'");
-                            tmpl.text(item[btnGrp.textField]);
-
-                            btnGroup.append(tmpl);
-                        }
-
-                        el.append(btnGroup);
-
-                        el.html($compile(el.contents())(scope));
-
-						//scope[config.scopeKey] = data;
-					})
+                    .then(function(data){
+                        scope[config.scopeKey] = data.paged;
+                        scope.waitingFor[config.scopeKey] = false;
+                    })
                     .catch(function(err){
-                        console.error(err);
+
+                        scope.waitingForError = {error: err, src: config };
+
+                        console.error(scope.$root.waitingForError);
                     });
+
             }
 
 
             directive = {
                 restrict:"EA",
-                //scope: {},
-                link: _link
+                scope: false,
+                compile: function(el, attrs){
+					var template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="\'{{v.{noValueField}}}\'">{{v.{noTextField}}}</label></div>',
+						config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
+                        btnGrp = config.noBtnGroup;
+
+                    template = template.replace("{noBtnGroup}",  btnGrp.groupCSS);
+					template = template.replace("{noDataSource}",  config.scopeKey);
+					template = template.replace("{noItemClass}",  btnGrp.itemCSS);
+					template = template.replace("{noValueField}",  btnGrp.valueField);
+					template = template.replace("{noTextField}",  btnGrp.textField);
+                    template = template.replace("{noNgModel}",  btnGrp.ngModel);
+
+	                el.append(angular.element(template));
+
+					return _link;
+				}
             };
 
             return directive;
@@ -822,7 +794,7 @@
                 restrict: "E",
                 compile: function(el, attrs){
                     var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
-                    if(!config) throw {error: "noConfig key not found.", key: attrs.noConfig};
+                    if(!config) throw {error: "noConfig key not found.", src: attrs.noConfig};
                     // attrs.$set("ngInclude", "'" + config.templateUrl  + "'");
 
 
@@ -831,7 +803,28 @@
 
                         function finish(data){
                             scope[config.scopeKey] = data;
+
+                            if(config.hiddenFields){
+                                for(var h in config.hiddenFields){
+                                    var hf = config.hiddenFields[h],
+                                        value = noInfoPath.getItem(scope, hf.scopeKey);
+
+                                    //console.log(hidden);
+                                    noInfoPath.setItem(scope, hf.ngModel, value);
+                                }
+                            }
+
+                            if(scope.waitingFor ) {
+                                scope.waitingFor[config.scopeKey] = false;
+                            }
                         }
+
+                        function error(err){
+                            scope.waitingForError = {error: err, src: config };
+
+                            console.error(scope.$root.waitingForError);
+                        }
+
 
                         if(config.noDataSource){
                             dataSource = noDataSource.create(config.noDataSource, scope);
@@ -843,17 +836,153 @@
                             $http.get(config.templateUrl)
                                 .then(function(resp){
                                     var t = $compile(resp.data),
-                                        params = [];
+                                        params = [],
+                                        c = t(scope);
 
-                                    el.html(t(scope));
+                                    el.append(c);
 
                                     dataSource.one()
-                                        .then(finish);
+                                        .then(finish)
+                                        .catch(error);
                                 });
                         }else{
                             dataSource.one()
-                                .then(finish);
+                                .then(finish)
+                                .catch(error);
                         }
+                    };
+                }
+            };
+        }])
+    ;
+})(angular);
+
+//alpha-filter.js
+(function(angular, undefined){
+    "use strict";
+
+    angular.module("noinfopath.ui")
+        .directive("noAlphaNumericFilter", [function(){
+            function _compile(el, attrs){
+                var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    nav = angular.element("<nav></nav>"),
+                    ul = angular.element('<ul class="pagination pagination-sm"></ul>'),
+                    itemOpen =  '<li><a href="#">',
+                    itemClose =  ' <span class="sr-only">(current)</span></a></li>';
+
+                for(var l=0; l < letters.length; l++){
+                    var tmp = angular.element(itemOpen + letters[l] + itemClose);
+                    ul.append(tmp);
+                }
+                nav.append(ul);
+                el.append(nav);
+                return _link;
+            }
+
+            function _link(scope, el, attrs){
+
+            }
+
+            return {
+                restrict: "E",
+                scope: false,
+                compile: _compile
+            };
+        }])
+    ;
+})(angular);
+
+//title.js
+(function(angular, undefined){
+    "use strict";
+
+    angular.module("noinfopath.ui")
+        .directive("noTitle", ["noDataSource", "$compile", "noConfig",  "lodash", function(noDataSource, $compile, noConfig,  _){
+            return {
+                restrict: "E",
+                scope: true,
+                compile: function (noDataSource, $compile, _, el, attrs){
+
+                    return function (noDataSource, $compile, _, scope, el, attrs){
+                        var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
+
+                        scope.$on("$stateChangeSuccess", function(noDataSource, $compile, _, config, el, event, toState, toParams, fromState, fromParams){
+                            var noFormCfg, noTitle;
+
+                            noFormCfg = _.find(config, function(form){
+                                return form.route && form.route.name === toState.name;
+                            });
+
+                            //If not found in root of noForms, check the editors node.
+                            if(!noFormCfg){
+                                var editors = _.find(config.editors, function(form){
+                                    return  (form.search.route && form.search.route.name === toState.name) ||
+                                            (form.edit.route && form.edit.route.name === toState.name);
+                                });
+
+                                if(editors){
+                                    for(var e in editors){
+                                        var editor = editors[e];
+                                        if(editor.route.name === toState.name){
+                                            noFormCfg = editor;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(!noFormCfg) throw "Form configuration not found for route " + toState.name;
+
+                            noTitle = noFormCfg.noTitle;
+
+                            if(noTitle){
+                                el.html($compile(noTitle.title)(event.targetScope));
+                                if(noTitle.noDataSource){
+                                    var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
+
+                                    dataSource.one()
+                                        .then(function(data){
+                                            noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey , data[noTitle.scopeKey]);
+                                        })
+                                        .catch(function(err){
+                                            console.error(err);
+                                        });
+                                }
+                            }
+                        }.bind(null, noDataSource, $compile, _, config, el));
+                    }.bind(null, noDataSource,  $compile, _);
+                }.bind(null, noDataSource, $compile, _)
+
+            };
+        }])
+    ;
+})(angular);
+
+//back-button.js
+(function(angular, undefined){
+    "use strict";
+
+    angular.module("noinfopath.ui")
+        .directive("noBackButton", ["$state", function($state){
+            return {
+                restrict: "AE",
+                scope: {},
+                compile: function (el, attrs){
+
+                    return function (scope, el, attrs){
+                        function _click(scope, $state) {
+                            console.warn("TODO: finish click handler");
+
+                            $state.go(scope.noBackButton.state.name, scope.noBackButton.params);
+                        }
+
+                        el.click(_click.bind(el, scope, $state));
+
+                        scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams){
+                            event.currentScope.noBackButton = {state: fromState, params: fromParams };
+
+                        });
+
                     };
                 }
             };

@@ -43,7 +43,7 @@
                 restrict: "E",
                 compile: function(el, attrs){
                     var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
-                    if(!config) throw {error: "noConfig key not found.", key: attrs.noConfig};
+                    if(!config) throw {error: "noConfig key not found.", src: attrs.noConfig};
                     // attrs.$set("ngInclude", "'" + config.templateUrl  + "'");
 
 
@@ -52,7 +52,28 @@
 
                         function finish(data){
                             scope[config.scopeKey] = data;
+
+                            if(config.hiddenFields){
+                                for(var h in config.hiddenFields){
+                                    var hf = config.hiddenFields[h],
+                                        value = noInfoPath.getItem(scope, hf.scopeKey);
+
+                                    //console.log(hidden);
+                                    noInfoPath.setItem(scope, hf.ngModel, value);
+                                }
+                            }
+
+                            if(scope.waitingFor ) {
+                                scope.waitingFor[config.scopeKey] = false;
+                            }
                         }
+
+                        function error(err){
+                            scope.waitingForError = {error: err, src: config };
+
+                            console.error(scope.$root.waitingForError);
+                        }
+
 
                         if(config.noDataSource){
                             dataSource = noDataSource.create(config.noDataSource, scope);
@@ -64,16 +85,19 @@
                             $http.get(config.templateUrl)
                                 .then(function(resp){
                                     var t = $compile(resp.data),
-                                        params = [];
+                                        params = [],
+                                        c = t(scope);
 
-                                    el.html(t(scope));
+                                    el.append(c);
 
                                     dataSource.one()
-                                        .then(finish);
+                                        .then(finish)
+                                        .catch(error);
                                 });
                         }else{
                             dataSource.one()
-                                .then(finish);
+                                .then(finish)
+                                .catch(error);
                         }
                     };
                 }
