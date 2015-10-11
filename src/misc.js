@@ -38,61 +38,43 @@
     "use strict";
 
     angular.module("noinfopath.ui")
-        .directive("noTitle", ["noDataSource", "$compile", "noConfig",  "lodash", function(noDataSource, $compile, noConfig,  _){
+        .directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig",  "lodash", function(noDataSource, noFormConfig, $compile, noConfig,  _){
+            function _link(scope, el, attrs){
+                scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams){
+                    var noFormCfg, noTitle;
+
+                    function _finish(data){
+                        if(!data) throw "Form configuration not found for route " + toState.name;
+
+                        noTitle = data.noTitle;
+
+                        if(noTitle){
+                            el.html($compile(noTitle.title)(event.targetScope));
+                            if(noTitle.noDataSource){
+                                var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
+
+                                dataSource.one()
+                                    .then(function(data){
+                                        noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey , data[noTitle.scopeKey]);
+                                    })
+                                    .catch(function(err){
+                                        console.error(err);
+                                    });
+                            }
+                        }
+                    }
+
+                    noFormConfig.getFormByRoute(toState.name, toParams.entity, scope)
+                        .then(_finish);
+
+                });
+
+            }
+
             return {
                 restrict: "E",
                 scope: true,
-                compile: function (noDataSource, $compile, _, el, attrs){
-
-                    return function (noDataSource, $compile, _, scope, el, attrs){
-                        var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
-
-                        scope.$on("$stateChangeSuccess", function(noDataSource, $compile, _, config, el, event, toState, toParams, fromState, fromParams){
-                            var noFormCfg, noTitle;
-
-                            noFormCfg = _.find(config, function(form){
-                                return form.route && form.route.name === toState.name;
-                            });
-
-                            //If not found in root of noForms, check the editors node.
-                            if(!noFormCfg){
-                                var editors = _.find(config.editors, function(form){
-                                    return  (form.search.route && form.search.route.name === toState.name) ||
-                                            (form.edit.route && form.edit.route.name === toState.name);
-                                });
-
-                                if(editors){
-                                    for(var e in editors){
-                                        var editor = editors[e];
-                                        if(editor.route.name === toState.name){
-                                            noFormCfg = editor;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if(!noFormCfg) throw "Form configuration not found for route " + toState.name;
-
-                            noTitle = noFormCfg.noTitle;
-
-                            if(noTitle){
-                                el.html($compile(noTitle.title)(event.targetScope));
-                                if(noTitle.noDataSource){
-                                    var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
-
-                                    dataSource.one()
-                                        .then(function(data){
-                                            noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey , data[noTitle.scopeKey]);
-                                        })
-                                        .catch(function(err){
-                                            console.error(err);
-                                        });
-                                }
-                            }
-                        }.bind(null, noDataSource, $compile, _, config, el));
-                    }.bind(null, noDataSource,  $compile, _);
-                }.bind(null, noDataSource, $compile, _)
+                link: _link
 
             };
         }])

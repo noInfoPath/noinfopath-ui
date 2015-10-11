@@ -38,69 +38,74 @@
         *   }
         *   ```
         */
-        .directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noConfig", "noDataSource", function($injector, $q, $http, $compile, noConfig, noDataSource){
+        .directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noFormConfig", "noDataSource", "$state", function($injector, $q, $http, $compile, noFormConfig, noDataSource, $state){
+
+            function _link(scope, el, attrs){
+                var config,
+                    dataSource,
+                    noFormAttr = attrs.noForm;
+
+                function finish(data){
+                    scope[config.scopeKey] = data;
+
+                    if(config.hiddenFields){
+                        for(var h in config.hiddenFields){
+                            var hf = config.hiddenFields[h],
+                                value = noInfoPath.getItem(scope, hf.scopeKey);
+
+                            //console.log(hidden);
+                            noInfoPath.setItem(scope, hf.ngModel, value);
+                        }
+                    }
+
+                    if(scope.waitingFor ) {
+                        scope.waitingFor[config.scopeKey] = false;
+                    }
+                }
+
+                function error(err){
+                    scope.waitingForError = {error: err, src: config };
+
+                    console.error(scope.$root.waitingForError);
+                }
+
+                function noForm_ready(data){
+                    config = noInfoPath.getItem(data, noFormAttr);
+
+                    if(config.noDataSource){
+                        dataSource = noDataSource.create(config.noDataSource, scope);
+                    }else{
+                        dataSource = noDataSource.create(config, scope);
+                    }
+
+                    if(config.templateUrl){
+                        $http.get(config.templateUrl)
+                            .then(function(resp){
+                                var t = $compile(resp.data),
+                                    params = [],
+                                    c = t(scope);
+
+                                el.append(c);
+
+                                dataSource.one()
+                                    .then(finish)
+                                    .catch(error);
+                            });
+                    }else{
+                        dataSource.one()
+                            .then(finish)
+                            .catch(error);
+                    }
+                }
+
+                noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
+                    .then(noForm_ready)
+                    .catch(error);
+            }
+
             return {
                 restrict: "E",
-                compile: function(el, attrs){
-                    var config = noInfoPath.getItem(noConfig.current, attrs.noConfig);
-                    if(!config) throw {error: "noConfig key not found.", src: attrs.noConfig};
-                    // attrs.$set("ngInclude", "'" + config.templateUrl  + "'");
-
-
-                    return function(scope, el, attrs){
-                        var dataSource;
-
-                        function finish(data){
-                            scope[config.scopeKey] = data;
-
-                            if(config.hiddenFields){
-                                for(var h in config.hiddenFields){
-                                    var hf = config.hiddenFields[h],
-                                        value = noInfoPath.getItem(scope, hf.scopeKey);
-
-                                    //console.log(hidden);
-                                    noInfoPath.setItem(scope, hf.ngModel, value);
-                                }
-                            }
-
-                            if(scope.waitingFor ) {
-                                scope.waitingFor[config.scopeKey] = false;
-                            }
-                        }
-
-                        function error(err){
-                            scope.waitingForError = {error: err, src: config };
-
-                            console.error(scope.$root.waitingForError);
-                        }
-
-
-                        if(config.noDataSource){
-                            dataSource = noDataSource.create(config.noDataSource, scope);
-                        }else{
-                            dataSource = noDataSource.create(config, scope);
-                        }
-
-                        if(config.templateUrl){
-                            $http.get(config.templateUrl)
-                                .then(function(resp){
-                                    var t = $compile(resp.data),
-                                        params = [],
-                                        c = t(scope);
-
-                                    el.append(c);
-
-                                    dataSource.one()
-                                        .then(finish)
-                                        .catch(error);
-                                });
-                        }else{
-                            dataSource.one()
-                                .then(finish)
-                                .catch(error);
-                        }
-                    };
-                }
+                link: _link
             };
         }])
     ;
