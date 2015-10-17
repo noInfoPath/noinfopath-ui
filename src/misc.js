@@ -86,28 +86,35 @@
     "use strict";
 
     angular.module("noinfopath.ui")
-        .directive("noBackButton", ["$state", function($state){
-            return {
-                restrict: "AE",
-                scope: {},
-                compile: function (el, attrs){
+        .directive("noNav", ["$state", "noFormConfig", function($state, noFormConfig){
+            function _click(nav, attr, scope, $state) {
+                var route = noInfoPath.getItem(nav, attr),
+                    params = scope.$root.noNav[route];
 
-                    return function (scope, el, attrs){
-                        function _click(scope, $state) {
-                            console.warn("TODO: finish click handler");
+                //console.log(route, params);
 
-                            $state.go(scope.noBackButton.state.name, scope.noBackButton.params);
-                        }
+                $state.go(route, params);
+            }
 
-                        el.click(_click.bind(el, scope, $state));
-
-                        scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams){
-                            event.currentScope.noBackButton = {state: fromState, params: fromParams };
-
-                        });
-
-                    };
+            function _link(scope, el, attrs){
+                function _finish(data) {
+                    el.click(_click.bind(el, data.noNav, attrs.noNav, scope, $state));
                 }
+
+                noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
+                    .then(_finish);
+
+                scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
+                    event.currentScope.$root.noNav = event.currentScope.$root.noNav ? event.currentScope.$root.noNav : {};
+                    event.currentScope.$root.noNav[fromState.name] = fromParams;
+                });
+
+            }
+
+            return {
+                restrict: "A",
+                scope: {},
+                link: _link
             };
         }])
     ;
