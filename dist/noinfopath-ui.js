@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 0.0.33
+ *  > @version 0.0.34
 */
 
 //globals.js
@@ -893,30 +893,44 @@
 
     angular.module("noinfopath.ui")
         .directive("noAlphaNumericFilter", [function(){
-            function _compile(el, attrs){
-                var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                    nav = angular.element("<nav></nav>"),
-                    ul = angular.element('<ul class="pagination pagination-sm"></ul>'),
-                    itemOpen =  '<li><a href="#">',
-                    itemClose =  ' <span class="sr-only">(current)</span></a></li>';
-
-                for(var l=0; l < letters.length; l++){
-                    var tmp = angular.element(itemOpen + letters[l] + itemClose);
-                    ul.append(tmp);
-                }
-                nav.append(ul);
-                el.append(nav);
-                return _link;
-            }
 
             function _link(scope, el, attrs){
+                var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                    nav = angular.element("<nav></nav>"),
+                    ul = angular.element('<ul class="pagination pagination-sm"></ul>'),
+                    itemOpen =  '<li><span>',
+                    itemClose1 =  '<span class="sr-only">',
+                    itemClose2 =  '</span></li>';
+
+                function _click(e){
+                    var letter = angular.element(e.currentTarget);
+                    scope.noAlphaNumericFilter = letter.text();
+                    el.find("li").removeClass("active");
+                    letter.addClass("active");
+                    scope.$apply();
+                }
+
+                scope.noAlphaNumericFilter = "A";
+
+                nav.append(ul);
+                el.append(nav);
+
+                for(var l=0; l < letters.length; l++){
+                    var tmp = angular.element(itemOpen + letters[l] + itemClose2);
+                    if(l === 0){
+                        tmp.addClass("active");
+                    }
+                    ul.append(tmp);
+                    tmp.click(_click);
+                }
+
 
             }
 
             return {
                 restrict: "E",
                 scope: false,
-                compile: _compile
+                link: _link
             };
         }])
     ;
@@ -975,13 +989,27 @@
     "use strict";
 
     angular.module("noinfopath.ui")
-        .directive("noNav", ["$state", "noFormConfig", function($state, noFormConfig){
+        .run(["$rootScope", function($rootScope){
+            $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
+                console.log("$stateChangeSuccess");
+                event.currentScope.$root.noNav = event.currentScope.$root.noNav ? event.currentScope.$root.noNav : {};
+                event.currentScope.$root.noNav[fromState.name] = fromParams;
+            });
+
+        }])
+        .directive("noNav", ["$state", "noFormConfig", function( $state, noFormConfig){
+
             function _click(nav, attr, scope, $state) {
                 var route = noInfoPath.getItem(nav, attr),
                     params = scope.$root.noNav[route];
 
-                //console.log(route, params);
+                params = params ? params : {};
 
+                if(attr === "new" && route == "vd.entity.edit"){
+                    params.entity = $state.params.entity;
+                    params.id = "";
+                }
+                //console.log(route, params);
                 $state.go(route, params);
             }
 
@@ -993,10 +1021,6 @@
                 noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
                     .then(_finish);
 
-                scope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
-                    event.currentScope.$root.noNav = event.currentScope.$root.noNav ? event.currentScope.$root.noNav : {};
-                    event.currentScope.$root.noNav[fromState.name] = fromParams;
-                });
 
             }
 
