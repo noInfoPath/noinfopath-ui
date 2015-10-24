@@ -45,6 +45,10 @@
 
                                 el.html($compile(el.contents())(scope));
 
+                                sel.change(function(){
+                                    noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
+                                });
+
                                 scope.waitingFor[config.scopeKey] = false;
                             })
                             .catch(function(err){

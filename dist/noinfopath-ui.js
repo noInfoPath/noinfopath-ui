@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 0.0.35
+ *  > @version 0.0.36
 */
 
 //globals.js
@@ -637,6 +637,10 @@
 
 
                                 el.html($compile(el.contents())(scope));
+
+                                sel.change(function(){
+                                    noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
+                                });
 
                                 scope.waitingFor[config.scopeKey] = false;
                             })
