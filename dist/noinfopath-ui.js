@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 0.0.34
+ *  > @version 0.0.35
 */
 
 //globals.js
@@ -603,27 +603,39 @@
                 function _finish(form){
 					var config =  noInfoPath.getItem(form, attrs.noForm),
 						dataSource = noDataSource.create(config.noDataSource, scope, scope),
-                        template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="\'{{v.{noValueField}}}\'">{{v.{noTextField}}}</label></div>',
                         lookup = config.noLookup,
-                        sel = angular.element("<select></select>"),
-                        opts = "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + config.scopeKey;
+                        sel = angular.element("<select></select>");
 
                         sel.addClass("form-control");
 
-                        sel.attr("ng-model", lookup.ngModel);
+                        //sel.attr("ng-model", lookup.ngModel);
 
-                        sel.attr("ng-options", opts);
+                        //sel.attr("ng-options", opts);
 
-
-                        el.append(sel);
-
-                        // sel.change(function(){
-                        //     console.log(scope.observation);
-                        // });
 
                         dataSource.read()
                             .then(function(data){
-                                scope[config.scopeKey] = data.paged;
+                                var items = data.paged,
+                                    id = noInfoPath.getItem(scope, lookup.ngModel);
+
+                                for(var i in items){
+                                    var item = items[i],
+                                        o = angular.element("<option></option>"),
+                                        v = item[lookup.valueField];
+
+                                    o.attr("value", v);
+                                    o.append(item[lookup.textField]);
+
+                                    if(v === id){
+                                        o.attr("selected", "selected");
+                                    }
+
+                                    sel.append(o);
+                                }
+
+                                el.append(sel);
+
+
                                 el.html($compile(el.contents())(scope));
 
                                 scope.waitingFor[config.scopeKey] = false;
@@ -837,6 +849,8 @@
                     if(scope.waitingFor ) {
                         scope.waitingFor[config.scopeKey] = false;
                     }
+
+
                 }
 
                 function error(err){
@@ -847,6 +861,16 @@
 
                 function noForm_ready(data){
                     config = noInfoPath.getItem(data, noFormAttr);
+
+                    if(config.noDataPanel && config.noDataPanel.refresh){
+                        scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval){
+                            if(newval){
+                                dataSource.one()
+                                    .then(finish)
+                                    .catch(error);
+                            }
+                        });
+                    }
 
                     if(config.noDataSource){
                         dataSource = noDataSource.create(config.noDataSource, scope);
@@ -874,6 +898,7 @@
                     }
                 }
 
+
                 noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
                     .then(noForm_ready)
                     .catch(error);
@@ -881,7 +906,8 @@
 
             return {
                 restrict: "E",
-                link: _link
+                link: _link,
+                scope: false
             };
         }])
     ;

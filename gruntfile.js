@@ -73,7 +73,7 @@ module.exports = function(grunt) {
         watch: {
             dev: {
               files: ['src/**/*.*', 'test/**/*.spec.js'],
-              tasks: ['test-menu']
+              tasks: ['compile']
             }
         },
         nodocs: {
