@@ -61,6 +61,8 @@
                     if(scope.waitingFor ) {
                         scope.waitingFor[config.scopeKey] = false;
                     }
+
+
                 }
 
                 function error(err){
@@ -71,6 +73,16 @@
 
                 function noForm_ready(data){
                     config = noInfoPath.getItem(data, noFormAttr);
+
+                    if(config.noDataPanel && config.noDataPanel.refresh){
+                        scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval){
+                            if(newval){
+                                dataSource.one()
+                                    .then(finish)
+                                    .catch(error);
+                            }
+                        });
+                    }
 
                     if(config.noDataSource){
                         dataSource = noDataSource.create(config.noDataSource, scope);
@@ -98,6 +110,7 @@
                     }
                 }
 
+
                 noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
                     .then(noForm_ready)
                     .catch(error);
@@ -105,7 +118,8 @@
 
             return {
                 restrict: "E",
-                link: _link
+                link: _link,
+                scope: false
             };
         }])
     ;
