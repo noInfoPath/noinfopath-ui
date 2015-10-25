@@ -1,6 +1,6 @@
  # noinfopath.ui
 
- > @version 0.0.36
+ > @version 1.0.0
 
   ##  noDataPanel
 
@@ -37,4 +37,3 @@
       }
   }
   ```
-
