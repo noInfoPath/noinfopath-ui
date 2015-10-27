@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.0
+ *  > @version 1.0.1
 */
 
 //globals.js
@@ -599,6 +599,41 @@
 
 
             function _link(scope, el, attrs){
+                function populateDropDown(config, lookup){
+                    var dataSource = noDataSource.create(config.noDataSource, scope, scope);
+
+                    dataSource.read()
+                        .then(function(data){
+                            var items = data.paged,
+                                id = noInfoPath.getItem(scope, lookup.ngModel),
+                                sel = el.find("select");
+
+                            sel.empty();
+
+
+                            for(var i in items){
+                                var item = items[i],
+                                    o = angular.element("<option></option>"),
+                                    v = item[lookup.valueField];
+
+                                o.attr("value", v);
+                                o.append(item[lookup.textField]);
+
+                                if(v === id){
+                                    o.attr("selected", "selected");
+                                }
+
+                                sel.append(o);
+                            }
+
+
+                        })
+                        .catch(function(err){
+                            scope.waitingForError = {error: err, src: config };
+                            console.error(scope.$root.waitingForError);
+                        });
+
+                }
 
                 function _finish(form){
 					var config =  noInfoPath.getItem(form, attrs.noForm),
@@ -606,48 +641,32 @@
                         lookup = config.noLookup,
                         sel = angular.element("<select></select>");
 
-                        sel.addClass("form-control");
-
                         //sel.attr("ng-model", lookup.ngModel);
 
-                        //sel.attr("ng-options", opts);
+                        el.append(sel);
+                        sel.addClass("form-control");
 
 
-                        dataSource.read()
-                            .then(function(data){
-                                var items = data.paged,
-                                    id = noInfoPath.getItem(scope, lookup.ngModel);
+                        el.html($compile(el.contents())(scope));
 
-                                for(var i in items){
-                                    var item = items[i],
-                                        o = angular.element("<option></option>"),
-                                        v = item[lookup.valueField];
+                        sel.change(function(){
+                            noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
+                            scope.$apply();
+                        });
 
-                                    o.attr("value", v);
-                                    o.append(item[lookup.textField]);
 
-                                    if(v === id){
-                                        o.attr("selected", "selected");
-                                    }
-
-                                    sel.append(o);
+                        if(lookup.watch){
+                            scope.$watch(lookup.watch.property, function(n, o, s){
+                                if(n) {
+                                    populateDropDown(config, lookup);
                                 }
-
-                                el.append(sel);
-
-
-                                el.html($compile(el.contents())(scope));
-
-                                sel.change(function(){
-                                    noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
-                                });
-
-                                scope.waitingFor[config.scopeKey] = false;
-                            })
-                            .catch(function(err){
-                                scope.waitingForError = {error: err, src: config };
-                                console.error(scope.$root.waitingForError);
                             });
+                        }else{
+                            populateDropDown(config, lookup);
+                        }
+
+                        //scope.waitingFor[config.scopeKey] = false;
+
 
 				}
 
