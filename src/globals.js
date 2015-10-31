@@ -27,8 +27,7 @@
                                 options = new window.noInfoPath.noDataReadRequest(table, {
                                     data: {
                                         filter: {
-                                            "filters": filters,
-
+                                            "filters": filters
                                         },
                                         "sort": ds.sort
                                     }
