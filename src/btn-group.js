@@ -4,17 +4,28 @@
 
         .directive("noBtnGroup",["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state){
             function _link(scope, el, attrs){
+                function valueField(btn) {
+                    var to = btn.valueType,
+                        fns = {
+                            "string": function(vf){ return "'{{v." + btn.valueField + "}}'"; },
+                            "undefined": function(vf){ return "{{v." + btn.valueField + "}}"; }
+                        },
+                        fk = fns[to] ? to : "undefined",
+                        fn = fns[fk];
+
+                    return fn(btn);
+                }
 
                 function _finish(form){
 					var config =  noInfoPath.getItem(form, attrs.noForm),
 						dataSource = noDataSource.create(config.noDataSource, scope, scope),
-                        template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="\'{{v.{noValueField}}}\'">{{v.{noTextField}}}</label></div>',
+                        template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="{noValueField}">{{v.{noTextField}}}</label></div>',
                         btnGrp = config.noBtnGroup;
 
                         template = template.replace("{noBtnGroup}",  btnGrp.groupCSS);
     					template = template.replace("{noDataSource}",  config.scopeKey);
     					template = template.replace("{noItemClass}",  btnGrp.itemCSS);
-    					template = template.replace("{noValueField}",  btnGrp.valueField);
+    					template = template.replace("{noValueField}", valueField(btnGrp));
     					template = template.replace("{noTextField}",  btnGrp.textField);
                         template = template.replace("{noNgModel}",  btnGrp.ngModel);
 
