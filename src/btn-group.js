@@ -5,7 +5,7 @@
         .directive("noBtnGroup",["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state){
             function _link(scope, el, attrs){
                 function valueField(btn) {
-                    var to = btn.valueType,
+                    var to = btn.valueType ? btn.valueType : "string",
                         fns = {
                             "string": function(vf){ return "'{{v." + btn.valueField + "}}'"; },
                             "undefined": function(vf){ return "{{v." + btn.valueField + "}}"; }

@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.2
+ *  > @version 1.0.3
 */
 
 //globals.js
@@ -27,8 +27,7 @@
                                 options = new window.noInfoPath.noDataReadRequest(table, {
                                     data: {
                                         filter: {
-                                            "filters": filters,
-
+                                            "filters": filters
                                         },
                                         "sort": ds.sort
                                     }
@@ -756,7 +755,7 @@
         .directive("noBtnGroup",["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state){
             function _link(scope, el, attrs){
                 function valueField(btn) {
-                    var to = btn.valueType,
+                    var to = btn.valueType ? btn.valueType : "string",
                         fns = {
                             "string": function(vf){ return "'{{v." + btn.valueField + "}}'"; },
                             "undefined": function(vf){ return "{{v." + btn.valueField + "}}"; }
