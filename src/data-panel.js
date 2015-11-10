@@ -42,6 +42,7 @@
 
             function _link(scope, el, attrs){
                 var config,
+                    resultType = "one",
                     dataSource,
                     noFormAttr = attrs.noForm;
 
@@ -74,14 +75,19 @@
                 function noForm_ready(data){
                     config = noInfoPath.getItem(data, noFormAttr);
 
-                    if(config.noDataPanel && config.noDataPanel.refresh){
-                        scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval){
-                            if(newval){
-                                dataSource.one()
-                                    .then(finish)
-                                    .catch(error);
-                            }
-                        });
+                    if(config.noDataPanel) {
+                        resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
+
+                        if(config.noDataPanel.refresh){
+                            scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval){
+                                if(newval){
+                                    dataSource[resultType]()
+                                        .then(finish)
+                                        .catch(error);
+                                }
+                            });
+                        }
+
                     }
 
                     if(config.noDataSource){
@@ -99,12 +105,12 @@
 
                                 el.append(c);
 
-                                dataSource.one()
+                                dataSource[resultType]()
                                     .then(finish)
                                     .catch(error);
                             });
                     }else{
-                        dataSource.one()
+                        dataSource[resultType]()
                             .then(finish)
                             .catch(error);
                     }
