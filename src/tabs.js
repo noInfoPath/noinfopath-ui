@@ -9,6 +9,8 @@
 
                 pnls.addClass("ng-hide");
 
+                el.find("no-tab-panels > no-tab-panel > div").addClass("no-m-t-lg");
+
                 angular.forEach(lis, function(li, ndx){
                     angular.element(li).attr("ndx", ndx);
                     //console.log(ndx, li);
@@ -31,7 +33,6 @@
                     tab.toggleClass("active");
                     pnl.toggleClass("ng-hide");
 
-                    //console.log()
                 });
 
                 //$compile(el.contents())(scope);
