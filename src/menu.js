@@ -99,7 +99,9 @@
                 function _routeRecurse(root){
                     if(root.route){
                         if(!root.route.data){
-                            root.route.data = {};
+                            root.route.data = {
+                                entities:{}
+                            };
                         }
 
                         root.route.data.title = root.title;
