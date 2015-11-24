@@ -2,6 +2,7 @@
  *  # noinfopath.ui
  *
  *  > @version 1.0.8
+ *
 */
 
 //globals.js
@@ -457,7 +458,9 @@
                 function _routeRecurse(root){
                     if(root.route){
                         if(!root.route.data){
-                            root.route.data = {};
+                            root.route.data = {
+                                entities:{}
+                            };
                         }
 
                         root.route.data.title = root.title;
