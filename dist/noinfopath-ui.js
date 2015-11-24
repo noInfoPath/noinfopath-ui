@@ -1,7 +1,8 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.7
+ *  > @version 1.0.8
+ *
 */
 
 //globals.js
@@ -701,10 +702,13 @@
         .directive("noTabs",[ "$compile", function($compile){
             var link = function(scope, el, attrs){
                 var lis = el.find("li"),
-                    pnls = el.find("no-tab-panels").children(),
+                    pnls = el.find("no-tab-panels").children("no-tab-panel"),
                     def = el.find("li.active"), defNdx;
 
+
                 pnls.addClass("ng-hide");
+
+                el.find("no-tab-panels").addClass("tab-panels");
 
                 el.find("no-tab-panels > no-tab-panel > div").addClass("no-m-t-lg");
 
@@ -1047,55 +1051,6 @@
                 scope: true,
                 link: _link
 
-            };
-        }])
-    ;
-})(angular);
-
-//back-button.js
-(function(angular, undefined){
-    "use strict";
-
-    angular.module("noinfopath.ui")
-        .run(["$rootScope", function($rootScope){
-            $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams){
-                console.log("$stateChangeSuccess");
-                event.currentScope.$root.noNav = event.currentScope.$root.noNav ? event.currentScope.$root.noNav : {};
-                event.currentScope.$root.noNav[fromState.name] = fromParams;
-            });
-
-        }])
-        .directive("noNav", ["$state", "noFormConfig", function( $state, noFormConfig){
-
-            function _click(nav, attr, scope, $state) {
-                var route = noInfoPath.getItem(nav, attr),
-                    params = scope.$root.noNav[route];
-
-                params = params ? params : {};
-
-                if(attr === "new" && route == "vd.entity.edit"){
-                    params.entity = $state.params.entity;
-                    params.id = "";
-                }
-                //console.log(route, params);
-                $state.go(route, params);
-            }
-
-            function _link(scope, el, attrs){
-                function _finish(data) {
-                    el.click(_click.bind(el, data.noNav, attrs.noNav, scope, $state));
-                }
-
-                noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
-                    .then(_finish);
-
-
-            }
-
-            return {
-                restrict: "A",
-                scope: {},
-                link: _link
             };
         }])
     ;

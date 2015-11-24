@@ -4,10 +4,13 @@
         .directive("noTabs",[ "$compile", function($compile){
             var link = function(scope, el, attrs){
                 var lis = el.find("li"),
-                    pnls = el.find("no-tab-panels").children(),
+                    pnls = el.find("no-tab-panels").children("no-tab-panel"),
                     def = el.find("li.active"), defNdx;
 
+
                 pnls.addClass("ng-hide");
+
+                el.find("no-tab-panels").addClass("tab-panels");
 
                 el.find("no-tab-panels > no-tab-panel > div").addClass("no-m-t-lg");
 
