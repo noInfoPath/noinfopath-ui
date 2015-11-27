@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.8
+ *  > @version 1.0.9
  *
 */
 
@@ -594,106 +594,127 @@
 })(angular);
 
 //lookup.js
-(function(angular, undefined){
-    angular.module("noinfopath.ui")
+(function(angular, undefined) {
+	angular.module("noinfopath.ui")
 
-        .directive("noLookup",["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state){
-
-
-            function _link(scope, el, attrs){
-                function populateDropDown(config, lookup){
-                    var dataSource = noDataSource.create(config.noDataSource, scope, scope);
-
-                    dataSource.read()
-                        .then(function(data){
-                            var items = data.paged,
-                                id = noInfoPath.getItem(scope, lookup.ngModel),
-                                sel = el.find("select");
-
-                            sel.empty();
+	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
 
 
-                            for(var i in items){
-                                var item = items[i],
-                                    o = angular.element("<option></option>"),
-                                    v = item[lookup.valueField];
+		function _link(scope, el, attrs) {
 
-                                o.attr("value", v);
-                                o.append(item[lookup.textField]);
+			function populateDropDown(config, lookup) {
+				var dataSource = noDataSource.create(config.noDataSource, scope, scope);
 
-                                if(v === id){
-                                    o.attr("selected", "selected");
-                                }
+				dataSource.read()
+					.then(function(data) {
+						var items = data.paged,
+							id = noInfoPath.getItem(scope, lookup.ngModel),
+							sel = el.find("select");
 
-                                sel.append(o);
-                            }
+						sel.empty();
 
 
-                        })
-                        .catch(function(err){
-                            scope.waitingForError = {error: err, src: config };
-                            console.error(scope.$root.waitingForError);
-                        });
+						for (var i in items) {
+							var item = items[i],
+								o = angular.element("<option></option>"),
+								v = item[lookup.valueField];
 
-                }
+							o.attr("value", v);
+							o.append(item[lookup.textField]);
 
-                function _finish(form){
-					var config =  noInfoPath.getItem(form, attrs.noForm),
-						dataSource = noDataSource.create(config.noDataSource, scope, scope),
-                        lookup = config.noLookup,
-                        sel = angular.element("<select></select>");
+							if (v === id) {
+								o.attr("selected", "selected");
+							}
 
-                        //sel.attr("ng-model", lookup.ngModel);
-
-                        el.append(sel);
-                        sel.addClass("form-control");
+							sel.append(o);
+						}
 
 
-                        el.html($compile(el.contents())(scope));
-
-                        sel.change(function(){
-                            noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
-                            scope.$apply();
-                        });
-
-
-                        if(lookup.watch){
-                            scope.$watch(lookup.watch.property, function(n, o, s){
-                                if(n) {
-                                    populateDropDown(config, lookup);
-                                }
-                            });
-                        }else{
-                            populateDropDown(config, lookup);
-                        }
-
-                        //scope.waitingFor[config.scopeKey] = false;
-
-
-				}
-
-				noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
-					.then(_finish)
-					.catch(function(err){
-						console.error(err);
+					})
+					.catch(function(err) {
+						scope.waitingForError = {
+							error: err,
+							src: config
+						};
+						console.error(scope.$root.waitingForError);
 					});
 
+			}
 
-            }
+			function _finish(form) {
+				var config = noInfoPath.getItem(form, attrs.noForm),
+					dataSource = noDataSource.create(config.noDataSource, scope, scope),
+					lookup = config.noLookup,
+					sel = angular.element("<select></select>");
 
-            function _compile(el, attrs){
-                return _link;
-            }
 
-            directive = {
-                restrict:"E",
-                compile: _compile,
-                scope: false
-            };
 
-            return directive;
-        }])
-    ;
+				//For kendo compatiblity
+				if (lookup.binding && lookup.binding === "kendo") {
+					sel.attr("data-bind", "value:" + lookup.valueField);
+					//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
+				} else {
+					sel.attr("ng-model", lookup.ngModel);
+				}
+
+				el.append(sel);
+				sel.addClass("form-control");
+
+
+				el.html($compile(el.contents())(scope));
+
+
+				//For kendo compatiblity
+				if (lookup.binding && lookup.binding === "kendo") {
+					sel.change(function() {
+						scope[lookup.scopeKey].set(lookup.valueField, angular.element(this)
+							.val());
+						scope[lookup.scopeKey].dirty = true;
+					});
+				} else {
+					sel.change(function() {
+						noInfoPath.setItem(scope, lookup.ngModel, angular.element(this)
+							.val());
+						scope.$apply();
+					});
+				}
+
+				if (lookup.watch) {
+					scope.$watch(lookup.watch.property, function(n, o, s) {
+						if (n) {
+							populateDropDown(config, lookup);
+						}
+					});
+				} else {
+					populateDropDown(config, lookup);
+				}
+
+				//scope.waitingFor[config.scopeKey] = false;
+
+
+			}
+
+			noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
+				.then(_finish)
+				.catch(function(err) {
+					console.error(err);
+				});
+
+
+		}
+
+		function _compile(el, attrs) {
+			return _link;
+		}
+
+		directive = {
+			restrict: "E",
+			compile: _compile,
+			scope: false
+		};
+
+		return directive;
+	}]);
 })(angular);
 
 //tabs.js
