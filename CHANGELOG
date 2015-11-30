@@ -1,1 +1,3 @@
-Like this new change log feature.
+|Date|Developer|Description|
+|----|---------|-----------|
+|11/29/2015, 8:52:31 PM|gochinj|Modified noTabs to support filler-tab class.  This will trigger noTabs to ignore this tabs when indexing the tab strip to the tab-pabels.|
