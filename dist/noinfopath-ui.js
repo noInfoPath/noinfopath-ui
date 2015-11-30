@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.9
+ *  > @version 1.0.10
  *
 */
 
@@ -733,13 +733,18 @@
 
                 el.find("no-tab-panels > no-tab-panel > div").addClass("no-m-t-lg");
 
-                angular.forEach(lis, function(li, ndx){
-                    angular.element(li).attr("ndx", ndx);
-                    //console.log(ndx, li);
-                });
+                for(var lii=0, ndx=0; lii < lis.length; lii++){
+                    var lie = angular.element(lis[lii]);
 
-                lis.click(function(e){
+                    if(!lie.is(".filler-tab"))
+                    {
+                        lie.attr("ndx", ndx++);
+                    }
+                }
+
+                lis.find(":not(.filler-tab)").click(function(e){
                     e.preventDefault();
+
 
                     var tab = el.find("li.active"),
                         pnlNdx = Number(tab.attr("ndx")),
