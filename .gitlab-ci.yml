@@ -1,5 +1,8 @@
+variables:
+  CHROME_BIN: "/usr/bin/google-chrome-stable"
+
 test1:
     script: 
         - npm install
         - bower install
-        - grunt karma:continuous
+        - xvfb-run grunt karma:continuous
