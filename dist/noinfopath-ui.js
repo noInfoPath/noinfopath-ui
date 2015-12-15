@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.10
+ *  > @version 1.0.11
  *
 */
 
@@ -612,9 +612,10 @@
 							sel = el.find("select");
 
 						sel.empty();
+						sel.append("<option></option>");
 
 
-						for (var i in items) {
+						for (var i = 0; i < items.length; i++){
 							var item = items[i],
 								o = angular.element("<option></option>"),
 								v = item[lookup.valueField];
@@ -654,8 +655,9 @@
 					sel.attr("data-bind", "value:" + lookup.valueField);
 					//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
 				} else {
-					sel.attr("ng-model", lookup.ngModel);
+					//sel.attr("ng-model", lookup.ngModel);
 				}
+
 
 				el.append(sel);
 				sel.addClass("form-control");
@@ -667,15 +669,14 @@
 				//For kendo compatiblity
 				if (lookup.binding && lookup.binding === "kendo") {
 					sel.change(function() {
-						scope[lookup.scopeKey].set(lookup.valueField, angular.element(this)
-							.val());
+						scope[lookup.scopeKey].set(lookup.valueField, angular.element(this).val());
 						scope[lookup.scopeKey].dirty = true;
 					});
 				} else {
 					sel.change(function() {
-						noInfoPath.setItem(scope, lookup.ngModel, angular.element(this)
-							.val());
+						noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
 						scope.$apply();
+                        //this.remove(0);
 					});
 				}
 
