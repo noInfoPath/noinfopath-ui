@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.11
+ *  > @version 1.0.12
  *
 */
 
@@ -723,7 +723,8 @@
     angular.module("noinfopath.ui")
         .directive("noTabs",[ "$compile", function($compile){
             var link = function(scope, el, attrs){
-                var lis = el.find("li"),
+                var ul = el.find("ul"),
+					lis = ul.length > 0 ? angular.element(ul[0]).children() : null,
                     pnls = el.find("no-tab-panels").children("no-tab-panel"),
                     def = el.find("li.active"), defNdx;
 
@@ -743,7 +744,7 @@
                     }
                 }
 
-                lis.find(":not(.filler-tab)").click(function(e){
+                lis.find("a:not(.filler-tab)").click(function(e){
                     e.preventDefault();
 
 
