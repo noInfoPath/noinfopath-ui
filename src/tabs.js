@@ -43,6 +43,7 @@
 						tab.toggleClass("active");
 						pnl.toggleClass("ng-hide");
 
+                        scope.$broadcast("noTabs::Change", tab, pnl);
 					});
 
 					//$compile(el.contents())(scope);

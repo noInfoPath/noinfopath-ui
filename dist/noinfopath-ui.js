@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.13
+ *  > @version 1.0.14
  *
 */
 
@@ -763,6 +763,7 @@
 						tab.toggleClass("active");
 						pnl.toggleClass("ng-hide");
 
+                        scope.$broadcast("noTabs::Change", tab, pnl);
 					});
 
 					//$compile(el.contents())(scope);
