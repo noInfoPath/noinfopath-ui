@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.14
+ *  > @version 1.0.15
  *
 */
 
@@ -686,10 +686,16 @@
 							populateDropDown(config, lookup);
 						}
 					});
-				} else {
-					populateDropDown(config, lookup);
 				}
+				//else {
+					populateDropDown(config, lookup);
+				// }
 
+				scope.$on("noKendoGrid::dataChanged", function(e, scopeKey){
+					if (lookup.watch && lookup.watch.property == scopeKey){
+						populateDropDown(config, lookup);
+					}
+				});
 				//scope.waitingFor[config.scopeKey] = false;
 
 
