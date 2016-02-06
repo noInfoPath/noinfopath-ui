@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.15
+ *  > @version 1.0.16
  *
 */
 
@@ -711,6 +711,17 @@
 		}
 
 		function _compile(el, attrs) {
+			if(attrs.$attr.required){
+                var input = angular.element("<input />");
+
+                input.attr("type", "hidden");
+                input.attr("required", "required");
+
+                input.attr("ng-model", attrs.noModel);
+                input.attr("name", attrs.noModel);
+
+                el.append(input);
+            }
 			return _link;
 		}
 
