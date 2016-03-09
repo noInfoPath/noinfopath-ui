@@ -47,7 +47,11 @@
                     noFormAttr = attrs.noForm;
 
                 function finish(data){
-                    scope[config.scopeKey] = data;
+					if(data.paged){
+						scope[config.scopeKey] = data.paged[0];
+					} else {
+						scope[config.scopeKey] = data;
+					}
 
                     if(config.hiddenFields){
                         for(var h in config.hiddenFields){
