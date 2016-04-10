@@ -17,13 +17,25 @@
 		 *   directive in your HTML markup.
 		 *
 		 *   ```html
-		 *   <no-data-panel no-form="noForm.noComponents.selection"/>
+		 *   <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>
 		 *   ```
 		 *
 		 *   ### Sample Configuration
 		 *
 		 *   ```js
-		 *   //TODO: add example configuration here.
+		 *   {
+		 *       "selection": {
+		 *           "scopeKey": "selection",
+		 *           "dataProvider": "noWebSQL",
+		 *           "databaseName": "FCFNv2",
+		 *           "entityName": "vw_trialplot_selection",
+		 *           "primaryKey": "TrialPlotID",
+		 *           "lookup": {
+		 *               "source": "$stateParams",
+		 *           },
+		 *           "templateUrl": "observations/selection.html"
+		 *       }
+		 *   }
 		 *   ```
 		 */
 		.directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noFormConfig", "noDataSource", "$state", function($injector, $q, $http, $compile, noFormConfig, noDataSource, $state) {
@@ -41,13 +53,6 @@
 						scope[config.scopeKey] = data;
 					}
 
-					/*
-					*	@property hiddenFields
-					*
-					*	Ensures the hidden imput tags are updated.
-					*
-					*	> Not sure this is still needed.  May be deprecated in the future.
-					*/
 					if (config.hiddenFields) {
 						for (var h in config.hiddenFields) {
 							var hf = config.hiddenFields[h],
@@ -78,39 +83,8 @@
 					config = noInfoPath.getItem(data, noFormAttr);
 
 					if (config.noDataPanel) {
-						/*
-						*	## @property noComponents.noDataPanel
-						*
-						*	Contains configuration properties specific to noDataPanel
-						*	when configuring a NoInfoPath Component using the `noForms`
-						*	configuration schema.
-						*
-						*	### @property noDataPanel.resultType (Default Value: `one`)
-						*
-						*	Allows the noDataPanel to retrieve rows of data via the underlying
-						*	`noDataSource::read` method or a single object via `noDataSource:one`
-						*	method. The
-						*
-						*/
 						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
 
-						/*
-						*	### @property noDataPanel.refresh
-						*
-						*	This property is an object that determines if the noDataPanel watches
-						*	a particuar property on the scope to change. When it does the underlying
-						*	noDataSource is requeried using the configured `resultType` property.
-						*
-						*	> NOTE: `noDataPanel.refresh` uses $watchCollection so if any child property
-						*	> of the scope object changes this noDataPanel will react to it.
-						*
-						*	#### Child properties
-						*
-						*	|Name|Description|
-						*	|----|-----------|
-						*	|property|Name of the scope property to watch.|
-						*
-						*/
 						if (config.noDataPanel.refresh) {
 							scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval) {
 								if (newval) {
@@ -123,27 +97,12 @@
 
 					}
 
-					/*
-					*	@property noComponents.noDataPanel
-					*
-					*	This property provides the configuration required to retrieve data
-					*	via a NoInfoPath Data Provider service.  See NoInfoPath Data module
-					*	for more information on how to configure a NoInfoPath data source.
-					*
-					*/
 					if (config.noDataSource) {
 						dataSource = noDataSource.create(config.noDataSource, scope);
 					} else {
 						dataSource = noDataSource.create(config, scope);
 					}
 
-					/*
-					*	@property noComponents.templateUrl
-					*
-					*	When provided, retrieve the HTML template to data bind to.
-					*
-					*	> TODO: Move this to noDataPanel configuration property.
-					*/
 					if (config.templateUrl) {
 						$http.get(config.templateUrl)
 							.then(function(resp) {
@@ -165,9 +124,8 @@
 				}
 
 
-				noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
-					.then(noForm_ready)
-					.catch(error);
+				noForm_ready(noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope));
+
 			}
 
 			return {

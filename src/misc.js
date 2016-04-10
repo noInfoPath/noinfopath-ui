@@ -48,49 +48,47 @@
 })(angular);
 
 //title.js
-(function(angular, undefined){
-    "use strict";
+(function(angular, undefined) {
+	"use strict";
 
-    angular.module("noinfopath.ui")
-        .directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig",  "lodash", function(noDataSource, noFormConfig, $compile, noConfig,  _){
-            function _link(scope, el, attrs){
-                scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams){
-                    var noFormCfg, noTitle;
+	angular.module("noinfopath.ui")
+		.directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig", "lodash", function(noDataSource, noFormConfig, $compile, noConfig, _) {
+			function _link(scope, el, attrs) {
+				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+					var noFormCfg, noTitle;
 
-                    function _finish(data){
-                        if(!data) throw "Form configuration not found for route " + toState.name;
+					function _finish(data) {
+						if (!data) throw "Form configuration not found for route " + toState.name;
 
-                        noTitle = data.noTitle;
+						noTitle = data.noTitle;
 
-                        if(noTitle){
-                            el.html($compile(noTitle.title)(event.targetScope));
-                            if(noTitle.noDataSource){
-                                var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
+						if (noTitle) {
+							el.html($compile(noTitle.title)(event.targetScope));
+							if (noTitle.noDataSource) {
+								var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
 
-                                dataSource.one()
-                                    .then(function(data){
-                                        noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey , data[noTitle.scopeKey]);
-                                    })
-                                    .catch(function(err){
-                                        console.error(err);
-                                    });
-                            }
-                        }
-                    }
+								dataSource.one()
+									.then(function(data) {
+										noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey, data[noTitle.scopeKey]);
+									})
+									.catch(function(err) {
+										console.error(err);
+									});
+							}
+						}
+					}
 
-                    noFormConfig.getFormByRoute(toState.name, toParams.entity, scope)
-                        .then(_finish);
+					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
 
-                });
+				});
 
-            }
+			}
 
-            return {
-                restrict: "E",
-                scope: true,
-                link: _link
+			return {
+				restrict: "E",
+				scope: true,
+				link: _link
 
-            };
-        }])
-    ;
+			};
+        }]);
 })(angular);
