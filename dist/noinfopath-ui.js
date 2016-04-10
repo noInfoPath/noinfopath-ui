@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.0.18
+ *  > @version 1.2.1
  *
 */
 
@@ -598,37 +598,79 @@
 	angular.module("noinfopath.ui")
 
 	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
+		function _compile(el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
+				form = noInfoPath.getItem(config, attrs.noForm),
+				lookup = form.noLookup,
+				sel = angular.element("<select />");
+
+			sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
+
+			if (lookup.required) sel.attr("required", "");
+
+			if (lookup.binding && lookup.binding === "kendo") {
+				sel.attr("data-bind", "value:" + lookup.valueField);
+				//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
+			} else {
+				sel.attr("ng-model", lookup.ngModel);
+
+			}
+
+			//default to bootstrap
+			sel.addClass(lookup.cssClasses || "form-control");
+
+			el.empty();
+			el.append(sel);
+
+			// if(attrs.$attr.required){
+			//     var input = angular.element("<input />");
+			//
+			//     input.attr("type", "hidden");
+			//     input.attr("required", "required");
+			//
+			//     input.attr("ng-model", attrs.noModel);
+			//     input.attr("name", attrs.noModel);
+			//
+			//     el.append(input);
+			// }
+			return _link;
+		}
 
 
 		function _link(scope, el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
+				form = noInfoPath.getItem(config, attrs.noForm),
+				lookup = form.noLookup,
+				sel = el.first();
 
-			function populateDropDown(config, lookup) {
-				var dataSource = noDataSource.create(config.noDataSource, scope, scope);
+			function populateDropDown(form, lookup) {
+				var dataSource = noDataSource.create(form.noDataSource, scope, scope);
 
 				dataSource.read()
 					.then(function(data) {
-						var items = data.paged,
-							id = noInfoPath.getItem(scope, lookup.ngModel),
-							sel = el.find("select");
-
-						sel.empty();
-						sel.append("<option></option>");
-
-
-						for (var i = 0; i < items.length; i++){
-							var item = items[i],
-								o = angular.element("<option></option>"),
-								v = item[lookup.valueField];
-
-							o.attr("value", v);
-							o.append(item[lookup.textField]);
-
-							if (v === id) {
-								o.attr("selected", "selected");
-							}
-
-							sel.append(o);
-						}
+						scope[form.scopeKey] = data;
+						// var items = data.paged,
+						// 	id = noInfoPath.getItem(scope, lookup.ngModel),
+						// 	sel = el.find("select");
+						//
+						// sel.empty();
+						// sel.append("<option></option>");
+						//
+						//
+						// for (var i = 0; i < items.length; i++){
+						// 	var item = items[i],
+						// 		o = angular.element("<option></option>"),
+						// 		v = item[lookup.valueField];
+						//
+						// 	o.attr("value", v);
+						// 	o.append(item[lookup.textField]);
+						//
+						// 	if (v === id) {
+						// 		o.attr("selected", "selected");
+						// 	}
+						//
+						// 	sel.append(o);
+						//}
 
 
 					})
@@ -642,88 +684,39 @@
 
 			}
 
-			function _finish(form) {
-				var config = noInfoPath.getItem(form, attrs.noForm),
-					dataSource = noDataSource.create(config.noDataSource, scope, scope),
-					lookup = config.noLookup,
-					sel = angular.element("<select></select>");
+			// if (lookup.binding && lookup.binding === "kendo") {
+			// 	sel.change(function() {
+			// 		scope[lookup.scopeKey].set(lookup.valueField, angular.element(this).val());
+			// 		scope[lookup.scopeKey].dirty = true;
+			// 	});
+			// } else {
+			// 	sel.change(function() {
+			// 		noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
+			// 		scope.$apply();
+			// 		//this.remove(0);
+			// 	});
+			// }
 
+			// if (lookup.watch) {
+			// 	scope.$watch(lookup.watch.property, function(n, o, s) {
+			// 		if (n) {
+			// 			populateDropDown(form, lookup);
+			// 		}
+			// 	});
+			// }
+			//else {
+			//populateDropDown(form, lookup);
+			// }
 
+			// scope.$on("noKendoGrid::dataChanged", function(e, scopeKey){
+			// 	if (lookup.watch && lookup.watch.property == scopeKey){
+			// 		populateDropDown(config, lookup);
+			// 	}
+			// });
 
-				//For kendo compatiblity
-				if (lookup.binding && lookup.binding === "kendo") {
-					sel.attr("data-bind", "value:" + lookup.valueField);
-					//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
-				} else {
-					//sel.attr("ng-model", lookup.ngModel);
-				}
-
-
-				el.append(sel);
-				sel.addClass("form-control");
-
-
-				el.html($compile(el.contents())(scope));
-
-
-				//For kendo compatiblity
-				if (lookup.binding && lookup.binding === "kendo") {
-					sel.change(function() {
-						scope[lookup.scopeKey].set(lookup.valueField, angular.element(this).val());
-						scope[lookup.scopeKey].dirty = true;
-					});
-				} else {
-					sel.change(function() {
-						noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
-						scope.$apply();
-                        //this.remove(0);
-					});
-				}
-
-				if (lookup.watch) {
-					scope.$watch(lookup.watch.property, function(n, o, s) {
-						if (n) {
-							populateDropDown(config, lookup);
-						}
-					});
-				}
-				//else {
-					populateDropDown(config, lookup);
-				// }
-
-				scope.$on("noKendoGrid::dataChanged", function(e, scopeKey){
-					if (lookup.watch && lookup.watch.property == scopeKey){
-						populateDropDown(config, lookup);
-					}
-				});
-				//scope.waitingFor[config.scopeKey] = false;
-
-
-			}
-
-			noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
-				.then(_finish)
-				.catch(function(err) {
-					console.error(err);
-				});
-
-
+			populateDropDown(form, lookup);
 		}
 
-		function _compile(el, attrs) {
-			if(attrs.$attr.required){
-                var input = angular.element("<input />");
-
-                input.attr("type", "hidden");
-                input.attr("required", "required");
-
-                input.attr("ng-model", attrs.noModel);
-                input.attr("name", attrs.noModel);
-
-                el.append(input);
-            }
-			return _link;
-		}
 
 		directive = {
 			restrict: "E",
@@ -803,212 +796,214 @@
 })(angular);
 
 //btn-group.js
-(function(angular, undefined){
-    angular.module("noinfopath.ui")
+(function(angular, undefined) {
+	angular.module("noinfopath.ui")
 
-        .directive("noBtnGroup",["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state){
-            function _link(scope, el, attrs){
-                function valueField(btn) {
-                    var to = btn.valueType ? btn.valueType : "string",
-                        fns = {
-                            "string": function(vf){ return "'{{v." + btn.valueField + "}}'"; },
-                            "undefined": function(vf){ return "{{v." + btn.valueField + "}}"; }
-                        },
-                        fk = fns[to] ? to : "undefined",
-                        fn = fns[fk];
+	.directive("noBtnGroup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
+		function _link(scope, el, attrs) {
+			function valueField(btn) {
+				var to = btn.valueType ? btn.valueType : "string",
+					fns = {
+						"string": function(vf) {
+							return "'{{v." + btn.valueField + "}}'";
+						},
+						"undefined": function(vf) {
+							return "{{v." + btn.valueField + "}}";
+						}
+					},
+					fk = fns[to] ? to : "undefined",
+					fn = fns[fk];
 
-                    return fn(btn);
-                }
+				return fn(btn);
+			}
 
-                function _finish(form){
-					var config =  noInfoPath.getItem(form, attrs.noForm),
-						dataSource = noDataSource.create(config.noDataSource, scope, scope),
-                        template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="{noValueField}">{{v.{noTextField}}}</label></div>',
-                        btnGrp = config.noBtnGroup;
+			function _finish(form) {
+				var config = noInfoPath.getItem(form, attrs.noForm),
+					dataSource = noDataSource.create(config.noDataSource, scope, scope),
+					template = '<div class="btn-group {noBtnGroup}"><label ng-repeat="v in {noDataSource}" class="{noItemClass}" ng-model="{noNgModel}" btn-radio="{noValueField}">{{v.{noTextField}}}</label></div>',
+					btnGrp = config.noBtnGroup;
 
-                        template = template.replace("{noBtnGroup}",  btnGrp.groupCSS);
-    					template = template.replace("{noDataSource}",  config.scopeKey);
-    					template = template.replace("{noItemClass}",  btnGrp.itemCSS);
-    					template = template.replace("{noValueField}", valueField(btnGrp));
-    					template = template.replace("{noTextField}",  btnGrp.textField);
-                        template = template.replace("{noNgModel}",  btnGrp.ngModel);
+				template = template.replace("{noBtnGroup}", btnGrp.groupCSS);
+				template = template.replace("{noDataSource}", config.scopeKey);
+				template = template.replace("{noItemClass}", btnGrp.itemCSS);
+				template = template.replace("{noValueField}", valueField(btnGrp));
+				template = template.replace("{noTextField}", btnGrp.textField);
+				template = template.replace("{noNgModel}", btnGrp.ngModel);
 
-    	                el.append(angular.element(template));
+				el.append(angular.element(template));
 
-                        el.html($compile(el.contents())(scope));
+				el.html($compile(el.contents())(scope));
 
-                        dataSource.read()
-                            .then(function(data){
-                                scope[config.scopeKey] = data.paged;
-                                scope.waitingFor[config.scopeKey] = false;
-                            })
-                            .catch(function(err){
-                                scope.waitingForError = {error: err, src: config };
-                                console.error(scope.$root.waitingForError);
-                            });
-
-				}
-
-				noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
-					.then(_finish)
-					.catch(function(err){
-						console.error(err);
+				dataSource.read()
+					.then(function(data) {
+						scope[config.scopeKey] = data.paged;
+						scope.waitingFor[config.scopeKey] = false;
+					})
+					.catch(function(err) {
+						scope.waitingForError = {
+							error: err,
+							src: config
+						};
+						console.error(scope.$root.waitingForError);
 					});
 
-            }
+			}
+
+			_finish(noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope));
 
 
-            directive = {
-                restrict:"EA",
-                scope: false,
-                compile: function(el, attrs){
+		}
 
 
-					return _link;
-				}
-            };
+		directive = {
+			restrict: "EA",
+			scope: false,
+			compile: function(el, attrs) {
 
-            return directive;
-        }])
-    ;
+
+				return _link;
+			}
+		};
+
+		return directive;
+        }]);
 })(angular);
 
 //data-panel.js
 (function(angular, undefined) {
-  angular.module("noinfopath.ui")
-    /*
-     *   ##  noDataPanel
-     *
-     *   Renders a data bound panel that can contain
-     *   any kind of HTML content, which can be bound
-     *   data on $scope.  The data sources being bound
-     *   to, are NoInfoPath Data Providers. Note that
-     *   this directive calls noDataSource.one method,
-     *   only returns a single data object, not an array.
-     *
-     *   ### Sample Usage
-     *
-     *   This sample show how to use the noDataPanel
-     *   directive in your HTML markup.
-     *
-     *   ```html
-     *   <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>
-     *   ```
-     *
-     *   ### Sample Configuration
-     *
-     *   ```js
-     *   {
-     *       "selection": {
-     *           "scopeKey": "selection",
-     *           "dataProvider": "noWebSQL",
-     *           "databaseName": "FCFNv2",
-     *           "entityName": "vw_trialplot_selection",
-     *           "primaryKey": "TrialPlotID",
-     *           "lookup": {
-     *               "source": "$stateParams",
-     *           },
-     *           "templateUrl": "observations/selection.html"
-     *       }
-     *   }
-     *   ```
-     */
-    .directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noFormConfig", "noDataSource", "$state", function($injector, $q, $http, $compile, noFormConfig, noDataSource, $state) {
+	angular.module("noinfopath.ui")
+		/*
+		 *   ##  noDataPanel
+		 *
+		 *   Renders a data bound panel that can contain
+		 *   any kind of HTML content, which can be bound
+		 *   data on $scope.  The data sources being bound
+		 *   to, are NoInfoPath Data Providers. Note that
+		 *   this directive calls noDataSource.one method,
+		 *   only returns a single data object, not an array.
+		 *
+		 *   ### Sample Usage
+		 *
+		 *   This sample show how to use the noDataPanel
+		 *   directive in your HTML markup.
+		 *
+		 *   ```html
+		 *   <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>
+		 *   ```
+		 *
+		 *   ### Sample Configuration
+		 *
+		 *   ```js
+		 *   {
+		 *       "selection": {
+		 *           "scopeKey": "selection",
+		 *           "dataProvider": "noWebSQL",
+		 *           "databaseName": "FCFNv2",
+		 *           "entityName": "vw_trialplot_selection",
+		 *           "primaryKey": "TrialPlotID",
+		 *           "lookup": {
+		 *               "source": "$stateParams",
+		 *           },
+		 *           "templateUrl": "observations/selection.html"
+		 *       }
+		 *   }
+		 *   ```
+		 */
+		.directive("noDataPanel", ["$injector", "$q", "$http", "$compile", "noFormConfig", "noDataSource", "$state", function($injector, $q, $http, $compile, noFormConfig, noDataSource, $state) {
 
-      function _link(scope, el, attrs) {
-        var config,
-          resultType = "one",
-          dataSource,
-          noFormAttr = attrs.noForm;
+			function _link(scope, el, attrs) {
+				var config,
+					resultType = "one",
+					dataSource,
+					noFormAttr = attrs.noForm;
 
-        function finish(data) {
-          if (data.paged) {
-            scope[config.scopeKey] = data.paged;
-          } else {
-            scope[config.scopeKey] = data;
-          }
+				function finish(data) {
+					if (data.paged) {
+						scope[config.scopeKey] = data.paged;
+					} else {
+						scope[config.scopeKey] = data;
+					}
 
-          if (config.hiddenFields) {
-            for (var h in config.hiddenFields) {
-              var hf = config.hiddenFields[h],
-                value = noInfoPath.getItem(scope, hf.scopeKey);
+					if (config.hiddenFields) {
+						for (var h in config.hiddenFields) {
+							var hf = config.hiddenFields[h],
+								value = noInfoPath.getItem(scope, hf.scopeKey);
 
-              //console.log(hidden);
-              noInfoPath.setItem(scope, hf.ngModel, value);
-            }
-          }
+							//console.log(hidden);
+							noInfoPath.setItem(scope, hf.ngModel, value);
+						}
+					}
 
-          if (scope.waitingFor) {
-            scope.waitingFor[config.scopeKey] = false;
-          }
-
-
-        }
-
-        function error(err) {
-          scope.waitingForError = {
-            error: err,
-            src: config
-          };
-
-          console.error(scope.$root.waitingForError);
-        }
-
-        function noForm_ready(data) {
-          config = noInfoPath.getItem(data, noFormAttr);
-
-          if (config.noDataPanel) {
-            resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
-
-            if (config.noDataPanel.refresh) {
-              scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval) {
-                if (newval) {
-                  dataSource[resultType]()
-                    .then(finish)
-                    .catch(error);
-                }
-              });
-            }
-
-          }
-
-          if (config.noDataSource) {
-            dataSource = noDataSource.create(config.noDataSource, scope);
-          } else {
-            dataSource = noDataSource.create(config, scope);
-          }
-
-          if (config.templateUrl) {
-            $http.get(config.templateUrl)
-              .then(function(resp) {
-                var t = $compile(resp.data),
-                  params = [],
-                  c = t(scope);
-
-                el.append(c);
-
-                dataSource[resultType]()
-                  .then(finish)
-                  .catch(error);
-              });
-          } else {
-            dataSource[resultType]()
-              .then(finish)
-              .catch(error);
-          }
-        }
+					if (scope.waitingFor) {
+						scope.waitingFor[config.scopeKey] = false;
+					}
 
 
-        noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope)
-          .then(noForm_ready)
-          .catch(error);
-      }
+				}
 
-      return {
-        restrict: "E",
-        link: _link,
-        scope: false
-      };
+				function error(err) {
+					scope.waitingForError = {
+						error: err,
+						src: config
+					};
+
+					console.error(scope.$root.waitingForError);
+				}
+
+				function noForm_ready(data) {
+					config = noInfoPath.getItem(data, noFormAttr);
+
+					if (config.noDataPanel) {
+						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
+
+						if (config.noDataPanel.refresh) {
+							scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval) {
+								if (newval) {
+									dataSource[resultType]()
+										.then(finish)
+										.catch(error);
+								}
+							});
+						}
+
+					}
+
+					if (config.noDataSource) {
+						dataSource = noDataSource.create(config.noDataSource, scope);
+					} else {
+						dataSource = noDataSource.create(config, scope);
+					}
+
+					if (config.templateUrl) {
+						$http.get(config.templateUrl)
+							.then(function(resp) {
+								var t = $compile(resp.data),
+									params = [],
+									c = t(scope);
+
+								el.append(c);
+
+								dataSource[resultType]()
+									.then(finish)
+									.catch(error);
+							});
+					} else {
+						dataSource[resultType]()
+							.then(finish)
+							.catch(error);
+					}
+				}
+
+
+				noForm_ready(noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope));
+
+			}
+
+			return {
+				restrict: "E",
+				link: _link,
+				scope: false
+			};
     }]);
 })(angular);
 
@@ -1062,49 +1057,47 @@
 })(angular);
 
 //title.js
-(function(angular, undefined){
-    "use strict";
+(function(angular, undefined) {
+	"use strict";
 
-    angular.module("noinfopath.ui")
-        .directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig",  "lodash", function(noDataSource, noFormConfig, $compile, noConfig,  _){
-            function _link(scope, el, attrs){
-                scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams){
-                    var noFormCfg, noTitle;
+	angular.module("noinfopath.ui")
+		.directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig", "lodash", function(noDataSource, noFormConfig, $compile, noConfig, _) {
+			function _link(scope, el, attrs) {
+				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+					var noFormCfg, noTitle;
 
-                    function _finish(data){
-                        if(!data) throw "Form configuration not found for route " + toState.name;
+					function _finish(data) {
+						if (!data) throw "Form configuration not found for route " + toState.name;
 
-                        noTitle = data.noTitle;
+						noTitle = data.noTitle;
 
-                        if(noTitle){
-                            el.html($compile(noTitle.title)(event.targetScope));
-                            if(noTitle.noDataSource){
-                                var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
+						if (noTitle) {
+							el.html($compile(noTitle.title)(event.targetScope));
+							if (noTitle.noDataSource) {
+								var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
 
-                                dataSource.one()
-                                    .then(function(data){
-                                        noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey , data[noTitle.scopeKey]);
-                                    })
-                                    .catch(function(err){
-                                        console.error(err);
-                                    });
-                            }
-                        }
-                    }
+								dataSource.one()
+									.then(function(data) {
+										noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey, data[noTitle.scopeKey]);
+									})
+									.catch(function(err) {
+										console.error(err);
+									});
+							}
+						}
+					}
 
-                    noFormConfig.getFormByRoute(toState.name, toParams.entity, scope)
-                        .then(_finish);
+					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
 
-                });
+				});
 
-            }
+			}
 
-            return {
-                restrict: "E",
-                scope: true,
-                link: _link
+			return {
+				restrict: "E",
+				scope: true,
+				link: _link
 
-            };
-        }])
-    ;
+			};
+        }]);
 })(angular);
