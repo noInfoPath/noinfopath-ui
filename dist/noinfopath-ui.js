@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.3
+ *  > @version 1.2.4
  *
 */
 
@@ -679,7 +679,7 @@
 							error: err,
 							src: config
 						};
-						console.error(scope.$root.waitingForError);
+						console.error(scope.waitingForError);
 					});
 
 			}
@@ -844,7 +844,7 @@
 							error: err,
 							src: config
 						};
-						console.error(scope.$root.waitingForError);
+						console.error(scope.waitingForError);
 					});
 
 			}
@@ -947,7 +947,7 @@
  						src: config
  					};
 
- 					console.error(scope.$root.waitingForError);
+ 					console.error(scope.waitingForError);
  				}
 
  				function noForm_ready(data) {

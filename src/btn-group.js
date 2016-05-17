@@ -47,7 +47,7 @@
 							error: err,
 							src: config
 						};
-						console.error(scope.$root.waitingForError);
+						console.error(scope.waitingForError);
 					});
 
 			}

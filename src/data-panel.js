@@ -76,7 +76,7 @@
  						src: config
  					};
 
- 					console.error(scope.$root.waitingForError);
+ 					console.error(scope.waitingForError);
  				}
 
  				function noForm_ready(data) {
