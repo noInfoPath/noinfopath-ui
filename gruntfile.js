@@ -57,7 +57,7 @@ module.exports = function(grunt) {
           continuous: {
             configFile: 'karma.conf.js',
             singleRun: true,
-            browsers: ['PhantomJS']
+            browsers: ['Chrome']
           }
         },
         bumpup: {
