@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.6
+ *  > @version 1.2.7
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -824,10 +824,6 @@
 
 						el.find("no-tab-panels")
 							.first()
-							.addClass("tab-panels");
-
-						el.find("no-tab-panels")
-							.first()
 							.addClass("tab-panels col-sm-10");
 
 						el.find("no-tab-panels > no-tab-panel > div")
@@ -847,7 +843,6 @@
 
 							ul.append(li);
 						}
-						el.append(ul);
 
 						ul.find("li")
 							.click(function(e) {
