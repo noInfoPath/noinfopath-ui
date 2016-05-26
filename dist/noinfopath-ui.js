@@ -119,7 +119,7 @@
 					// var noProgressbar = $element.attr("no-progressbar")
 					//
 					// $scope[noProgressbar] = new progressTracker();
-			}],
+				}],
 				directive = {
 					restrict: "A",
 					controller: controller,
@@ -127,7 +127,7 @@
 				};
 
 			return directive;
-        }]);
+		}]);
 })(angular);
 
 //breadcrumb.js
@@ -343,10 +343,11 @@
 				// Call to the function when the page is first loaded
 				scope.onResizeFunction();
 
-				angular.element(window).bind('resize', function() {
-					scope.onResizeFunction();
-					scope.$apply();
-				});
+				angular.element(window)
+					.bind('resize', function() {
+						scope.onResizeFunction();
+						scope.$apply();
+					});
 			},
 			dir = {
 				restrict: "A",
@@ -425,7 +426,7 @@
 		.config(['$httpProvider', '$stateProvider', function($httpProvider, $stateProvider) {
 			$httpProviderRef = $httpProvider;
 			$stateProviderRef = $stateProvider;
-	}])
+		}])
 
 	.provider("noArea", [function() {
 		var _menuConfig = [];
@@ -961,7 +962,7 @@
 		};
 
 		return directive;
-        }]);
+	}]);
 })(angular);
 
 //data-panel.js
@@ -1100,7 +1101,7 @@
 				link: _link,
 				scope: false
 			};
-    }]);
+		}]);
 })(angular);
 
 //alpha-filter.js
@@ -1121,7 +1122,8 @@
 				function _click(e) {
 					var letter = angular.element(e.currentTarget);
 					scope.noAlphaNumericFilter = letter.text();
-					el.find("li").removeClass("active");
+					el.find("li")
+						.removeClass("active");
 					letter.addClass("active");
 					scope.$apply();
 				}
@@ -1148,7 +1150,7 @@
 				scope: false,
 				link: _link
 			};
-	}]);
+		}]);
 })(angular);
 
 //title.js
@@ -1194,7 +1196,7 @@
 				link: _link
 
 			};
-	}]);
+		}]);
 })(angular);
 
 //file-upload.js
@@ -1315,8 +1317,10 @@
 			el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
 			el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
 			el.bind('dragleave', _dragLeave);
-			$("body").bind("dragenter", _dragLeave);
-			$("body").bind("dragover", _dragLeave);
+			$("body")
+				.bind("dragenter", _dragLeave);
+			$("body")
+				.bind("dragover", _dragLeave);
 			button.click(function(e) {
 				if (input) {
 					input.click();
