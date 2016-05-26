@@ -1,6 +1,6 @@
 {
   "name": "@noinfopath/noinfopath-ui",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "noInfoPath UI module",
   "license": "MIT",
   "author": "noInfoPath <info@noInfoPath.org> (http://www.noinfopath.org/)",
@@ -20,6 +20,7 @@
     "@noinfopath/noinfopath-kendo-ui": "^1.2.10",
     "@noinfopath/noinfopath-logger": "^1.0.1",
     "angular": "^1.5.5",
+    "angular-mocks": "^1.5.5",
     "noinfopath": "^0.2.5"
   },
   "devDependencies": {
