@@ -110,7 +110,6 @@
 
 							ul.append(li);
 						}
-						el.prepend(ul);
 
 						ul.find("li")
 							.click(function(e) {
