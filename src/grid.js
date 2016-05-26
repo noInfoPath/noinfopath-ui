@@ -3,10 +3,10 @@
     angular.module("noinfopath.ui")
 
         .directive("noGrid", ['$injector', '$state','$q','lodash', 'noConfig', 'noManifest', 'noAppStatus', function($injector, $state, $q, _, noConfig, noManifest, noAppStatus){
-            return {                
+            return {
                 link: function(scope, el, attrs){
-                    if(!attrs.noGrid) throw "noGrid requires a value. The value should be noKendo."
-                    if(!attrs.noDataSource) throw "noGrid requires a noDataSource attribute."
+                    if(!attrs.noGrid) throw "noGrid requires a value. The value should be noKendo.";
+                    if(!attrs.noDataSource) throw "noGrid requires a noDataSource attribute.";
 
                     var _dataSource, _grid;
 
@@ -26,7 +26,7 @@
                             pageSize: config.pageSize || 10,
                             pageable: config.pageable || false,
                             filterable: config.filterable || false,
-                            sortable: true,                                
+                            sortable: true,
                             scrollable: {virtual: true},
                             selectable: "row",
                             dataSource: ds,
@@ -42,16 +42,16 @@
                                 }else{
                                     var tableName = this.dataSource.transport.tableName;
                                     scope.$root.$broadcast("noGrid::change+" + tableName, data);
-                                }                            
-                            }                                       
+                                }
+                            }
                         };
 
                         if(config.rowTemplate){
-                            options.rowTemplate = kendo.template($(config.rowTemplate).html())
+                            options.rowTemplate = kendo.template($(config.rowTemplate).html());
                         }
 
                         if(config.altRowTemplate){
-                            options.altRowTemplate = kendo.template($(config.altRowTemplate).html())
+                            options.altRowTemplate = kendo.template($(config.altRowTemplate).html());
                         }
 
                         if(config.toolbar){
@@ -60,12 +60,12 @@
 
                         el.empty();
 
-                        _grid = componentBinder.noGrid(el, options); 
+                        _grid = componentBinder.noGrid(el, options);
                     }
 
                     function _watch(newval, oldval, scope){
                         if(newval && newval !== oldval){
-                            var filters = window.noInfoPath.bindFilters(this.filter, scope, $state.params)
+                            var filters = window.noInfoPath.bindFilters(this.filter, scope, $state.params);
                             //console.log("watch", this, _grid, filters);
                             var curFilters = _grid.dataSource.filter();
 
@@ -90,7 +90,7 @@
                                 if(angular.isObject(fltr.value) && fltr.value.source === "scope"){
                                     scope.$watch(fltr.value.property, _watch.bind(dsConfig));
                                 }
-                            });  
+                            });
                         }
 
                         _bind(_dataSource, gridConfig);
@@ -100,7 +100,7 @@
                     _start();
                 }
             };
-        }]);    
+        }]);
 
     var noInfoPath = {};
 

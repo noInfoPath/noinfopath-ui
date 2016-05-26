@@ -15,7 +15,7 @@
 		}
 
 		function _drop(comp, scope, el, attrs, e) {
-			if (e !== null) {
+			if (e !== null || e !== undefined) {
 				e.stopPropagation();
 				e.preventDefault();
 			}
@@ -53,18 +53,29 @@
 			return false;
 		}
 
-		function _dragEnterAndOver(e) {
-			if (e !== null) {
+		function _dragEnterAndOver(scope, el, config, attrs, e) {
+			if (e !== null || e !== undefined) {
 				e.stopPropagation();
 				e.preventDefault();
 			}
 
-			e.originalEvent.dataTransfer.dropEffect = "copy";
+			if (attrs && attrs.noForm) {
+				var comp = noInfoPath.getItem(config, attrs.noForm),
+					filetype = comp.accept;
+
+				if (filetype && filetype.indexOf(e.originalEvent.dataTransfer.items[0].type) === -1) {
+					e.originalEvent.dataTransfer.dropEffect = "none";
+					scope.$emit("NoFileUpload::illegalFileType");
+				} else {
+					e.originalEvent.dataTransfer.dropEffect = "copy";
+					scope.$emit("NoFileUpload::legalFileType");
+				}
+			}
 			return false;
 		}
 
 		function _dragLeave(e) {
-			if (e !== null) {
+			if (e !== null || e !== undefined) {
 				e.stopPropagation();
 				e.preventDefault();
 			}
@@ -89,7 +100,9 @@
 			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
 				comp = noInfoPath.getItem(config, attrs.noForm);
 
-			var x = "<input type=\"file\" class=\"ng-hide\"><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">{{" + comp.ngModel + ".name}}</div></div>";
+			var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
+				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name}}" : "",
+				x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
 			return x;
 		}
 
@@ -100,8 +113,8 @@
 				button = el.find("button");
 
 			el.bind("drop", _drop.bind(null, comp, scope, el, attrs));
-			el.bind('dragenter', _dragEnterAndOver);
-			el.bind('dragover', _dragEnterAndOver);
+			el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
+			el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
 			el.bind('dragleave', _dragLeave);
 			$("body").bind("dragenter", _dragLeave);
 			$("body").bind("dragover", _dragLeave);
