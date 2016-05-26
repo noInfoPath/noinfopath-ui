@@ -1,50 +1,49 @@
 //alpha-filter.js
-(function(angular, undefined){
-    "use strict";
+(function(angular, undefined) {
+	"use strict";
 
-    angular.module("noinfopath.ui")
-        .directive("noAlphaNumericFilter", [function(){
+	angular.module("noinfopath.ui")
+		.directive("noAlphaNumericFilter", [function() {
 
-            function _link(scope, el, attrs){
-                var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-                    nav = angular.element("<nav></nav>"),
-                    ul = angular.element('<ul class="pagination pagination-sm"></ul>'),
-                    itemOpen =  '<li><span>',
-                    itemClose1 =  '<span class="sr-only">',
-                    itemClose2 =  '</span></li>';
+			function _link(scope, el, attrs) {
+				var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+					nav = angular.element("<nav></nav>"),
+					ul = angular.element('<ul class="pagination pagination-sm"></ul>'),
+					itemOpen = '<li><span>',
+					itemClose1 = '<span class="sr-only">',
+					itemClose2 = '</span></li>';
 
-                function _click(e){
-                    var letter = angular.element(e.currentTarget);
-                    scope.noAlphaNumericFilter = letter.text();
-                    el.find("li").removeClass("active");
-                    letter.addClass("active");
-                    scope.$apply();
-                }
+				function _click(e) {
+					var letter = angular.element(e.currentTarget);
+					scope.noAlphaNumericFilter = letter.text();
+					el.find("li").removeClass("active");
+					letter.addClass("active");
+					scope.$apply();
+				}
 
-                scope.noAlphaNumericFilter = "A";
+				scope.noAlphaNumericFilter = "A";
 
-                nav.append(ul);
-                el.append(nav);
+				nav.append(ul);
+				el.append(nav);
 
-                for(var l=0; l < letters.length; l++){
-                    var tmp = angular.element(itemOpen + letters[l] + itemClose2);
-                    if(l === 0){
-                        tmp.addClass("active");
-                    }
-                    ul.append(tmp);
-                    tmp.click(_click);
-                }
+				for (var l = 0; l < letters.length; l++) {
+					var tmp = angular.element(itemOpen + letters[l] + itemClose2);
+					if (l === 0) {
+						tmp.addClass("active");
+					}
+					ul.append(tmp);
+					tmp.click(_click);
+				}
 
 
-            }
+			}
 
-            return {
-                restrict: "E",
-                scope: false,
-                link: _link
-            };
-        }])
-    ;
+			return {
+				restrict: "E",
+				scope: false,
+				link: _link
+			};
+	}]);
 })(angular);
 
 //title.js
@@ -90,5 +89,5 @@
 				link: _link
 
 			};
-        }]);
+	}]);
 })(angular);
