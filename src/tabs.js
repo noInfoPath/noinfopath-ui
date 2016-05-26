@@ -91,10 +91,6 @@
 
 						el.find("no-tab-panels")
 							.first()
-							.addClass("tab-panels");
-
-						el.find("no-tab-panels")
-							.first()
 							.addClass("tab-panels col-sm-10");
 
 						el.find("no-tab-panels > no-tab-panel > div")
@@ -114,7 +110,7 @@
 
 							ul.append(li);
 						}
-						el.append(ul);
+						el.prepend(ul);
 
 						ul.find("li")
 							.click(function(e) {
