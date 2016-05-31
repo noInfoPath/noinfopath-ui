@@ -1,11 +1,11 @@
 //file-upload.js
 (function(angular, undefined) {
 
-	function NoFileUploadDirective($state, noSessionStorage, noLocalFileStorage, noFormConfig) {
-		function _save(comp, scope, el, blob) {
-			noInfoPath.setItem(scope, comp.ngModel, {
-				name: blob.name
-			});
+	function NoFileUploadDirective($state, noLocalFileStorage, noFormConfig) {
+		function _done(comp, scope, el, blob) {
+
+			noInfoPath.setItem(scope, comp.ngModel, blob);
+
 			scope.$emit("NoFileUpload::dataReady", blob);
 			_reset(el);
 		}
@@ -32,7 +32,7 @@
 							type = types[typeName.toLowerCase()];
 						for (var i = 0; i < type.length; i++) {
 							var item = type[i];
-							noLocalFileStorage.toBlob(item)
+							noLocalFileStorage.read(item, comp)
 								.then(_save.bind(null, comp, scope, el))
 								.catch(_fault);
 						}
@@ -42,8 +42,8 @@
 					var files = e.originalEvent.srcElement.files;
 					for (var fi = 0; fi < files.length; fi++) {
 						var file = files[fi];
-						noLocalFileStorage.toBlob(file)
-							.then(_save.bind(null, comp, scope, el))
+						noLocalFileStorage.read(file, comp)
+							.then(_done.bind(null, comp, scope, el))
 							.catch(_fault);
 					}
 				}
@@ -116,8 +116,10 @@
 			el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
 			el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
 			el.bind('dragleave', _dragLeave);
-			$("body").bind("dragenter", _dragLeave);
-			$("body").bind("dragover", _dragLeave);
+			$("body")
+				.bind("dragenter", _dragLeave);
+			$("body")
+				.bind("dragover", _dragLeave);
 			button.click(function(e) {
 				if (input) {
 					input.click();
@@ -135,5 +137,5 @@
 		};
 	}
 	angular.module("noinfopath.ui")
-		.directive("noFileUpload", ["$state", "noSessionStorage", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
+		.directive("noFileUpload", ["$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
 })(angular);

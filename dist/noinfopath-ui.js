@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.7
+ *  > @version 1.2.8
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -119,7 +119,7 @@
 					// var noProgressbar = $element.attr("no-progressbar")
 					//
 					// $scope[noProgressbar] = new progressTracker();
-				}],
+			}],
 				directive = {
 					restrict: "A",
 					controller: controller,
@@ -127,7 +127,7 @@
 				};
 
 			return directive;
-		}]);
+        }]);
 })(angular);
 
 //breadcrumb.js
@@ -343,11 +343,10 @@
 				// Call to the function when the page is first loaded
 				scope.onResizeFunction();
 
-				angular.element(window)
-					.bind('resize', function() {
-						scope.onResizeFunction();
-						scope.$apply();
-					});
+				angular.element(window).bind('resize', function() {
+					scope.onResizeFunction();
+					scope.$apply();
+				});
 			},
 			dir = {
 				restrict: "A",
@@ -426,7 +425,7 @@
 		.config(['$httpProvider', '$stateProvider', function($httpProvider, $stateProvider) {
 			$httpProviderRef = $httpProvider;
 			$stateProviderRef = $stateProvider;
-		}])
+	}])
 
 	.provider("noArea", [function() {
 		var _menuConfig = [];
@@ -961,7 +960,7 @@
 		};
 
 		return directive;
-	}]);
+        }]);
 })(angular);
 
 //data-panel.js
@@ -1100,7 +1099,7 @@
 				link: _link,
 				scope: false
 			};
-		}]);
+    }]);
 })(angular);
 
 //alpha-filter.js
@@ -1121,8 +1120,7 @@
 				function _click(e) {
 					var letter = angular.element(e.currentTarget);
 					scope.noAlphaNumericFilter = letter.text();
-					el.find("li")
-						.removeClass("active");
+					el.find("li").removeClass("active");
 					letter.addClass("active");
 					scope.$apply();
 				}
@@ -1149,7 +1147,7 @@
 				scope: false,
 				link: _link
 			};
-		}]);
+	}]);
 })(angular);
 
 //title.js
@@ -1195,17 +1193,17 @@
 				link: _link
 
 			};
-		}]);
+	}]);
 })(angular);
 
 //file-upload.js
 (function(angular, undefined) {
 
-	function NoFileUploadDirective($state, noSessionStorage, noLocalFileStorage, noFormConfig) {
-		function _save(comp, scope, el, blob) {
-			noInfoPath.setItem(scope, comp.ngModel, {
-				name: blob.name
-			});
+	function NoFileUploadDirective($state, noLocalFileStorage, noFormConfig) {
+		function _done(comp, scope, el, blob) {
+
+			noInfoPath.setItem(scope, comp.ngModel, blob);
+
 			scope.$emit("NoFileUpload::dataReady", blob);
 			_reset(el);
 		}
@@ -1232,7 +1230,7 @@
 							type = types[typeName.toLowerCase()];
 						for (var i = 0; i < type.length; i++) {
 							var item = type[i];
-							noLocalFileStorage.toBlob(item)
+							noLocalFileStorage.read(item, comp)
 								.then(_save.bind(null, comp, scope, el))
 								.catch(_fault);
 						}
@@ -1242,8 +1240,8 @@
 					var files = e.originalEvent.srcElement.files;
 					for (var fi = 0; fi < files.length; fi++) {
 						var file = files[fi];
-						noLocalFileStorage.toBlob(file)
-							.then(_save.bind(null, comp, scope, el))
+						noLocalFileStorage.read(file, comp)
+							.then(_done.bind(null, comp, scope, el))
 							.catch(_fault);
 					}
 				}
@@ -1337,5 +1335,110 @@
 		};
 	}
 	angular.module("noinfopath.ui")
-		.directive("noFileUpload", ["$state", "noSessionStorage", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
+		.directive("noFileUpload", ["$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
 })(angular);
+
+//file-viewer.js
+(function(angular, PDFJS, ODF, undefined) {
+	"use strict";
+
+	function NoInfoPathPDFViewerDirective($state, $base64, noFormConfig) {
+
+
+		function renderPDF(el, n){
+			PDFJS.getDocument(n.blob)
+				.then(function(pdf) {
+					el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><canvas/></div>");
+
+					// you can now use *pdf* here
+					pdf.getPage(1).then(function(page) {
+						var tmp = el.find("canvas"),
+							scale = 1.5,
+							viewport = page.getViewport(scale),
+							canvas = tmp[0],
+							context = canvas ? canvas.getContext('2d') : null,
+							renderContext;
+
+						if (!context) throw "Canvas is missing";
+
+						canvas.height = viewport.height;
+						canvas.width = viewport.width;
+
+						renderContext = {
+							canvasContext: context,
+							viewport: viewport
+						};
+
+						page.render(renderContext);
+					});
+				});
+		}
+
+		function renderODF(el, n){
+			el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><div class=\"canvas\"></div></div>");
+
+			var odfelement = el.find(".canvas")[0],
+		        odfCanvas = new odf.OdfCanvas(odfelement);
+
+			odfCanvas.load(n.type);
+			// 	= new odf.OdfContainer(n.type, function(e){
+			//    	//console.log(e);
+			//    	odfCanvas.setOdfContainer(e);
+			//    	odfContainer.setBlob(n.name, n.type, n.blob.split(";")[1].split(",")[1]);
+			   //
+			//    });
+
+		}
+
+		function renderImage(el, n) {
+			el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><img/></div>");
+
+			var img = el.find("img");
+			img.attr("src", n.blob);
+			img.addClass("full-width");
+			//img.css("height", "100%");
+		}
+
+		var mimeTypes = {
+				"application/pdf": renderPDF,
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
+				"image/jpeg": renderImage
+		};
+
+		function _link(scope, el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
+				comp = noInfoPath.getItem(config, attrs.noForm);
+
+			scope.$watch(comp.ngModel, function(n, o, s) {
+
+				if (n) {
+					console.log(n);
+					mimeTypes[n.type.toLowerCase()](el, n);
+				}
+
+			});
+
+			// el.text("Hello World");
+			// PDFJS.getDocument('helloworld.pdf')
+			// 	.then(function(pdf) {
+			// 	  // you can now use *pdf* here
+			// 	});
+			// scope.$on("NoFileUpload::illegalFileType", function(e) {
+			// 	console.log("this file type can't be dropped here");
+			// });
+			//
+			// scope.$on("NoFileUpload::dataReady", function(e, fileInfo) {
+
+
+			//});
+		}
+
+		return {
+			restrict: "E",
+			link: _link
+		};
+	}
+
+	angular.module("noinfopath.ui")
+		.directive("noPdfViewer", ["$state", "$base64", "noFormConfig", NoInfoPathPDFViewerDirective]);
+})(angular, PDFJS, odf);
