@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.8
+ *  > @version 1.2.9
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -849,23 +849,29 @@
 
 								var ul = el.find("ul")
 									.first(),
-									tab = ul.find("li.active"),
-									pnlNdx = Number(tab.attr("ndx")),
-									pnl = angular.element(pnls[pnlNdx]);
+									tab = ul.find("li.active");
+								//pnlNdx = Number(tab.attr("ndx")),
+								//pnl = angular.element(pnls[pnlNdx]);
 
 								tab.toggleClass("active");
-								pnl.toggleClass("ng-hide");
+								//pnl.toggleClass("ng-hide");
 
 								tab = angular.element(e.target)
 									.closest("li");
-								pnlNdx = Number(tab.attr("ndx"));
-								pnl = angular.element(pnls[pnlNdx]);
+
+								// pnlNdx = Number(tab.attr("ndx"));
+								// pnl = angular.element(pnls[pnlNdx]);
 
 								tab.toggleClass("active");
-								pnl.toggleClass("ng-hide");
+								//pnl.toggleClass("ng-hide");
 
-								scope.$broadcast("noTabs::Change", tab, pnl);
+								scope.$broadcast("noTabs::Change", tab, pnls, noTab);
 							});
+
+						var tab = el.find("ul").find("li.active"),
+							pnl = el.find("no-tab-panels").first();
+
+						scope.$broadcast("noTabs::Change", tab, pnl, noTab);
 					});
 			}
 
@@ -1345,7 +1351,7 @@
 	function NoInfoPathPDFViewerDirective($state, $base64, noFormConfig) {
 
 
-		function renderPDF(el, n){
+		function renderPDF(el, n) {
 			PDFJS.getDocument(n.blob)
 				.then(function(pdf) {
 					el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><canvas/></div>");
@@ -1374,18 +1380,18 @@
 				});
 		}
 
-		function renderODF(el, n){
+		function renderODF(el, n) {
 			el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><div class=\"canvas\"></div></div>");
 
 			var odfelement = el.find(".canvas")[0],
-		        odfCanvas = new odf.OdfCanvas(odfelement);
+				odfCanvas = new odf.OdfCanvas(odfelement);
 
-			odfCanvas.load(n.type);
+			odfCanvas.load(n.blob);
 			// 	= new odf.OdfContainer(n.type, function(e){
 			//    	//console.log(e);
 			//    	odfCanvas.setOdfContainer(e);
 			//    	odfContainer.setBlob(n.name, n.type, n.blob.split(";")[1].split(",")[1]);
-			   //
+			//
 			//    });
 
 		}
@@ -1400,9 +1406,9 @@
 		}
 
 		var mimeTypes = {
-				"application/pdf": renderPDF,
-				"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
-				"image/jpeg": renderImage
+			"application/pdf": renderPDF,
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
+			"image/jpeg": renderImage
 		};
 
 		function _link(scope, el, attrs) {

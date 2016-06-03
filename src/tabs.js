@@ -117,23 +117,29 @@
 
 								var ul = el.find("ul")
 									.first(),
-									tab = ul.find("li.active"),
-									pnlNdx = Number(tab.attr("ndx")),
-									pnl = angular.element(pnls[pnlNdx]);
+									tab = ul.find("li.active");
+								//pnlNdx = Number(tab.attr("ndx")),
+								//pnl = angular.element(pnls[pnlNdx]);
 
 								tab.toggleClass("active");
-								pnl.toggleClass("ng-hide");
+								//pnl.toggleClass("ng-hide");
 
 								tab = angular.element(e.target)
 									.closest("li");
-								pnlNdx = Number(tab.attr("ndx"));
-								pnl = angular.element(pnls[pnlNdx]);
+
+								// pnlNdx = Number(tab.attr("ndx"));
+								// pnl = angular.element(pnls[pnlNdx]);
 
 								tab.toggleClass("active");
-								pnl.toggleClass("ng-hide");
+								//pnl.toggleClass("ng-hide");
 
-								scope.$broadcast("noTabs::Change", tab, pnl);
+								scope.$broadcast("noTabs::Change", tab, pnls, noTab);
 							});
+
+						var tab = el.find("ul").find("li.active"),
+							pnl = el.find("no-tab-panels").first();
+
+						scope.$broadcast("noTabs::Change", tab, pnl, noTab);
 					});
 			}
 
