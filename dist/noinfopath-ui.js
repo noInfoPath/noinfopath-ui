@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.9
+ *  > @version 1.2.10
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -1306,7 +1306,14 @@
 
 			var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
 				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name}}" : "",
-				x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+				x;
+
+				if(el.is(".no-flex")) {
+					x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+
+				} else {
+					x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+				}
 			return x;
 		}
 
@@ -1345,16 +1352,19 @@
 })(angular);
 
 //file-viewer.js
-(function(angular, PDFJS, ODF, undefined) {
+(function(angular, /*PDFJS, ODF,*/ undefined) {
 	"use strict";
 
 	function NoInfoPathPDFViewerDirective($state, $base64, noFormConfig) {
+		function renderIframe(el, n){
+			el.html("<iframe src=" + n.blob + " class=\"no-flex stack size-1\">iFrames not supported</iframe>");
 
+		}
 
 		function renderPDF(el, n) {
 			PDFJS.getDocument(n.blob)
 				.then(function(pdf) {
-					el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><canvas/></div>");
+					el.html("<div class=\"no-flex size-1\" style=\"overflow: auto;\"><canvas/></div>");
 
 					// you can now use *pdf* here
 					pdf.getPage(1).then(function(page) {
@@ -1418,8 +1428,10 @@
 			scope.$watch(comp.ngModel, function(n, o, s) {
 
 				if (n) {
-					console.log(n);
+					//console.log(n);
 					mimeTypes[n.type.toLowerCase()](el, n);
+
+					//renderIframe(el, n);
 				}
 
 			});
@@ -1447,4 +1459,4 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "$base64", "noFormConfig", NoInfoPathPDFViewerDirective]);
-})(angular, PDFJS, odf);
+})(angular /*, PDFJS, odf experimental code dependencies*/);

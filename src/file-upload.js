@@ -102,7 +102,14 @@
 
 			var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
 				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name}}" : "",
-				x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+				x;
+
+				if(el.is(".no-flex")) {
+					x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+
+				} else {
+					x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+				}
 			return x;
 		}
 
