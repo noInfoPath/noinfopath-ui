@@ -9,7 +9,19 @@
 				lookup = form.noLookup,
 				sel = angular.element("<select />");
 
-			sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
+			if(angular.isArray(lookup.textField)){
+				textFields = [];
+
+				for (i = 0; i < lookup.textField.length; i++){
+					var item = "item." + lookup.textField[i];
+
+					textFields.push(item);
+				}
+
+				sel.attr("ng-options", "item." + lookup.valueField + " as " + textFields.join(" + ' ' + ") + " for item in " + form.scopeKey);
+			} else {
+				sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
+			}
 
 			if (lookup.required) sel.attr("required", "");
 
