@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.10
+ *  > @version 1.2.11
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -606,7 +606,19 @@
 				lookup = form.noLookup,
 				sel = angular.element("<select />");
 
-			sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
+			if(angular.isArray(lookup.textField)){
+				textFields = [];
+
+				for (i = 0; i < lookup.textField.length; i++){
+					var item = "item." + lookup.textField[i];
+
+					textFields.push(item);
+				}
+
+				sel.attr("ng-options", "item." + lookup.valueField + " as " + textFields.join(" + ' ' + ") + " for item in " + form.scopeKey);
+			} else {
+				sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
+			}
 
 			if (lookup.required) sel.attr("required", "");
 
@@ -1460,3 +1472,48 @@
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "$base64", "noFormConfig", NoInfoPathPDFViewerDirective]);
 })(angular /*, PDFJS, odf experimental code dependencies*/);
+
+//show.js
+(function(angular, undefined){
+	"use strict";
+
+	function NoShowDirective(noSecurity){
+
+		function _compile(el, attrs){
+			var perm;
+			if(attrs.noSecurity){
+				perm = noSecurity.getPermissions(attrs.noSecurity);
+
+				if(attrs.grant === "W"){
+					if(perm && perm.canWrite){
+						el.attr("ng-show", attrs.noShow);
+					} else {
+						el.addClass("ng-hide");
+					}
+				} else {
+					if(perm && perm.canRead){
+						el.attr("ng-show", attrs.noShow);
+					} else {
+						el.addClass("ng-hide");
+					}
+				}
+
+			} else {
+				el.attr("ng-show", attrs.noShow);
+			}
+		}
+
+		function _link(scope, el, attrs){
+
+		}
+
+		return {
+			restrict: "A",
+			compile: _compile
+		};
+	}
+
+	angular.module("noinfopath.ui")
+		.directive("noShow", ["noSecurity", NoShowDirective]);
+
+})(angular);

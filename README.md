@@ -1,6 +1,6 @@
  # noinfopath.ui
 
- > @version 1.2.10
+ > @version 1.2.11
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
 
