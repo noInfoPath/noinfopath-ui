@@ -37,7 +37,8 @@ module.exports = function(grunt) {
                     'src/data-panel.js',
                     'src/misc.js',
 					'src/file-upload.js',
-					'src/file-viewer.js'
+					'src/file-viewer.js',
+                    'src/show.js'
 
 		        ],
 		        dest: 'dist/noinfopath-ui.js'
