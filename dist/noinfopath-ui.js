@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.11
+ *  > @version 1.2.12
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -815,6 +815,9 @@
 					case "left":
 						ul = "nav nav-tabs tabs-left col-sm-2";
 						break;
+					case "left-flex":
+						ul = "nav nav-tabs tabs-left";
+						break;
 				}
 				return ul;
 			}
@@ -835,10 +838,17 @@
 
 						el.find("no-tab-panels")
 							.first()
-							.addClass("tab-panels col-sm-10");
+							.addClass("tab-panels");
 
-						el.find("no-tab-panels > no-tab-panel > div")
-							.addClass("no-m-t-lg");
+						if(noTab.noTabs.orientation !== "left-flex") {
+							el.find("no-tab-panels")
+								.first()
+								.addClass("col-sm-10");
+
+							el.find("no-tab-panels > no-tab-panel > div")
+								.addClass("no-m-t-lg");
+						}
+
 
 						for (var i = 0, ndx = 0; i < data.length; i++) {
 							var li = angular.element("<li></li>"),
