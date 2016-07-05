@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.14
+ *  > @version 2.0.1
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -742,192 +742,6 @@
 	}]);
 })(angular);
 
-//tabs.js
-(function (angular) {
-	angular.module("noinfopath.ui")
-		.directive("noTabs", ["$compile", "$state", "noFormConfig", "noDataSource", function ($compile, $state, noFormConfig, noDataSource) {
-			function _static(scope, el, attrs) {
-				console.log("static");
-				var ul = el.find("ul")
-					.first(),
-					lis = ul.length > 0 ? ul.children() : null,
-					pnls = el.find("no-tab-panels")
-					.first()
-					.children("no-tab-panel"),
-					def = ul.find("li.active"),
-					defNdx;
-
-				pnls.addClass("ng-hide");
-
-				el.find("no-tab-panels")
-					.first()
-					.addClass("tab-panels");
-
-				el.find("no-tab-panels > no-tab-panel > div")
-					.addClass("no-m-t-lg");
-
-				for(var lii = 0, ndx = 0; lii < lis.length; lii++) {
-					var lie = angular.element(lis[lii]);
-
-					if(!lie.is(".filler-tab")) {
-						lie.attr("ndx", ndx++);
-					}
-				}
-
-				lis.find("a:not(.filler-tab)")
-					.click(function (e) {
-						e.preventDefault();
-
-
-						var ul = el.find("ul")
-							.first(),
-							tab = ul.find("li.active"),
-							pnlNdx = Number(tab.attr("ndx")),
-							pnl = angular.element(pnls[pnlNdx]);
-
-						tab.toggleClass("active");
-						pnl.toggleClass("ng-hide");
-
-						tab = angular.element(e.target)
-							.closest("li");
-						pnlNdx = Number(tab.attr("ndx"));
-						pnl = angular.element(pnls[pnlNdx]);
-
-						tab.toggleClass("active");
-						pnl.toggleClass("ng-hide");
-
-
-						scope.$broadcast("noTabs::Change", tab, pnl);
-					});
-
-				//$compile(el.contents())(scope);
-
-				//Show defaul tab panel
-				defNdx = Number(def.attr("ndx"));
-				angular.element(pnls[defNdx])
-					.toggleClass("ng-hide");
-
-			}
-
-			function _resolveOrientation(noTab) {
-				var ul = "nav nav-tabs";
-
-				switch(noTab.orientation.toLowerCase()) {
-					case "left":
-						ul = "nav nav-tabs tabs-left col-sm-2";
-						break;
-					case "left-flex":
-						ul = "nav nav-tabs tabs-left";
-						break;
-				}
-				return ul;
-			}
-
-			function _dynamic(noTab, scope, el, attrs) {
-				var ds = noDataSource.create(noTab.noDataSource, scope);
-
-				ds.read()
-					.then(function (data) {
-						var ul = el.find("ul")
-							.first(),
-							pnls = el.find("no-tab-panels")
-							.first();
-
-						ul.addClass(_resolveOrientation(noTab.noTabs));
-
-						//pnls.addClass("ng-hide");
-
-						el.find("no-tab-panels")
-							.first()
-							.addClass("tab-panels");
-
-						if(noTab.noTabs.orientation !== "left-flex") {
-							el.find("no-tab-panels")
-								.first()
-								.addClass("col-sm-10");
-
-							el.find("no-tab-panels > no-tab-panel > div")
-								.addClass("no-m-t-lg");
-						}
-
-
-						for(var i = 0, ndx = 0; i < data.length; i++) {
-							var li = angular.element("<li></li>"),
-								a = angular.element("<a href=\"\#\"></a>"),
-								datum = data[i];
-							if(i === 0) {
-								li.addClass("active");
-							}
-							li.attr("ndx", datum[noTab.noTabs.valueField]);
-							a.text(datum[noTab.noTabs.textField]);
-
-							li.append(a);
-
-							ul.append(li);
-						}
-
-						ul.find("li")
-							.click(function (e) {
-								e.preventDefault();
-
-								var ul = el.find("ul")
-									.first(),
-									tab = ul.find("li.active"),
-									ndx;
-								//pnlNdx = Number(tab.attr("ndx")),
-								//pnl = angular.element(pnls[pnlNdx]);
-
-								tab.toggleClass("active");
-								//pnl.toggleClass("ng-hide");
-
-								tab = angular.element(e.target)
-									.closest("li");
-
-								// pnlNdx = Number(tab.attr("ndx"));
-								// pnl = angular.element(pnls[pnlNdx]);
-
-								tab.toggleClass("active");
-								//pnl.toggleClass("ng-hide");
-								ndx = tab.attr("ndx");
-
-								noInfoPath.setItem(scope, noTab.scopeKey, ndx);
-								//$scope.$broadcast("noGrid::refresh", $scope.docGrid ? $scope.docGrid._id : "");
-
-
-								scope.$broadcast("noTabs::Change", tab, pnls, noTab);
-							});
-
-						var tab = el.find("ul")
-							.find("li.active"),
-							pnl = el.find("no-tab-panels")
-							.first(),
-							ndx2 = tab.attr("ndx");
-
-						noInfoPath.setItem(scope, noTab.scopeKey, ndx2);
-						scope.$broadcast("noTabs::Change", tab, pnl, noTab);
-					});
-			}
-
-			function _link(scope, el, attrs) {
-				var noForm = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
-					noTab = noInfoPath.getItem(noForm, attrs.noForm);
-
-				if(noTab) {
-					_dynamic(noTab, scope, el, attrs);
-				} else {
-					_static(scope, el, attrs);
-				}
-			}
-
-			return {
-				restrict: "E",
-				link: _link
-			};
-	}])
-
-	;
-})(angular);
-
 //btn-group.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
@@ -1236,152 +1050,152 @@
 })(angular);
 
 //file-upload.js
-(function(angular, undefined) {
+(function (angular, undefined) {
 
-    function NoFileUploadDirective($state, noLocalFileStorage, noFormConfig) {
-        function _done(comp, scope, el, blob) {
+	function NoFileUploadDirective($state, noLocalFileStorage, noFormConfig) {
+		function _done(comp, scope, el, blob) {
 
-            noInfoPath.setItem(scope, comp.ngModel, blob);
+			noInfoPath.setItem(scope, comp.ngModel, blob);
 
-            scope.$emit("NoFileUpload::dataReady", blob);
-            _reset(el);
-        }
+			scope.$emit("NoFileUpload::dataReady", blob);
+			_reset(el);
+		}
 
-        function _fault(err) {
-            console.error(err);
-        }
+		function _fault(err) {
+			console.error(err);
+		}
 
-        function _drop(comp, scope, el, attrs, e) {
-            if (e !== null || e !== undefined) {
-                e.stopPropagation();
-                e.preventDefault();
-            }
+		function _drop(comp, scope, el, attrs, e) {
+			if(e !== null || e !== undefined) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
 
-            try {
-                if (e.originalEvent.dataTransfer) {
-                    var typeNames = e.originalEvent.dataTransfer.types,
-                        types = {
-                            files: e.originalEvent.dataTransfer.files,
-                            items: e.originalEvent.dataTransfer.items
-                        };
-                    for (var ti = 0; ti < typeNames.length; ti++) {
-                        var typeName = typeNames[ti],
-                            type = types[typeName.toLowerCase()];
-                        for (var i = 0; i < type.length; i++) {
-                            var item = type[i];
-                            noLocalFileStorage.read(item, comp)
-                                .then(_done.bind(null, comp, scope, el))
-                                .catch(_fault);
-                        }
-                    }
+			try {
+				if(e.originalEvent.dataTransfer) {
+					var typeNames = e.originalEvent.dataTransfer.types,
+						types = {
+							files: e.originalEvent.dataTransfer.files,
+							items: e.originalEvent.dataTransfer.items
+						};
+					for(var ti = 0; ti < typeNames.length; ti++) {
+						var typeName = typeNames[ti],
+							type = types[typeName.toLowerCase()];
+						for(var i = 0; i < type.length; i++) {
+							var item = type[i];
+							noLocalFileStorage.read(item, comp)
+								.then(_done.bind(null, comp, scope, el))
+								.catch(_fault);
+						}
+					}
 
-                } else {
-                    var files = e.originalEvent.srcElement.files;
-                    for (var fi = 0; fi < files.length; fi++) {
-                        var file = files[fi];
-                        noLocalFileStorage.read(file, comp)
-                            .then(_done.bind(null, comp, scope, el))
-                            .catch(_fault);
-                    }
-                }
-            } catch (err) {
-                console.error(err);
-            }
-            return false;
-        }
+				} else {
+					var files = e.originalEvent.srcElement.files;
+					for(var fi = 0; fi < files.length; fi++) {
+						var file = files[fi];
+						noLocalFileStorage.read(file, comp)
+							.then(_done.bind(null, comp, scope, el))
+							.catch(_fault);
+					}
+				}
+			} catch(err) {
+				console.error(err);
+			}
+			return false;
+		}
 
-        function _dragEnterAndOver(scope, el, config, attrs, e) {
-            if (e !== null || e !== undefined) {
-                e.stopPropagation();
-                e.preventDefault();
-            }
+		function _dragEnterAndOver(scope, el, config, attrs, e) {
+			if(e !== null || e !== undefined) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
 
-            if (attrs && attrs.noForm) {
-                var comp = noInfoPath.getItem(config, attrs.noForm),
-                    filetype = comp.accept;
+			if(attrs && attrs.noForm) {
+				var comp = noInfoPath.getItem(config, attrs.noForm),
+					filetype = comp.accept;
 
-                if (filetype && filetype.indexOf(e.originalEvent.dataTransfer.items[0].type) === -1) {
-                    e.originalEvent.dataTransfer.dropEffect = "none";
-                    scope.$emit("NoFileUpload::illegalFileType");
-                } else {
-                    e.originalEvent.dataTransfer.dropEffect = "copy";
-                    scope.$emit("NoFileUpload::legalFileType");
-                }
-            }
-            return false;
-        }
+				if(filetype && filetype.indexOf(e.originalEvent.dataTransfer.items[0].type) === -1) {
+					e.originalEvent.dataTransfer.dropEffect = "none";
+					scope.$emit("NoFileUpload::illegalFileType");
+				} else {
+					e.originalEvent.dataTransfer.dropEffect = "copy";
+					scope.$emit("NoFileUpload::legalFileType");
+				}
+			}
+			return false;
+		}
 
-        function _dragLeave(e) {
-            if (e !== null || e !== undefined) {
-                e.stopPropagation();
-                e.preventDefault();
-            }
+		function _dragLeave(e) {
+			if(e !== null || e !== undefined) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
 
-            e.originalEvent.dataTransfer.dropEffect = "none";
-            return false;
-        }
+			e.originalEvent.dataTransfer.dropEffect = "none";
+			return false;
+		}
 
-        function _reset(el) {
-            var ctrl = el.find("input")[0];
+		function _reset(el) {
+			var ctrl = el.find("input")[0];
 
-            try {
-                ctrl.value = null;
-            } catch (ex) {}
+			try {
+				ctrl.value = null;
+			} catch(ex) {}
 
-            if (ctrl.value) {
-                ctrl.parentNode.replaceChild(ctrl.cloneNode(true), ctrl);
-            }
-        }
+			if(ctrl.value) {
+				ctrl.parentNode.replaceChild(ctrl.cloneNode(true), ctrl);
+			}
+		}
 
-        function _template(el, attrs) {
-            var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-                comp = noInfoPath.getItem(config, attrs.noForm);
+		function _template(el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
+				comp = noInfoPath.getItem(config, attrs.noForm);
 
-            var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
-                ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
-                x;
+			var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
+				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
+				x;
 
-            if (el.is(".no-flex")) {
-                x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+			if(el.is(".no-flex")) {
+				x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
 
-            } else {
-                x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
-            }
-            return x;
-        }
+			} else {
+				x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+			}
+			return x;
+		}
 
-        function _link(scope, el, attrs) {
-            var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
-                comp = noInfoPath.getItem(config, attrs.noForm),
-                input = el.find("input"),
-                button = el.find("button");
+		function _link(scope, el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
+				comp = noInfoPath.getItem(config, attrs.noForm),
+				input = el.find("input"),
+				button = el.find("button");
 
-            el.bind("drop", _drop.bind(null, comp, scope, el, attrs));
-            el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
-            el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
-            el.bind('dragleave', _dragLeave);
-            $("body")
-                .bind("dragenter", _dragLeave);
-            $("body")
-                .bind("dragover", _dragLeave);
-            button.click(function(e) {
-                if (input) {
-                    input.click();
-                }
-                e.preventDefault();
-            });
+			el.bind("drop", _drop.bind(null, comp, scope, el, attrs));
+			el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
+			el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
+			el.bind('dragleave', _dragLeave);
+			$("body")
+				.bind("dragenter", _dragLeave);
+			$("body")
+				.bind("dragover", _dragLeave);
+			button.click(function (e) {
+				if(input) {
+					input.click();
+				}
+				e.preventDefault();
+			});
 
-            input.bind("change", _drop.bind(null, comp, scope, el, attrs));
-        }
+			input.bind("change", _drop.bind(null, comp, scope, el, attrs));
+		}
 
-        return {
-            link: _link,
-            template: _template,
-            restrict: "E"
-        };
-    }
-    angular.module("noinfopath.ui")
-        .directive("noFileUpload", ["$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
+		return {
+			link: _link,
+			template: _template,
+			restrict: "E"
+		};
+	}
+	angular.module("noinfopath.ui")
+		.directive("noFileUpload", ["$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
 })(angular);
 
 //file-viewer.js
