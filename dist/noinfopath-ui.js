@@ -1008,35 +1008,38 @@
 	"use strict";
 
 	angular.module("noinfopath.ui")
-		.directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig", "lodash", function(noDataSource, noFormConfig, $compile, noConfig, _) {
+		.directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig", "lodash", "$state", function(noDataSource, noFormConfig, $compile, noConfig, _, $state) {
 			function _link(scope, el, attrs) {
-				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+				function _finish(data, scope) {
 					var noFormCfg, noTitle;
 
-					function _finish(data) {
-						if (!data) throw "Form configuration not found for route " + toState.name;
+					if (!data) throw "Form configuration not found for route " + toState.name;
 
-						noTitle = data.noTitle;
+					noTitle = data.noTitle;
 
-						if (noTitle) {
-							el.html($compile(noTitle.title)(event.targetScope));
-							if (noTitle.noDataSource) {
-								var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
+					if (noTitle) {
+						el.html($compile(noTitle.title)(scope));
+						if (noTitle.noDataSource) {
+							var dataSource = noDataSource.create(noTitle.noDataSource, scope);
 
-								dataSource.one()
-									.then(function(data) {
-										noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey, data[noTitle.scopeKey]);
-									})
-									.catch(function(err) {
-										console.error(err);
-									});
-							}
+							dataSource.one()
+								.then(function(data) {
+									noInfoPath.setItem(scope, "noTitle." + noTitle.scopeKey, data[noTitle.scopeKey]);
+								})
+								.catch(function(err) {
+									console.error(err);
+								});
 						}
 					}
+				}
 
-					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
+				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+
+					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope), event.targetScope);
 
 				});
+
+				_finish(noFormConfig.getFormByRoute($state.current.name, $state.params.entity), scope);
 
 			}
 
@@ -1044,7 +1047,6 @@
 				restrict: "E",
 				scope: true,
 				link: _link
-
 			};
 	}]);
 })(angular);
