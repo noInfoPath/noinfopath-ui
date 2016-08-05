@@ -599,12 +599,19 @@
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
 
-	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
+	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", "noNCLManager", function($compile, noFormConfig, noDataSource, $state, noNCLManager) {
 		function _compile(el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				form = noInfoPath.getItem(config, attrs.noForm),
-				lookup = form.noLookup,
-				sel = angular.element("<select />");
+			var config, form, lookup, sel = angular.element("<select />");
+
+			if(attrs.noid) {
+				config = noNCLManager.getHashStore($state.params.fid || $state.current.name.split(".").pop()); // designer vs viewer
+				form = config.get(attrs.noid).noComponent;
+				lookup = form.noLookup;
+			} else {
+				config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity);
+				form = noInfoPath.getItem(config, attrs.noForm);
+				lookup = form.noLookup;
+			}
 
 			if(angular.isArray(lookup.textField)){
 				textFields = [];
@@ -647,14 +654,14 @@
 			//
 			//     el.append(input);
 			// }
-			return _link;
+			return _link.bind(null, { config: config, form: form, lookup: lookup });
 		}
 
 
-		function _link(scope, el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				form = noInfoPath.getItem(config, attrs.noForm),
-				lookup = form.noLookup,
+		function _link(ctx, scope, el, attrs) {
+			var config = ctx.config,
+				form = ctx.form,
+				lookup = ctx.lookup,
 				sel = el.first();
 
 			function populateDropDown(form, lookup) {
