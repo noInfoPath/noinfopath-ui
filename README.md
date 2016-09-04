@@ -1,8 +1,15 @@
  # noinfopath.ui
 
- > @version 2.0.1
+ > @version 2.0.2
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
+
+<div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">
+	<label>Label</label>
+	<control>
+		<input class="form-control">
+	</control>
+</div>
 
   ##  noDataPanel
 
