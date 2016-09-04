@@ -599,12 +599,20 @@
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
 
-	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
+	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", "noNCLManager", function($compile, noFormConfig, noDataSource, $state, noNCLManager) {
 		function _compile(el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				form = noInfoPath.getItem(config, attrs.noForm),
-				lookup = form.noLookup,
-				sel = angular.element("<select />");
+			var config, form, lookup, ncl, sel = angular.element("<select />"), noid = el.parent().parent().attr("noid");
+
+			if(noid) {
+				config = noNCLManager.getHashStore($state.params.fid || $state.current.name.split(".").pop()); // designer vs viewer
+				ncl = config.get(noid);
+				form = ncl.noComponent;
+				lookup = form.noLookup;
+			} else {
+				config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity);
+				form = noInfoPath.getItem(config, attrs.noForm);
+				lookup = form.noLookup;
+			}
 
 			if(angular.isArray(lookup.textField)){
 				textFields = [];
@@ -620,13 +628,13 @@
 				sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
 			}
 
-			if (lookup.required) sel.attr("required", "");
+			if (lookup.required || ncl.noElement.validators && ncl.noElement.validators.required) sel.attr("required", "");
 
 			if (lookup.binding && lookup.binding === "kendo") {
 				sel.attr("data-bind", "value:" + lookup.valueField);
 				//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
 			} else {
-				sel.attr("ng-model", lookup.ngModel);
+				sel.attr("ng-model", ncl.noComponent.ngModel || lookup.ngModel); //TODO replace with smarter logic
 
 			}
 
@@ -647,14 +655,14 @@
 			//
 			//     el.append(input);
 			// }
-			return _link;
+			return _link.bind(null, { config: config, form: form, lookup: lookup });
 		}
 
 
-		function _link(scope, el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				form = noInfoPath.getItem(config, attrs.noForm),
-				lookup = form.noLookup,
+		function _link(ctx, scope, el, attrs) {
+			var config = ctx.config,
+				form = ctx.form,
+				lookup = ctx.lookup,
 				sel = el.first();
 
 			function populateDropDown(form, lookup) {
@@ -740,6 +748,46 @@
 
 		return directive;
 	}]);
+})(angular);
+
+//input.js
+(function(angular, undefined) {
+	/*
+	 * <div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">
+	 * 	<label>Label</label>
+	 * 	<control>
+	 * 		<input class="form-control">
+	 * 	</control>
+	 * </div>
+	 */
+	function NoInputDirective(noNCLManager, $stateParams) {
+		function _compile(el, attrs) {
+			var noid = el.parent().parent().attr("noid"),
+				hashStore = noNCLManager.getHashStore($stateParams.fid || $state.current.name.split(".").pop()),
+				ncl = hashStore.get(noid),
+				noComponent = ncl.noComponent,
+				cfg = ncl.noElement,
+				input = angular.element("<input class=\"form-control\" ng-model=\""+ $stateParams.fid + "." + noComponent.ngModel +"\"></input>");
+				//TODO reformat/make data source designer
+			if(cfg.validators) {
+				if(cfg.validators.required) input.attr("required", true);
+			}
+
+			el.append(input);
+
+		}
+
+		return {
+			restrict: "E",
+			compile: _compile
+		};
+	}
+
+	angular.module("noinfopath.ui")
+
+	.directive("noInput", ["noNCLManager", "$stateParams", NoInputDirective])
+	;
+
 })(angular);
 
 //btn-group.js
