@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.2
+ *  > @version 2.0.3
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -760,7 +760,7 @@
 	 * 	</control>
 	 * </div>
 	 */
-	function NoInputDirective(noNCLManager, $stateParams) {
+	function NoInputDirective(noNCLManager, $stateParams, $state) {
 		function _compile(el, attrs) {
 			var noid = el.parent().parent().attr("noid"),
 				hashStore = noNCLManager.getHashStore($stateParams.fid || $state.current.name.split(".").pop()),
@@ -785,7 +785,7 @@
 
 	angular.module("noinfopath.ui")
 
-	.directive("noInput", ["noNCLManager", "$stateParams", NoInputDirective])
+	.directive("noInput", ["noNCLManager", "$stateParams", "$state", NoInputDirective])
 	;
 
 })(angular);

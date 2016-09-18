@@ -8,7 +8,7 @@
 	 * 	</control>
 	 * </div>
 	 */
-	function NoInputDirective(noNCLManager, $stateParams) {
+	function NoInputDirective(noNCLManager, $stateParams, $state) {
 		function _compile(el, attrs) {
 			var noid = el.parent().parent().attr("noid"),
 				hashStore = noNCLManager.getHashStore($stateParams.fid || $state.current.name.split(".").pop()),
@@ -33,7 +33,7 @@
 
 	angular.module("noinfopath.ui")
 
-	.directive("noInput", ["noNCLManager", "$stateParams", NoInputDirective])
+	.directive("noInput", ["noNCLManager", "$stateParams", "$state", NoInputDirective])
 	;
 
 })(angular);
