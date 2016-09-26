@@ -2,7 +2,7 @@
 (function (angular, /*PDFJS, ODF,*/ undefined) {
 	"use strict";
 
-	function NoInfoPathPDFViewerDirective($state, $base64, noFormConfig) {
+	function NoInfoPathPDFViewerDirective($state, noFormConfig) {
 		function renderIframe(el, n) {
 			el.html("<iframe src=" + n.blob + " class=\"no-flex stack size-1\">iFrames not supported</iframe>");
 
@@ -106,5 +106,5 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noPdfViewer", ["$state", "$base64", "noFormConfig", NoInfoPathPDFViewerDirective]);
+		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective]);
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
