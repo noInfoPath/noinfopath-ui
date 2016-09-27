@@ -867,7 +867,7 @@
 		 *   }
 		 *   ```
 		 */
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", function($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state) {
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", function($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser) {
 
 			function _link(scope, el, attrs) {
 				var config,
@@ -877,9 +877,9 @@
 
 				function finish(data) {
 					if (data.paged) {
-						scope[config.scopeKey] = data.paged;
+						noParameterParser.update(data.paged, scope[config.scopeKey]);
 					} else {
-						scope[config.scopeKey] = data;
+						noParameterParser.update(data, scope[config.scopeKey]);
 					}
 
 					if (config.hiddenFields) {
