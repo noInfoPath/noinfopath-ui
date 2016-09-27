@@ -107,6 +107,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-nodocs');
 
 	//Default task(s).
+	grunt.registerTask('document', ['concat:noinfopath', 'nodocs:internal', 'concat:readme']);
 	grunt.registerTask('compile', ['karma:continuous', 'concat:noinfopath', 'nodocs:internal', 'concat:readme']);
     grunt.registerTask('notest', ['concat:noinfopath', 'copy:test']);
     grunt.registerTask('test-menu', ['karma:menu']);
