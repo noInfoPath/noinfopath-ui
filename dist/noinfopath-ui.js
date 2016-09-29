@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.6
+ *  > @version 2.0.7
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -876,6 +876,11 @@
 					noFormAttr = attrs.noForm;
 
 				function finish(data) {
+
+					if(!scope[config.scopeKey]){
+						scope[config.scopeKey] = {};
+					}
+
 					if (data.paged) {
 						noParameterParser.update(data.paged, scope[config.scopeKey]);
 					} else {

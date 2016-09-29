@@ -47,6 +47,11 @@
 					noFormAttr = attrs.noForm;
 
 				function finish(data) {
+
+					if(!scope[config.scopeKey]){
+						scope[config.scopeKey] = {};
+					}
+
 					if (data.paged) {
 						noParameterParser.update(data.paged, scope[config.scopeKey]);
 					} else {
