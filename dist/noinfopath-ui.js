@@ -1229,7 +1229,7 @@
 		function renderPDF(el, n) {
 			PDFJS.getDocument(n.blob)
 				.then(function (pdf) {
-					el.html("<div class=\"no-flex size-1\" style=\"overflow: auto;\"><canvas/></div>");
+					el.append("<div class=\"no-flex no-flex-item size-1\" style=\"overflow: auto;\"><canvas class=\"no-flex-item size-1\"/></div>");
 
 					// you can now use *pdf* here
 					pdf.getPage(1)
@@ -1243,8 +1243,9 @@
 
 							if(!context) throw "Canvas is missing";
 
-							canvas.height = viewport.height;
-							canvas.width = viewport.width;
+
+							//canvas.height = viewportheight;
+							//canvas.width = viewport.width;
 
 							renderContext = {
 								canvasContext: context,
