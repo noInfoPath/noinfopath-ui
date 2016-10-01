@@ -104,7 +104,7 @@
 				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
 				x, required = "";
 
-				if (lookup.required) required = " required";
+			if (attrs.$attr.required) required = " required";
 
 			if(el.is(".no-flex")) {
 				x = "<input type=\"file\" class=\"ng-hide\"" + accept +  required + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";

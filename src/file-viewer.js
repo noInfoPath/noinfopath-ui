@@ -67,7 +67,7 @@
 		var mimeTypes = {
 			"application/pdf": renderPDF,
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
-			"image/jpeg": renderImage
+			"image": renderImage
 		};
 
 		function _link(scope, el, attrs) {
@@ -78,7 +78,15 @@
 
 				if(n) {
 					//console.log(n);
-					mimeTypes[n.type.toLowerCase()](el, n);
+					var mime = n.type.toLowerCase().split("/");
+
+					if(mime[0] === "image") {
+						mime = mime[0];
+					}else{
+						mime = n.type;
+					}
+
+					mimeTypes[mime](el, n);
 
 					// renderIframe(el, n);
 				}
