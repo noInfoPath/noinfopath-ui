@@ -3,40 +3,19 @@
 	"use strict";
 
 	function NoInfoPathPDFViewerDirective($state, noFormConfig) {
+		function removeViewerContainer(el){
+			el.find(".no-file-viewer").remove();
+		}
+
 		function renderIframe(el, n) {
-			el.html("<iframe src=" + n.blob + " class=\"no-flex stack size-1\">iFrames not supported</iframe>");
+			el.append("<iframe src=" + n.blob + " class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>");
 
 		}
 
 		function renderPDF(el, n) {
-			PDFJS.getDocument(n.blob)
-				.then(function (pdf) {
-					el.append("<div class=\"no-flex no-flex-item size-1\" style=\"overflow: auto;\"><canvas class=\"no-flex-item size-1\"/></div>");
-
-					// you can now use *pdf* here
-					pdf.getPage(1)
-						.then(function (page) {
-							var tmp = el.find("canvas"),
-								scale = 1.5,
-								viewport = page.getViewport(scale),
-								canvas = tmp[0],
-								context = canvas ? canvas.getContext('2d') : null,
-								renderContext;
-
-							if(!context) throw "Canvas is missing";
-
-
-							//canvas.height = viewportheight;
-							//canvas.width = viewport.width;
-
-							renderContext = {
-								canvasContext: context,
-								viewport: viewport
-							};
-
-							page.render(renderContext);
-						});
-				});
+			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
+			el.append(tmp);
+			PDFObject.embed(n.blob, tmp, {height: "auto", width: "auto"});
 		}
 
 		function renderODF(el, n) {
@@ -56,18 +35,21 @@
 		}
 
 		function renderImage(el, n) {
-			el.html("<div style=\"\"><img/></div>");
+			el.append("<div class=\"no-file-viewer no-flex-item size-1\" style=\"overflow: auto;\"><img/></div>");
 
 			var img = el.find("img");
 			img.attr("src", n.blob);
-			img.addClass("full-width");
-			//img.css("height", "100%");
+			//img.addClass("full-width");
+			img.css("height", "100%");
+			img.css("width", "100%");
 		}
 
 		var mimeTypes = {
 			"application/pdf": renderPDF,
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
-			"image": renderImage
+			"image": renderImage,
+			"text/plain": renderIframe,
+			"text/html": renderIframe
 		};
 
 		function _link(scope, el, attrs) {
@@ -85,7 +67,7 @@
 					}else{
 						mime = n.type;
 					}
-
+					removeViewerContainer(el);
 					mimeTypes[mime](el, n);
 
 					// renderIframe(el, n);
