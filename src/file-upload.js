@@ -3,11 +3,17 @@
 
 	function NoFileUploadDirective($state, noLocalFileStorage, noFormConfig) {
 		function _done(comp, scope, el, blob) {
+			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
 
-			noInfoPath.setItem(scope, comp.ngModel, blob);
+			if(!allScopeDocs) {
+				allScopeDocs = [];
+				noInfoPath.setItem(scope, comp.ngModel, allScopeDocs);
+			}
 
-			scope.$emit("NoFileUpload::dataReady", blob);
-			_reset(el);
+			allScopeDocs.push({type: blob.type, name: blob.name, size: blob.size});
+			//if(!comp.multiple) scope.$emit("NoFileUpload::dataReady", blob);
+
+			//_reset(el);
 		}
 
 		function _fault(err) {
@@ -39,13 +45,13 @@
 					}
 
 				} else {
-					var files = e.originalEvent.srcElement.files;
-					for(var fi = 0; fi < files.length; fi++) {
-						var file = files[fi];
-						noLocalFileStorage.read(file, comp)
-							.then(_done.bind(null, comp, scope, el))
-							.catch(_fault);
-					}
+					scope[comp.ngModel] = e.originalEvent.srcElement.files;
+					// for(var fi = 0; fi < files.length; fi++) {
+					// 	var file = files[fi];
+					// 	noLocalFileStorage.read(file, comp)
+					// 		.then(_done.bind(null, comp, scope, el))
+					// 		.catch(_fault);
+					// }
 				}
 			} catch(err) {
 				console.error(err);
@@ -102,15 +108,16 @@
 
 			var accept = comp.accept ? " accept=\"" + comp.accept + "\"" : "",
 				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
-				x, required = "";
+				x, required = "", multiple = "";
 
-			if (attrs.$attr.required) required = " required";
+			if (attrs.$attr.required || comp.multiple) required = " required";
+			if (attrs.$attr.multiple || comp.multiple) multiple = " multiple";
 
 			if(el.is(".no-flex")) {
-				x = "<input type=\"file\" class=\"ng-hide\"" + accept +  required + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+				x = "<input type=\"file\" class=\"ng-hide\"" + accept +  required + multiple + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
 
 			} else {
-				x = "<input type=\"file\" class=\"ng-hide\"" + accept + required + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+				x = "<input type=\"file\" class=\"ng-hide\"" + accept + required + multiple + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
 			}
 			return x;
 		}
