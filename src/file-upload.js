@@ -1,7 +1,7 @@
 //file-upload.js
 (function (angular, undefined) {
 
-	function NoFileUploadDirective($state, noLocalFileStorage, noFormConfig) {
+	function NoFileUploadDirective($q, $state, noLocalFileStorage, noFormConfig) {
 		function _done(comp, scope, el, blob) {
 			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
 
@@ -10,7 +10,7 @@
 				noInfoPath.setItem(scope, comp.ngModel, allScopeDocs);
 			}
 
-			allScopeDocs.push({type: blob.type, name: blob.name, size: blob.size});
+			allScopeDocs.push(blob);
 			//if(!comp.multiple) scope.$emit("NoFileUpload::dataReady", blob);
 
 			//_reset(el);
@@ -27,6 +27,7 @@
 			}
 
 			try {
+				var promises = [];
 				if(e.originalEvent.dataTransfer) {
 					var typeNames = e.originalEvent.dataTransfer.types,
 						types = {
@@ -38,20 +39,28 @@
 							type = types[typeName.toLowerCase()];
 						for(var i = 0; i < type.length; i++) {
 							var item = type[i];
-							noLocalFileStorage.read(item, comp)
+							promises.push(noLocalFileStorage.read(item, comp)
 								.then(_done.bind(null, comp, scope, el))
-								.catch(_fault);
+								.catch(_fault));
 						}
 					}
 
 				} else {
-					scope[comp.ngModel] = e.originalEvent.srcElement.files;
-					// for(var fi = 0; fi < files.length; fi++) {
-					// 	var file = files[fi];
-					// 	noLocalFileStorage.read(file, comp)
-					// 		.then(_done.bind(null, comp, scope, el))
-					// 		.catch(_fault);
-					// }
+					var files = e.originalEvent.srcElement.files;
+					for(var fi = 0; fi < files.length; fi++) {
+						var file = files[fi];
+						promises.push(noLocalFileStorage.read(file, comp));
+					}
+
+					$q.all(promises)
+						.then(function(results){
+							noInfoPath.setItem(scope, comp.ngModel, results);
+							//console.log(results);
+						})
+						.catch(function(err){
+							console.error(err);
+						});
+
 				}
 			} catch(err) {
 				console.error(err);
@@ -153,5 +162,5 @@
 		};
 	}
 	angular.module("noinfopath.ui")
-		.directive("noFileUpload", ["$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
+		.directive("noFileUpload", ["$q", "$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
 })(angular);

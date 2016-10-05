@@ -93,41 +93,22 @@
 
 	function NoFileViewerDirective($compile, $state, noDataSource) {
 
-		function _link(scope, el, attrs) {
-			var dsCfg = {
-					"name": def.ListSource,
-					"dataProvider": "noIndexedDb",
-					"databaseName": "NoInfoPath_dtc_v1",
-					"entityName": "NoInfoPath_FileUploadCache",
-					"primaryKey": "FileID"
-				},
-				ds = noDataSource.create(dsCfg, scope);
+		function _compile(el, attrs) {
 
-			ds.one(attrs.fileId)
-				.then(function(data){
-					console.log(data.FileID);
-					// render({
-					// 	type: attrs.mimeType,
-					// 	blob: attrs.url
-					// });
-					// var tmp = $compile(el.contents())(scope);
-					// console.log(tmp);
-				})
-				.catch(function(err){
-					console.error(err);
-				});
+			return function(scope, el, attrs) {
+				render(el, {type: attrs.type, blob: attrs.url});
 
-
+			};
 
 		}
 
 		return {
 			restrict: "E",
-			link: _link
+			compile: _compile
 		};
 	}
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
-		.directive("noFileViewer", ["$compile", "$state", "noFormConfig", "noTemplateCache", NoInfoPathPDFViewerDirective]);
+		.directive("noFileViewer", ["$compile", "$state", "noFormConfig", "noTemplateCache", NoFileViewerDirective]);
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
