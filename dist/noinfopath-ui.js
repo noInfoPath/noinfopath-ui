@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.9
+ *  > @version 2.0.10
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -1305,6 +1305,7 @@
 
 	}
 
+
 	function NoInfoPathPDFViewerDirective($state, noFormConfig) {
 
 		function _link(scope, el, attrs) {
@@ -1327,12 +1328,28 @@
 		};
 	}
 
-	function NoFileViewerDirective($compile, $state, noDataSource) {
+	function NoFileViewerDirective($compile, $state, noLocalFileStorage) {
 
 		function _compile(el, attrs) {
 
 			return function(scope, el, attrs) {
-				render(el, {type: attrs.type, blob: attrs.url});
+				if(attrs.url) {
+					render(el, {type: attrs.type, blob: attrs.url});
+				}else{
+					scope.$watch(attrs.waitFor, function(n, o){
+						if(n){
+							noLocalFileStorage.get(n.FileID)
+								.then(function(file){
+									render(el, file);
+								})
+								.catch(function(err){
+									console.error(err);
+								});
+						}
+
+					});
+				}
+
 
 			};
 
@@ -1346,7 +1363,7 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
-		.directive("noFileViewer", ["$compile", "$state", "noFormConfig", "noTemplateCache", NoFileViewerDirective]);
+		.directive("noFileViewer", ["$compile", "$state", "noLocalFileStorage", NoFileViewerDirective]);
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
 
 //show.js
