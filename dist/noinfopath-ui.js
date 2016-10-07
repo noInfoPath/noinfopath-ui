@@ -1080,7 +1080,8 @@
 			}
 
 			allScopeDocs.push(blob);
-			//if(!comp.multiple) scope.$emit("NoFileUpload::dataReady", blob);
+
+			if(!comp.multiple) scope.$emit("NoFileUpload::dataReady", blob);
 
 			//_reset(el);
 		}
@@ -1108,29 +1109,29 @@
 							type = types[typeName.toLowerCase()];
 						for(var i = 0; i < type.length; i++) {
 							var item = type[i];
-							promises.push(noLocalFileStorage.read(item, comp)
-								.then(_done.bind(null, comp, scope, el))
-								.catch(_fault));
+
+							promises.push(noLocalFileStorage.read(item, comp));
+							// promises.push(noLocalFileStorage.read(item, comp)
+							// 	.then(_done.bind(null, comp, scope, el))
+							// 	.catch(_fault));
 						}
 					}
-
 				} else {
 					var files = e.originalEvent.srcElement.files;
 					for(var fi = 0; fi < files.length; fi++) {
 						var file = files[fi];
 						promises.push(noLocalFileStorage.read(file, comp));
 					}
-
-					$q.all(promises)
-						.then(function(results){
-							noInfoPath.setItem(scope, comp.ngModel, results);
-							//console.log(results);
-						})
-						.catch(function(err){
-							console.error(err);
-						});
-
 				}
+
+				$q.all(promises)
+					.then(function(results){
+						noInfoPath.setItem(scope, comp.ngModel, results);
+						//console.log(results);
+					})
+					.catch(function(err){
+						console.error(err);
+					});
 			} catch(err) {
 				console.error(err);
 			}
