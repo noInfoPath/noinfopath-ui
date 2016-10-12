@@ -114,20 +114,28 @@
 
 		function _template(el, attrs) {
 			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				comp = noInfoPath.getItem(config, attrs.noForm);
+				comp = noInfoPath.getItem(config, attrs.noForm),
+				accepts;
 
-			var accept = comp.accept ? " accept=\"" + comp.accept + "\"" : "",
-				ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
+			if(angular.isArray(comp.accept)) {
+				accepts = "accept=\"" + comp.accept + "\"";
+			}else if(angular.isObject(comp.accept)){
+				accepts = "accept=\"" + comp.accept[$state.params.type] + "\"";
+			}else{
+				accepts= "";
+			}
+
+			var ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
 				x, required = "", multiple = "";
 
-			if (attrs.$attr.required || comp.multiple) required = " required";
+			if (attrs.$attr.required || comp.required) required = " required";
 			if (attrs.$attr.multiple || comp.multiple) multiple = " multiple";
 
 			if(el.is(".no-flex")) {
-				x = "<input type=\"file\" class=\"ng-hide\"" + accept +  required + multiple + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+				x = "<input type=\"file\" class=\"ng-hide\"" + accepts +  required + multiple + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
 
 			} else {
-				x = "<input type=\"file\" class=\"ng-hide\"" + accept + required + multiple + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+				x = "<input type=\"file\" class=\"ng-hide\"" + accepts + required + multiple + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
 			}
 			return x;
 		}
