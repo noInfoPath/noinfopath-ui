@@ -11,6 +11,48 @@
 	</control>
 </div>
 
+### NoBtnGroupDirective
+
+### NoButtonDirective
+
+Extands a standard button element to support noActionQueue configurations
+that are store in `area.json` files.
+
+
+#### Configuration
+
+```json
+
+{
+	myButtonConfig: {
+"actions": [
+			{
+				"provider": "$state",
+				"method": "go",
+				"noContextParams": true,
+				"params": [
+					"efr.project.search",
+					{
+						"provider": "noStateHelper",
+						"method": "makeStateParams",
+						"params": [
+							{
+								"key": "id",
+								"provider": "scope",
+								"property": "document.ProjectID.ID"
+							}
+						],
+						"passLocalScope": true
+					}
+				]
+			}
+		]
+	}
+}
+
+```
+
+
   ##  noDataPanel
 
   Renders a data bound panel that can contain

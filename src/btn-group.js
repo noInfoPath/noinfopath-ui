@@ -1,8 +1,9 @@
 //btn-group.js
 (function(angular, undefined) {
-	angular.module("noinfopath.ui")
-
-	.directive("noBtnGroup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
+	/**
+	*	### NoBtnGroupDirective
+	*/
+	function NoBtnGroupDirective($compile, noFormConfig, noDataSource, $state){
 		function _link(scope, el, attrs) {
 			function valueField(btn) {
 				var to = btn.valueType ? btn.valueType : "string",
@@ -69,5 +70,84 @@
 		};
 
 		return directive;
-        }]);
+
+	}
+
+	/**
+	*	### NoButtonDirective
+	*
+	*	Extands a standard button element to support noActionQueue configurations
+	*	that are store in `area.json` files.
+	*
+	*
+	*	#### Configuration
+	*
+	*	```json
+	*
+	*	{
+	*		myButtonConfig: {
+				"actions": [
+	*				{
+	*					"provider": "$state",
+	*					"method": "go",
+	*					"noContextParams": true,
+	*					"params": [
+	*						"efr.project.search",
+	*						{
+	*							"provider": "noStateHelper",
+	*							"method": "makeStateParams",
+	*							"params": [
+	*								{
+	*									"key": "id",
+	*									"provider": "scope",
+	*									"property": "document.ProjectID.ID"
+	*								}
+	*							],
+	*							"passLocalScope": true
+	*						}
+	*					]
+	*				}
+	*			]
+	*		}
+	*	}
+	*
+	*	```
+	*
+	*/
+	function NoButtonDirective($state, noFormConfig, noActionQueue){
+
+
+		function _link(scope, el, attrs) {
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noButton", attrs.noForm);
+
+			el.click(function (e) {
+				e.preventDefault();
+
+				var execQueue = noActionQueue.createQueue(ctx, scope, el, ctx.component.actions);
+
+				delete scope.noNavigationError;
+
+				return noActionQueue.synchronize(execQueue)
+					.then(function (results) {
+						console.log(results);
+					})
+					.catch(function (err) {
+						scope.noNavigationError = err;
+						throw err;
+					});
+
+			});
+		}
+
+		return {
+			restrict: "AE",
+			link: _link
+		};
+
+	}
+
+	angular.module("noinfopath.ui")
+		.directive("noBtnGroup", ["$compile", "noFormConfig", "noDataSource", "$state", NoBtnGroupDirective])
+		.directive("noButton", ["$state", "noFormConfig", "noActionQueue", NoButtonDirective])
+	;
 })(angular);
