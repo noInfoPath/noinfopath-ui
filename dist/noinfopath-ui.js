@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.10
+ *  > @version 2.0.11
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
