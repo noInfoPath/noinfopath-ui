@@ -1,4 +1,34 @@
 (function (angular) {
+	function NoOverlayMessageDirective($state, noFormConfig) {
+		function _templateUrl(el, attrs) {
+			var url = attrs.url,
+				ctx = !url && noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noOverlayMessage", attrs.noForm);
+
+			if(!url && !ctx) throw {error: "noOverlayMessage directive requires either a url or no-forms attribute.", ctx: ctx};
+
+			if(!url && ctx && !ctx.component) throw { error: "Cannot resolve component from provided context", ctx: ctx };
+
+			if(!url && ctx && ctx.component) url = ctx.component.templateUrl;
+
+			return url;
+		}
+
+		function _compile(el, attrs) {
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noOverlayMessage", attrs.noForm);
+			return _link.bind(this, ctx);
+		}
+
+		function _link(ctx, scope, el, attrs) {
+
+		}
+
+		return {
+			strict: "EA",
+			templateUrl: _templateUrl,
+			compile: _compile
+		};
+	}
+
 	function NoDnDCoverDirective() {
 		var oldAddEventListener = EventTarget.prototype.addEventListener;
 
@@ -122,5 +152,7 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noDndCover", [NoDnDCoverDirective]);
+		.directive("noDndCover", [NoDnDCoverDirective])
+		.directive("noOverlayMessage", ["$state", "noFormConfig", NoOverlayMessageDirective])
+		;
 })(angular);

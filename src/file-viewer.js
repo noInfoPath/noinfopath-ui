@@ -99,6 +99,14 @@
 			return function(scope, el, attrs) {
 				if(attrs.url) {
 					render(el, {type: attrs.type, blob: attrs.url});
+				} else if(attrs.fileId) {
+					noLocalFileStorage.get(attrs.fileId)
+						.then(function(file){
+							render(el, file);
+						})
+						.catch(function(err){
+							console.error(err);
+						});
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
 						if(n){

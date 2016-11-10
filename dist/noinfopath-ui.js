@@ -1424,6 +1424,14 @@
 			return function(scope, el, attrs) {
 				if(attrs.url) {
 					render(el, {type: attrs.type, blob: attrs.url});
+				} else if(attrs.fileId) {
+					noLocalFileStorage.get(attrs.fileId)
+						.then(function(file){
+							render(el, file);
+						})
+						.catch(function(err){
+							console.error(err);
+						});
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
 						if(n){
@@ -1522,6 +1530,13 @@
 
 				function _render(data) {
 					console.log(data);
+					for(var i=0; i < data.paged.length; i++) {
+						var item = data.paged[i];
+
+						el.append("<no-file-viewer file-id=\"" + item.FileID + "\"></no-file-viewer>");
+					}
+
+					el.html($compile(el.contents())(scope));
 				}
 
 				function _watch(dsConfig, filterCfg, valueObj, newval, oldval, scope) {
@@ -1651,6 +1666,36 @@
 })(angular);
 
 (function (angular) {
+	function NoOverlayMessageDirective($state, noFormConfig) {
+		function _templateUrl(el, attrs) {
+			var url = attrs.url,
+				ctx = !url && noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noOverlayMessage", attrs.noForm);
+
+			if(!url && !ctx) throw {error: "noOverlayMessage directive requires either a url or no-forms attribute.", ctx: ctx};
+
+			if(!url && ctx && !ctx.component) throw { error: "Cannot resolve component from provided context", ctx: ctx };
+
+			if(!url && ctx && ctx.component) url = ctx.component.templateUrl;
+
+			return url;
+		}
+
+		function _compile(el, attrs) {
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noOverlayMessage", attrs.noForm);
+			return _link.bind(this, ctx);
+		}
+
+		function _link(ctx, scope, el, attrs) {
+
+		}
+
+		return {
+			strict: "EA",
+			templateUrl: _templateUrl,
+			compile: _compile
+		};
+	}
+
 	function NoDnDCoverDirective() {
 		var oldAddEventListener = EventTarget.prototype.addEventListener;
 
@@ -1774,5 +1819,7 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noDndCover", [NoDnDCoverDirective]);
+		.directive("noDndCover", [NoDnDCoverDirective])
+		.directive("noOverlayMessage", ["$state", "noFormConfig", NoOverlayMessageDirective])
+		;
 })(angular);

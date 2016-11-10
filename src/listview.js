@@ -20,6 +20,13 @@
 
 				function _render(data) {
 					console.log(data);
+					for(var i=0; i < data.paged.length; i++) {
+						var item = data.paged[i];
+
+						el.append("<no-file-viewer file-id=\"" + item.FileID + "\"></no-file-viewer>");
+					}
+
+					el.html($compile(el.contents())(scope));
 				}
 
 				function _watch(dsConfig, filterCfg, valueObj, newval, oldval, scope) {
