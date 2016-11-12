@@ -908,7 +908,7 @@
 })(angular);
 
 //data-panel.js
-(function(angular, undefined) {
+(function (angular, undefined) {
 	angular.module("noinfopath.ui")
 		/*
 		 *   ##  noDataPanel
@@ -947,7 +947,36 @@
 		 *   }
 		 *   ```
 		 */
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", function($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser) {
+
+
+		// 	"cooperatorView": {
+	     //       "scopeKey": "cooperatorView",
+	     //       "noDataPanel": {
+	     //         "refresh": {
+	     //           "provider": "scope",
+	     //           "property": "cooperator"
+	     //         }
+	     //       },
+	     //       "noDataSource": {
+	     //         "dataProvider": "noWebSQL",
+	     //         "databaseName": "FCFNv2",
+	     //         "entityName": "vw_cooperator_summary",
+	     //         "primaryKey": "CooperatorID",
+	     //         "filter": [
+	     //           {
+	     //             "field": "CooperatorID",
+	     //             "operator": "eq",
+	     //             "value": {
+	     //               "source": "$stateParams",
+	     //               "property": "id"
+	     //             }
+	     //           }
+	     //         ]
+	     //       }
+	     //     }
+
+
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", function ($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub) {
 
 			function _link(scope, el, attrs) {
 				var config,
@@ -955,20 +984,31 @@
 					dataSource,
 					noFormAttr = attrs.noForm;
 
+
 				function finish(data) {
 
-					if(!scope[config.scopeKey]){
-						scope[config.scopeKey] = {};
-					}
-
-					if (data.paged) {
-						noParameterParser.update(data.paged, scope[config.scopeKey]);
+					if(resultType === "one") {
+						if(!scope[config.scopeKey]) {
+							scope[config.scopeKey] = {};
+						}
+						if(data.paged) {
+							noParameterParser.update(data.paged, scope[config.scopeKey]);
+						} else {
+							noParameterParser.update(data, scope[config.scopeKey]);
+						}
 					} else {
-						noParameterParser.update(data, scope[config.scopeKey]);
+						if(!scope[config.scopeKey]) {
+							scope[config.scopeKey] = [];
+						}
+						if(data.paged) {
+							scope[config.scopeKey] = data.paged;
+						} else {
+							scope[config.scopeKey] = data;
+						}
 					}
 
-					if (config.hiddenFields) {
-						for (var h in config.hiddenFields) {
+					if(config.hiddenFields) {
+						for(var h in config.hiddenFields) {
 							var hf = config.hiddenFields[h],
 								value = noInfoPath.getItem(scope, hf.scopeKey);
 
@@ -977,11 +1017,17 @@
 						}
 					}
 
-					if (scope.waitingFor) {
+					if(scope.waitingFor) {
 						scope.waitingFor[config.scopeKey] = false;
 					}
 
+					PubSub.publish("noDataPanel::dataReady", {config: config, data: data});
+				}
 
+				function refresh() {
+					dataSource[resultType]()
+						.then(finish)
+						.catch(error);
 				}
 
 				function error(err) {
@@ -996,45 +1042,43 @@
 				function noForm_ready(data) {
 					config = noInfoPath.getItem(data, noFormAttr);
 
-					if (config.noDataPanel) {
+					scope[config.scopeKey + "_api"] = {};
+					scope[config.scopeKey + "_api"].refresh = refresh;
+
+					if(config.noDataPanel) {
 						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
 
-						if (config.noDataPanel.refresh) {
-							scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval) {
-								if (newval) {
-									dataSource[resultType]()
-										.then(finish)
-										.catch(error);
+						if(config.noDataPanel.refresh) {
+							scope.$watchCollection(config.noDataPanel.refresh.property, function (newval, oldval) {
+								if(newval) {
+									refresh();
 								}
 							});
 						}
 
 					}
 
-					if (config.noDataSource) {
+					if(config.noDataSource) {
 						dataSource = noDataSource.create(config.noDataSource, scope);
 					} else {
 						dataSource = noDataSource.create(config, scope);
 					}
 
-					if (config.templateUrl) {
+					if(config.templateUrl) {
 
 						noTemplateCache.get(config.templateUrl)
-							.then(function(tpl) {
+							.then(function (tpl) {
 								var t = $compile(tpl),
 									params = [],
 									c = t(scope);
 
 								el.append(c);
 
-								dataSource[resultType]()
-									.then(finish)
-									.catch(error);
+								refresh();
+
 							});
 					} else {
-						dataSource[resultType]()
-							.then(finish)
-							.catch(error);
+						refresh();
 					}
 				}
 
@@ -1373,7 +1417,7 @@
 	}
 
 	var mimeTypes = {
-		"application/pdf": renderPDF,
+		"application/pdf": renderIframe,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
 		"image": renderImage,
 		"text/plain": renderIframe,
@@ -1434,7 +1478,9 @@
 						});
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
-						if(n){
+						el.empty();
+
+						if(n && n.FileID){
 							noLocalFileStorage.get(n.FileID)
 								.then(function(file){
 									render(el, file);

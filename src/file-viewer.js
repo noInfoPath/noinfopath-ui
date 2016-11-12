@@ -48,7 +48,7 @@
 	}
 
 	var mimeTypes = {
-		"application/pdf": renderPDF,
+		"application/pdf": renderIframe,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
 		"image": renderImage,
 		"text/plain": renderIframe,
@@ -109,7 +109,9 @@
 						});
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
-						if(n){
+						el.empty();
+
+						if(n && n.FileID){
 							noLocalFileStorage.get(n.FileID)
 								.then(function(file){
 									render(el, file);
