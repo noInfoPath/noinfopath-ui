@@ -4,7 +4,10 @@
 
 	.directive("noResize", [function() {
 		var link = function(scope, el, attr) {
-				el.css("height", (window.innerHeight - Number(attr.noResize ? attr.noResize : 90)) + "px");
+
+				var resize = Number(attr.noResize ? attr.noResize : 90);
+
+				el.css("height", (window.innerHeight - resize) + "px");
 				//console.log("height: ", el.height());
 
 				scope.onResizeFunction = function() {

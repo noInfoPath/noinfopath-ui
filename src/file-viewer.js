@@ -1,40 +1,39 @@
 //file-viewer.js
-(function (angular, /*PDFJS, ODF,*/ undefined) {
+(function(angular, /*PDFJS, ODF,*/ undefined) {
 	"use strict";
 
 	function NoInfoPathPDFViewerDirective($state, $base64, noFormConfig) {
-		function renderIframe(el, n) {
+		function renderIframe(el, n){
 			el.html("<iframe src=" + n.blob + " class=\"no-flex stack size-1\">iFrames not supported</iframe>");
 
 		}
 
 		function renderPDF(el, n) {
 			PDFJS.getDocument(n.blob)
-				.then(function (pdf) {
+				.then(function(pdf) {
 					el.html("<div class=\"no-flex size-1\" style=\"overflow: auto;\"><canvas/></div>");
 
 					// you can now use *pdf* here
-					pdf.getPage(1)
-						.then(function (page) {
-							var tmp = el.find("canvas"),
-								scale = 1.5,
-								viewport = page.getViewport(scale),
-								canvas = tmp[0],
-								context = canvas ? canvas.getContext('2d') : null,
-								renderContext;
+					pdf.getPage(1).then(function(page) {
+						var tmp = el.find("canvas"),
+							scale = 1.5,
+							viewport = page.getViewport(scale),
+							canvas = tmp[0],
+							context = canvas ? canvas.getContext('2d') : null,
+							renderContext;
 
-							if(!context) throw "Canvas is missing";
+						if (!context) throw "Canvas is missing";
 
-							canvas.height = viewport.height;
-							canvas.width = viewport.width;
+						canvas.height = viewport.height;
+						canvas.width = viewport.width;
 
-							renderContext = {
-								canvasContext: context,
-								viewport: viewport
-							};
+						renderContext = {
+							canvasContext: context,
+							viewport: viewport
+						};
 
-							page.render(renderContext);
-						});
+						page.render(renderContext);
+					});
 				});
 		}
 
@@ -55,7 +54,7 @@
 		}
 
 		function renderImage(el, n) {
-			el.html("<div style=\"\"><img/></div>");
+			el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><img/></div>");
 
 			var img = el.find("img");
 			img.attr("src", n.blob);
@@ -73,13 +72,13 @@
 			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
 				comp = noInfoPath.getItem(config, attrs.noForm);
 
-			scope.$watch(comp.ngModel, function (n, o, s) {
+			scope.$watch(comp.ngModel, function(n, o, s) {
 
-				if(n) {
+				if (n) {
 					//console.log(n);
 					mimeTypes[n.type.toLowerCase()](el, n);
 
-					// renderIframe(el, n);
+					//renderIframe(el, n);
 				}
 
 			});
@@ -107,4 +106,4 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "$base64", "noFormConfig", NoInfoPathPDFViewerDirective]);
-})(angular /*, PDFJS, odf experimental code dependencies*/ );
+})(angular /*, PDFJS, odf experimental code dependencies*/);

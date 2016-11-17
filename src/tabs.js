@@ -1,7 +1,7 @@
 //tabs.js
-(function (angular) {
+(function(angular) {
 	angular.module("noinfopath.ui")
-		.directive("noTabs", ["$compile", "$state", "noFormConfig", "noDataSource", function ($compile, $state, noFormConfig, noDataSource) {
+		.directive("noTabs", ["$compile", "$state", "noFormConfig", "noDataSource", function($compile, $state, noFormConfig, noDataSource) {
 			function _static(scope, el, attrs) {
 				console.log("static");
 				var ul = el.find("ul")
@@ -22,16 +22,16 @@
 				el.find("no-tab-panels > no-tab-panel > div")
 					.addClass("no-m-t-lg");
 
-				for(var lii = 0, ndx = 0; lii < lis.length; lii++) {
+				for (var lii = 0, ndx = 0; lii < lis.length; lii++) {
 					var lie = angular.element(lis[lii]);
 
-					if(!lie.is(".filler-tab")) {
+					if (!lie.is(".filler-tab")) {
 						lie.attr("ndx", ndx++);
 					}
 				}
 
 				lis.find("a:not(.filler-tab)")
-					.click(function (e) {
+					.click(function(e) {
 						e.preventDefault();
 
 
@@ -52,7 +52,6 @@
 						tab.toggleClass("active");
 						pnl.toggleClass("ng-hide");
 
-
 						scope.$broadcast("noTabs::Change", tab, pnl);
 					});
 
@@ -68,12 +67,9 @@
 			function _resolveOrientation(noTab) {
 				var ul = "nav nav-tabs";
 
-				switch(noTab.orientation.toLowerCase()) {
+				switch (noTab.orientation.toLowerCase()) {
 					case "left":
 						ul = "nav nav-tabs tabs-left col-sm-2";
-						break;
-					case "left-flex":
-						ul = "nav nav-tabs tabs-left";
 						break;
 				}
 				return ul;
@@ -83,7 +79,7 @@
 				var ds = noDataSource.create(noTab.noDataSource, scope);
 
 				ds.read()
-					.then(function (data) {
+					.then(function(data) {
 						var ul = el.find("ul")
 							.first(),
 							pnls = el.find("no-tab-panels")
@@ -95,23 +91,16 @@
 
 						el.find("no-tab-panels")
 							.first()
-							.addClass("tab-panels");
+							.addClass("tab-panels col-sm-10");
 
-						if(noTab.noTabs.orientation !== "left-flex") {
-							el.find("no-tab-panels")
-								.first()
-								.addClass("col-sm-10");
+						el.find("no-tab-panels > no-tab-panel > div")
+							.addClass("no-m-t-lg");
 
-							el.find("no-tab-panels > no-tab-panel > div")
-								.addClass("no-m-t-lg");
-						}
-
-
-						for(var i = 0, ndx = 0; i < data.length; i++) {
+						for (var i = 0, ndx = 0; i < data.length; i++) {
 							var li = angular.element("<li></li>"),
 								a = angular.element("<a href=\"\#\"></a>"),
 								datum = data[i];
-							if(i === 0) {
+							if (i === 0) {
 								li.addClass("active");
 							}
 							li.attr("ndx", datum[noTab.noTabs.valueField]);
@@ -123,13 +112,12 @@
 						}
 
 						ul.find("li")
-							.click(function (e) {
+							.click(function(e) {
 								e.preventDefault();
 
 								var ul = el.find("ul")
 									.first(),
-									tab = ul.find("li.active"),
-									ndx;
+									tab = ul.find("li.active");
 								//pnlNdx = Number(tab.attr("ndx")),
 								//pnl = angular.element(pnls[pnlNdx]);
 
@@ -144,22 +132,13 @@
 
 								tab.toggleClass("active");
 								//pnl.toggleClass("ng-hide");
-								ndx = tab.attr("ndx");
-
-								noInfoPath.setItem(scope, noTab.scopeKey, ndx);
-								//$scope.$broadcast("noGrid::refresh", $scope.docGrid ? $scope.docGrid._id : "");
-
 
 								scope.$broadcast("noTabs::Change", tab, pnls, noTab);
 							});
 
-						var tab = el.find("ul")
-							.find("li.active"),
-							pnl = el.find("no-tab-panels")
-							.first(),
-							ndx2 = tab.attr("ndx");
+						var tab = el.find("ul").find("li.active"),
+							pnl = el.find("no-tab-panels").first();
 
-						noInfoPath.setItem(scope, noTab.scopeKey, ndx2);
 						scope.$broadcast("noTabs::Change", tab, pnl, noTab);
 					});
 			}
@@ -168,7 +147,7 @@
 				var noForm = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
 					noTab = noInfoPath.getItem(noForm, attrs.noForm);
 
-				if(noTab) {
+				if (noTab) {
 					_dynamic(noTab, scope, el, attrs);
 				} else {
 					_static(scope, el, attrs);
@@ -179,7 +158,7 @@
 				restrict: "E",
 				link: _link
 			};
-	}])
+		}])
 
 	;
 })(angular);

@@ -40,7 +40,7 @@
 				dataSource.read()
 					.then(function(data) {
 						scope[config.scopeKey] = data.paged;
-						scope.waitingFor[config.scopeKey] = false;
+						//scope.waitingFor[config.scopeKey] = false;
 					})
 					.catch(function(err) {
 						scope.waitingForError = {

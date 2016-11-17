@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 1.2.14
+ *  > @version 1.2.15
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -129,7 +129,6 @@
 			return directive;
         }]);
 })(angular);
-
 //breadcrumb.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
@@ -323,14 +322,16 @@
 
 
 })(angular);
-
 //resize.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
 
 	.directive("noResize", [function() {
 		var link = function(scope, el, attr) {
-				el.css("height", (window.innerHeight - Number(attr.noResize ? attr.noResize : 90)) + "px");
+
+				var resize = Number(attr.noResize ? attr.noResize : 90);
+
+				el.css("height", (window.innerHeight - resize) + "px");
 				//console.log("height: ", el.height());
 
 				scope.onResizeFunction = function() {
@@ -358,7 +359,6 @@
 
 	;
 })(angular);
-
 //menu.js
 (function(angular, undefined) {
 	function MenuItem() {
@@ -551,7 +551,6 @@
 	}]);
 
 })(angular);
-
 //shared-datasource.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
@@ -594,67 +593,61 @@
 
 	;
 })(angular);
-
 //lookup.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
 
 	.directive("noLookup", ["$compile", "noFormConfig", "noDataSource", "$state", function($compile, noFormConfig, noDataSource, $state) {
 		function _compile(el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				form = noInfoPath.getItem(config, attrs.noForm),
-				lookup = form.noLookup,
-				sel = angular.element("<select />");
+			var config, form, lookup, ncl, sel = angular.element("<select />"), noid = el.parent().parent().attr("noid");
 
-			if(angular.isArray(lookup.textField)){
-				textFields = [];
+			function useFormConfig() {
+				config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity);
+				form = noInfoPath.getItem(config, attrs.noForm);
+				lookup = form.noLookup;
 
-				for (i = 0; i < lookup.textField.length; i++){
-					var item = "item." + lookup.textField[i];
+				renderNgOptions();
 
-					textFields.push(item);
+				if (lookup.required) sel.attr("required", "");
+
+				if (lookup.binding && lookup.binding === "kendo") {
+					sel.attr("data-bind", "value:" + lookup.valueField);
+				} else {
+					sel.attr("ng-model", lookup.ngModel); //TODO replace with smarter logic
 				}
-
-				sel.attr("ng-options", "item." + lookup.valueField + " as " + textFields.join(" + ' ' + ") + " for item in " + form.scopeKey);
-			} else {
-				sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
 			}
 
-			if (lookup.required) sel.attr("required", "");
+			function renderNgOptions() {
+				if(angular.isArray(lookup.textField)){
+					var textFields = [];
 
-			if (lookup.binding && lookup.binding === "kendo") {
-				sel.attr("data-bind", "value:" + lookup.valueField);
-				//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
-			} else {
-				sel.attr("ng-model", lookup.ngModel);
+					for (i = 0; i < lookup.textField.length; i++){
+						var item = "item." + lookup.textField[i];
 
+						textFields.push(item);
+					}
+
+					sel.attr("ng-options", "item." + lookup.valueField + " as " + textFields.join(" + ' ' + ") + " for item in " + form.scopeKey);
+				} else {
+					sel.attr("ng-options", "item." + lookup.valueField + " as item." + lookup.textField + " for item in " + form.scopeKey);
+				}
 			}
 
-			//default to bootstrap
+			useFormConfig();
+
 			sel.addClass(lookup.cssClasses || "form-control");
 
 			el.empty();
 			el.append(sel);
 
-			// if(attrs.$attr.required){
-			//     var input = angular.element("<input />");
-			//
-			//     input.attr("type", "hidden");
-			//     input.attr("required", "required");
-			//
-			//     input.attr("ng-model", attrs.noModel);
-			//     input.attr("name", attrs.noModel);
-			//
-			//     el.append(input);
-			// }
-			return _link;
+			return _link.bind(null, { config: config, form: form, lookup: lookup });
 		}
 
 
-		function _link(scope, el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
-				form = noInfoPath.getItem(config, attrs.noForm),
-				lookup = form.noLookup,
+		function _link(ctx, scope, el, attrs) {
+			var config = ctx.config,
+				form = ctx.form,
+				lookup = ctx.lookup,
 				sel = el.first();
 
 			function populateDropDown(form, lookup) {
@@ -663,29 +656,6 @@
 				dataSource.read()
 					.then(function(data) {
 						scope[form.scopeKey] = data;
-						// var items = data.paged,
-						// 	id = noInfoPath.getItem(scope, lookup.ngModel),
-						// 	sel = el.find("select");
-						//
-						// sel.empty();
-						// sel.append("<option></option>");
-						//
-						//
-						// for (var i = 0; i < items.length; i++){
-						// 	var item = items[i],
-						// 		o = angular.element("<option></option>"),
-						// 		v = item[lookup.valueField];
-						//
-						// 	o.attr("value", v);
-						// 	o.append(item[lookup.textField]);
-						//
-						// 	if (v === id) {
-						// 		o.attr("selected", "selected");
-						// 	}
-						//
-						// 	sel.append(o);
-						//}
-
 
 					})
 					.catch(function(err) {
@@ -695,42 +665,9 @@
 						};
 						console.error(scope.waitingForError);
 					});
-
 			}
-
-			// if (lookup.binding && lookup.binding === "kendo") {
-			// 	sel.change(function() {
-			// 		scope[lookup.scopeKey].set(lookup.valueField, angular.element(this).val());
-			// 		scope[lookup.scopeKey].dirty = true;
-			// 	});
-			// } else {
-			// 	sel.change(function() {
-			// 		noInfoPath.setItem(scope, lookup.ngModel, angular.element(this).val());
-			// 		scope.$apply();
-			// 		//this.remove(0);
-			// 	});
-			// }
-
-			// if (lookup.watch) {
-			// 	scope.$watch(lookup.watch.property, function(n, o, s) {
-			// 		if (n) {
-			// 			populateDropDown(form, lookup);
-			// 		}
-			// 	});
-			// }
-			//else {
-			//populateDropDown(form, lookup);
-			// }
-
-			// scope.$on("noKendoGrid::dataChanged", function(e, scopeKey){
-			// 	if (lookup.watch && lookup.watch.property == scopeKey){
-			// 		populateDropDown(config, lookup);
-			// 	}
-			// });
-
 			populateDropDown(form, lookup);
 		}
-
 
 		directive = {
 			restrict: "E",
@@ -740,12 +677,12 @@
 
 		return directive;
 	}]);
-})(angular);
 
+})(angular);
 //tabs.js
-(function (angular) {
+(function(angular) {
 	angular.module("noinfopath.ui")
-		.directive("noTabs", ["$compile", "$state", "noFormConfig", "noDataSource", function ($compile, $state, noFormConfig, noDataSource) {
+		.directive("noTabs", ["$compile", "$state", "noFormConfig", "noDataSource", function($compile, $state, noFormConfig, noDataSource) {
 			function _static(scope, el, attrs) {
 				console.log("static");
 				var ul = el.find("ul")
@@ -766,16 +703,16 @@
 				el.find("no-tab-panels > no-tab-panel > div")
 					.addClass("no-m-t-lg");
 
-				for(var lii = 0, ndx = 0; lii < lis.length; lii++) {
+				for (var lii = 0, ndx = 0; lii < lis.length; lii++) {
 					var lie = angular.element(lis[lii]);
 
-					if(!lie.is(".filler-tab")) {
+					if (!lie.is(".filler-tab")) {
 						lie.attr("ndx", ndx++);
 					}
 				}
 
 				lis.find("a:not(.filler-tab)")
-					.click(function (e) {
+					.click(function(e) {
 						e.preventDefault();
 
 
@@ -796,7 +733,6 @@
 						tab.toggleClass("active");
 						pnl.toggleClass("ng-hide");
 
-
 						scope.$broadcast("noTabs::Change", tab, pnl);
 					});
 
@@ -812,12 +748,9 @@
 			function _resolveOrientation(noTab) {
 				var ul = "nav nav-tabs";
 
-				switch(noTab.orientation.toLowerCase()) {
+				switch (noTab.orientation.toLowerCase()) {
 					case "left":
 						ul = "nav nav-tabs tabs-left col-sm-2";
-						break;
-					case "left-flex":
-						ul = "nav nav-tabs tabs-left";
 						break;
 				}
 				return ul;
@@ -827,7 +760,7 @@
 				var ds = noDataSource.create(noTab.noDataSource, scope);
 
 				ds.read()
-					.then(function (data) {
+					.then(function(data) {
 						var ul = el.find("ul")
 							.first(),
 							pnls = el.find("no-tab-panels")
@@ -839,23 +772,16 @@
 
 						el.find("no-tab-panels")
 							.first()
-							.addClass("tab-panels");
+							.addClass("tab-panels col-sm-10");
 
-						if(noTab.noTabs.orientation !== "left-flex") {
-							el.find("no-tab-panels")
-								.first()
-								.addClass("col-sm-10");
+						el.find("no-tab-panels > no-tab-panel > div")
+							.addClass("no-m-t-lg");
 
-							el.find("no-tab-panels > no-tab-panel > div")
-								.addClass("no-m-t-lg");
-						}
-
-
-						for(var i = 0, ndx = 0; i < data.length; i++) {
+						for (var i = 0, ndx = 0; i < data.length; i++) {
 							var li = angular.element("<li></li>"),
 								a = angular.element("<a href=\"\#\"></a>"),
 								datum = data[i];
-							if(i === 0) {
+							if (i === 0) {
 								li.addClass("active");
 							}
 							li.attr("ndx", datum[noTab.noTabs.valueField]);
@@ -867,13 +793,12 @@
 						}
 
 						ul.find("li")
-							.click(function (e) {
+							.click(function(e) {
 								e.preventDefault();
 
 								var ul = el.find("ul")
 									.first(),
-									tab = ul.find("li.active"),
-									ndx;
+									tab = ul.find("li.active");
 								//pnlNdx = Number(tab.attr("ndx")),
 								//pnl = angular.element(pnls[pnlNdx]);
 
@@ -888,22 +813,13 @@
 
 								tab.toggleClass("active");
 								//pnl.toggleClass("ng-hide");
-								ndx = tab.attr("ndx");
-
-								noInfoPath.setItem(scope, noTab.scopeKey, ndx);
-								//$scope.$broadcast("noGrid::refresh", $scope.docGrid ? $scope.docGrid._id : "");
-
 
 								scope.$broadcast("noTabs::Change", tab, pnls, noTab);
 							});
 
-						var tab = el.find("ul")
-							.find("li.active"),
-							pnl = el.find("no-tab-panels")
-							.first(),
-							ndx2 = tab.attr("ndx");
+						var tab = el.find("ul").find("li.active"),
+							pnl = el.find("no-tab-panels").first();
 
-						noInfoPath.setItem(scope, noTab.scopeKey, ndx2);
 						scope.$broadcast("noTabs::Change", tab, pnl, noTab);
 					});
 			}
@@ -912,7 +828,7 @@
 				var noForm = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
 					noTab = noInfoPath.getItem(noForm, attrs.noForm);
 
-				if(noTab) {
+				if (noTab) {
 					_dynamic(noTab, scope, el, attrs);
 				} else {
 					_static(scope, el, attrs);
@@ -923,11 +839,10 @@
 				restrict: "E",
 				link: _link
 			};
-	}])
+		}])
 
 	;
 })(angular);
-
 //btn-group.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
@@ -970,7 +885,7 @@
 				dataSource.read()
 					.then(function(data) {
 						scope[config.scopeKey] = data.paged;
-						scope.waitingFor[config.scopeKey] = false;
+						//scope.waitingFor[config.scopeKey] = false;
 					})
 					.catch(function(err) {
 						scope.waitingForError = {
@@ -1001,7 +916,6 @@
 		return directive;
         }]);
 })(angular);
-
 //data-panel.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
@@ -1042,105 +956,120 @@
 		 *   }
 		 *   ```
 		 */
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", function($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state) {
+		 .directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", function($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser) {
 
-			function _link(scope, el, attrs) {
-				var config,
-					resultType = "one",
-					dataSource,
-					noFormAttr = attrs.noForm;
+ 			function _link(scope, el, attrs) {
+ 				var config,
+ 					resultType = "one",
+ 					dataSource,
+ 					noFormAttr = attrs.noForm;
 
-				function finish(data) {
-					if (data.paged) {
-						scope[config.scopeKey] = data.paged;
+ 				function finish(data) {
+					if(resultType === "one"){
+						if(!scope[config.scopeKey]){
+							scope[config.scopeKey] = {};
+						}
+
+						if (data.paged) {
+							noParameterParser.update(data.paged, scope[config.scopeKey]);
+						} else {
+							noParameterParser.update(data, scope[config.scopeKey]);
+						}						
 					} else {
-						scope[config.scopeKey] = data;
-					}
+						if(!scope[config.scopeKey]){
+							scope[config.scopeKey] = [];
+						}
 
-					if (config.hiddenFields) {
-						for (var h in config.hiddenFields) {
-							var hf = config.hiddenFields[h],
-								value = noInfoPath.getItem(scope, hf.scopeKey);
-
-							//console.log(hidden);
-							noInfoPath.setItem(scope, hf.ngModel, value);
+						if (data.paged) {
+							scope[config.scopeKey] = data.paged;
+						} else {
+							scope[config.scopeKey] = data;
 						}
 					}
 
-					if (scope.waitingFor) {
-						scope.waitingFor[config.scopeKey] = false;
-					}
+ 					if (config.hiddenFields) {
+ 						for (var h in config.hiddenFields) {
+ 							var hf = config.hiddenFields[h],
+ 								value = noInfoPath.getItem(scope, hf.scopeKey);
+
+ 							//console.log(hidden);
+ 							noInfoPath.setItem(scope, hf.ngModel, value);
+ 						}
+ 					}
+
+ 					if (scope.waitingFor) {
+ 						scope.waitingFor[config.scopeKey] = false;
+ 					}
 
 
-				}
+ 				}
 
-				function error(err) {
-					scope.waitingForError = {
-						error: err,
-						src: config
-					};
+ 				function error(err) {
+ 					scope.waitingForError = {
+ 						error: err,
+ 						src: config
+ 					};
 
-					console.error(scope.waitingForError);
-				}
+ 					console.error(scope.waitingForError);
+ 				}
 
-				function noForm_ready(data) {
-					config = noInfoPath.getItem(data, noFormAttr);
+ 				function noForm_ready(data) {
+ 					config = noInfoPath.getItem(data, noFormAttr);
 
-					if (config.noDataPanel) {
-						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
+ 					if (config.noDataPanel) {
+ 						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
 
-						if (config.noDataPanel.refresh) {
-							scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval) {
-								if (newval) {
-									dataSource[resultType]()
-										.then(finish)
-										.catch(error);
-								}
-							});
-						}
+ 						if (config.noDataPanel.refresh) {
+ 							scope.$watchCollection(config.noDataPanel.refresh.property, function(newval, oldval) {
+ 								if (newval) {
+ 									dataSource[resultType]()
+ 										.then(finish)
+ 										.catch(error);
+ 								}
+ 							});
+ 						}
 
-					}
+ 					}
 
-					if (config.noDataSource) {
-						dataSource = noDataSource.create(config.noDataSource, scope);
-					} else {
-						dataSource = noDataSource.create(config, scope);
-					}
+ 					if (config.noDataSource) {
+ 						dataSource = noDataSource.create(config.noDataSource, scope);
+ 					} else {
+ 						dataSource = noDataSource.create(config, scope);
+ 					}
 
-					if (config.templateUrl) {
+ 					if (config.templateUrl) {
 
-						noTemplateCache.get(config.templateUrl)
-							.then(function(tpl) {
-								var t = $compile(tpl),
-									params = [],
-									c = t(scope);
+ 						noTemplateCache.get(config.templateUrl)
+ 							.then(function(tpl) {
+ 								var t = $compile(tpl),
+ 									params = [],
+ 									c = t(scope);
 
-								el.append(c);
+ 								el.append(c);
 
-								dataSource[resultType]()
-									.then(finish)
-									.catch(error);
-							});
-					} else {
-						dataSource[resultType]()
-							.then(finish)
-							.catch(error);
-					}
-				}
+ 								dataSource[resultType]()
+ 									.then(finish)
+ 									.catch(error);
+ 							});
+ 					} else {
+ 						dataSource[resultType]()
+ 							.then(finish)
+ 							.catch(error);
+ 					}
+ 				}
 
 
-				noForm_ready(noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope));
+ 				noForm_ready(noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope));
 
-			}
+ 			}
 
-			return {
-				restrict: "E",
-				link: _link,
-				scope: false
-			};
-    }]);
+ 			return {
+ 				restrict: "E",
+ 				link: _link,
+ 				scope: false
+ 			};
+     }]);
 })(angular);
-
 //alpha-filter.js
 (function(angular, undefined) {
 	"use strict";
@@ -1196,34 +1125,33 @@
 	angular.module("noinfopath.ui")
 		.directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig", "lodash", function(noDataSource, noFormConfig, $compile, noConfig, _) {
 			function _link(scope, el, attrs) {
-				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+				function _finish(data) {
 					var noFormCfg, noTitle;
+					if (!data) throw "Form configuration not found for route " + toState.name;
 
-					function _finish(data) {
-						if (!data) throw "Form configuration not found for route " + toState.name;
+					noTitle = data.noTitle;
 
-						noTitle = data.noTitle;
+					if (noTitle) {
+						el.html($compile(noTitle.title)(scope));
+						if (noTitle.noDataSource) {
+							var dataSource = noDataSource.create(noTitle.noDataSource, scope);
 
-						if (noTitle) {
-							el.html($compile(noTitle.title)(event.targetScope));
-							if (noTitle.noDataSource) {
-								var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
-
-								dataSource.one()
-									.then(function(data) {
-										noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey, data[noTitle.scopeKey]);
-									})
-									.catch(function(err) {
-										console.error(err);
-									});
-							}
+							dataSource.one()
+								.then(function(data) {
+									noInfoPath.setItem(scope, "noTitle." + noTitle.scopeKey, data);
+								})
+								.catch(function(err) {
+									console.error(err);
+								});
 						}
 					}
+				}
 
-					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
-
+				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope), event.targetScope);
 				});
 
+				//_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
 			}
 
 			return {
@@ -1270,7 +1198,7 @@
                         for (var i = 0; i < type.length; i++) {
                             var item = type[i];
                             noLocalFileStorage.read(item, comp)
-                                .then(_done.bind(null, comp, scope, el))
+                                .then(_save.bind(null, comp, scope, el))
                                 .catch(_fault);
                         }
                     }
@@ -1338,15 +1266,15 @@
                 comp = noInfoPath.getItem(config, attrs.noForm);
 
             var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
-                ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
+                ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name}}" : "",
                 x;
 
-            if (el.is(".no-flex")) {
-                x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+                if(el.is(".no-flex")) {
+                    x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
 
-            } else {
-                x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
-            }
+                } else {
+                    x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+                }
             return x;
         }
 
@@ -1383,44 +1311,42 @@
     angular.module("noinfopath.ui")
         .directive("noFileUpload", ["$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
 })(angular);
-
 //file-viewer.js
-(function (angular, /*PDFJS, ODF,*/ undefined) {
+(function(angular, /*PDFJS, ODF,*/ undefined) {
 	"use strict";
 
 	function NoInfoPathPDFViewerDirective($state, $base64, noFormConfig) {
-		function renderIframe(el, n) {
+		function renderIframe(el, n){
 			el.html("<iframe src=" + n.blob + " class=\"no-flex stack size-1\">iFrames not supported</iframe>");
 
 		}
 
 		function renderPDF(el, n) {
 			PDFJS.getDocument(n.blob)
-				.then(function (pdf) {
+				.then(function(pdf) {
 					el.html("<div class=\"no-flex size-1\" style=\"overflow: auto;\"><canvas/></div>");
 
 					// you can now use *pdf* here
-					pdf.getPage(1)
-						.then(function (page) {
-							var tmp = el.find("canvas"),
-								scale = 1.5,
-								viewport = page.getViewport(scale),
-								canvas = tmp[0],
-								context = canvas ? canvas.getContext('2d') : null,
-								renderContext;
+					pdf.getPage(1).then(function(page) {
+						var tmp = el.find("canvas"),
+							scale = 1.5,
+							viewport = page.getViewport(scale),
+							canvas = tmp[0],
+							context = canvas ? canvas.getContext('2d') : null,
+							renderContext;
 
-							if(!context) throw "Canvas is missing";
+						if (!context) throw "Canvas is missing";
 
-							canvas.height = viewport.height;
-							canvas.width = viewport.width;
+						canvas.height = viewport.height;
+						canvas.width = viewport.width;
 
-							renderContext = {
-								canvasContext: context,
-								viewport: viewport
-							};
+						renderContext = {
+							canvasContext: context,
+							viewport: viewport
+						};
 
-							page.render(renderContext);
-						});
+						page.render(renderContext);
+					});
 				});
 		}
 
@@ -1441,7 +1367,7 @@
 		}
 
 		function renderImage(el, n) {
-			el.html("<div style=\"\"><img/></div>");
+			el.html("<div style=\"position: fixed; left:0; right: 0; top: 300px; bottom: 100px; overflow: scroll;\"><img/></div>");
 
 			var img = el.find("img");
 			img.attr("src", n.blob);
@@ -1459,13 +1385,13 @@
 			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
 				comp = noInfoPath.getItem(config, attrs.noForm);
 
-			scope.$watch(comp.ngModel, function (n, o, s) {
+			scope.$watch(comp.ngModel, function(n, o, s) {
 
-				if(n) {
+				if (n) {
 					//console.log(n);
 					mimeTypes[n.type.toLowerCase()](el, n);
 
-					// renderIframe(el, n);
+					//renderIframe(el, n);
 				}
 
 			});
@@ -1493,8 +1419,7 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "$base64", "noFormConfig", NoInfoPathPDFViewerDirective]);
-})(angular /*, PDFJS, odf experimental code dependencies*/ );
-
+})(angular /*, PDFJS, odf experimental code dependencies*/);
 //show.js
 (function(angular, undefined){
 	"use strict";

@@ -33,7 +33,7 @@
                         for (var i = 0; i < type.length; i++) {
                             var item = type[i];
                             noLocalFileStorage.read(item, comp)
-                                .then(_done.bind(null, comp, scope, el))
+                                .then(_save.bind(null, comp, scope, el))
                                 .catch(_fault);
                         }
                     }
@@ -101,15 +101,15 @@
                 comp = noInfoPath.getItem(config, attrs.noForm);
 
             var accept = comp.accept ? "accept=\"" + comp.accept + "\"" : "",
-                ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
+                ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name}}" : "",
                 x;
 
-            if (el.is(".no-flex")) {
-                x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+                if(el.is(".no-flex")) {
+                    x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
 
-            } else {
-                x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
-            }
+                } else {
+                    x = "<input type=\"file\" class=\"ng-hide\"" + accept + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+                }
             return x;
         }
 

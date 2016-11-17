@@ -53,34 +53,33 @@
 	angular.module("noinfopath.ui")
 		.directive("noTitle", ["noDataSource", "noFormConfig", "$compile", "noConfig", "lodash", function(noDataSource, noFormConfig, $compile, noConfig, _) {
 			function _link(scope, el, attrs) {
-				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+				function _finish(data) {
 					var noFormCfg, noTitle;
+					if (!data) throw "Form configuration not found for route " + toState.name;
 
-					function _finish(data) {
-						if (!data) throw "Form configuration not found for route " + toState.name;
+					noTitle = data.noTitle;
 
-						noTitle = data.noTitle;
+					if (noTitle) {
+						el.html($compile(noTitle.title)(scope));
+						if (noTitle.noDataSource) {
+							var dataSource = noDataSource.create(noTitle.noDataSource, scope);
 
-						if (noTitle) {
-							el.html($compile(noTitle.title)(event.targetScope));
-							if (noTitle.noDataSource) {
-								var dataSource = noDataSource.create(noTitle.noDataSource, event.targetScope);
-
-								dataSource.one()
-									.then(function(data) {
-										noInfoPath.setItem(event.targetScope, "noTitle." + noTitle.scopeKey, data[noTitle.scopeKey]);
-									})
-									.catch(function(err) {
-										console.error(err);
-									});
-							}
+							dataSource.one()
+								.then(function(data) {
+									noInfoPath.setItem(scope, "noTitle." + noTitle.scopeKey, data);
+								})
+								.catch(function(err) {
+									console.error(err);
+								});
 						}
 					}
+				}
 
-					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
-
+				scope.$on("$stateChangeSuccess", function(event, toState, toParams, fromState, fromParams) {
+					_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope), event.targetScope);
 				});
 
+				//_finish(noFormConfig.getFormByRoute(toState.name, toParams.entity, scope));
 			}
 
 			return {
