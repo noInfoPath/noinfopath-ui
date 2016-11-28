@@ -1039,6 +1039,10 @@
 					console.error(scope.waitingForError);
 				}
 
+				function watch(dsConfig, filterCfg, value, n, o, s) {
+					console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+				}
+
 				function noForm_ready(data) {
 					config = noInfoPath.getItem(data, noFormAttr);
 
@@ -1059,9 +1063,9 @@
 					}
 
 					if(config.noDataSource) {
-						dataSource = noDataSource.create(config.noDataSource, scope);
+						dataSource = noDataSource.create(config.noDataSource, scope, watch);
 					} else {
-						dataSource = noDataSource.create(config, scope);
+						dataSource = noDataSource.create(config, scope, watch);
 					}
 
 					if(config.templateUrl) {
@@ -1214,6 +1218,10 @@
 			console.error(err);
 		}
 
+		function _progress(e) {
+			console.info(e);
+		}
+
 		function _drop(comp, scope, el, attrs, e) {
 			if(e !== null || e !== undefined) {
 				e.stopPropagation();
@@ -1234,7 +1242,7 @@
 						for(var i = 0; i < type.length; i++) {
 							var item = type[i];
 
-							promises.push(noLocalFileStorage.read(item, comp));
+							promises.push(noLocalFileStorage.read(item, comp).finally(_progress, _progress));
 							// promises.push(noLocalFileStorage.read(item, comp)
 							// 	.then(_done.bind(null, comp, scope, el))
 							// 	.catch(_fault));
@@ -1244,7 +1252,7 @@
 					var files = e.originalEvent.srcElement.files;
 					for(var fi = 0; fi < files.length; fi++) {
 						var file = files[fi];
-						promises.push(noLocalFileStorage.read(file, comp));
+						promises.push(noLocalFileStorage.read(file, comp).finally(_progress, _progress));
 					}
 				}
 
@@ -1377,7 +1385,15 @@
 	}
 
 	function renderIframe(el, n) {
-		el.append("<iframe src=" + n.blob + " class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>");
+		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + n.blob + "\">iFrames not supported</iframe>");
+	}
+
+	function renderIframe2(el, n) {
+		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>"),
+			url = window.URL || window.webkitURL,
+			blob =  new Blob([n.blob], {type: n.type});
+
+		iframe.src = url.createObjectURL(blob);
 
 	}
 
@@ -1417,7 +1433,7 @@
 	}
 
 	var mimeTypes = {
-		"application/pdf": renderIframe,
+		"application/pdf": renderPDF,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
 		"image": renderImage,
 		"text/plain": renderIframe,

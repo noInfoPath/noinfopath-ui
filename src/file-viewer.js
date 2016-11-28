@@ -8,7 +8,15 @@
 	}
 
 	function renderIframe(el, n) {
-		el.append("<iframe src=" + n.blob + " class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>");
+		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + n.blob + "\">iFrames not supported</iframe>");
+	}
+
+	function renderIframe2(el, n) {
+		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>"),
+			url = window.URL || window.webkitURL,
+			blob =  new Blob([n.blob], {type: n.type});
+
+		iframe.src = url.createObjectURL(blob);
 
 	}
 
@@ -48,7 +56,7 @@
 	}
 
 	var mimeTypes = {
-		"application/pdf": renderIframe,
+		"application/pdf": renderPDF,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
 		"image": renderImage,
 		"text/plain": renderIframe,

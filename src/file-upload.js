@@ -21,6 +21,10 @@
 			console.error(err);
 		}
 
+		function _progress(e) {
+			console.info(e);
+		}
+
 		function _drop(comp, scope, el, attrs, e) {
 			if(e !== null || e !== undefined) {
 				e.stopPropagation();
@@ -41,7 +45,7 @@
 						for(var i = 0; i < type.length; i++) {
 							var item = type[i];
 
-							promises.push(noLocalFileStorage.read(item, comp));
+							promises.push(noLocalFileStorage.read(item, comp).finally(_progress, _progress));
 							// promises.push(noLocalFileStorage.read(item, comp)
 							// 	.then(_done.bind(null, comp, scope, el))
 							// 	.catch(_fault));
@@ -51,7 +55,7 @@
 					var files = e.originalEvent.srcElement.files;
 					for(var fi = 0; fi < files.length; fi++) {
 						var file = files[fi];
-						promises.push(noLocalFileStorage.read(file, comp));
+						promises.push(noLocalFileStorage.read(file, comp).finally(_progress, _progress));
 					}
 				}
 

@@ -130,6 +130,10 @@
 					console.error(scope.waitingForError);
 				}
 
+				function watch(dsConfig, filterCfg, value, n, o, s) {
+					console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+				}
+
 				function noForm_ready(data) {
 					config = noInfoPath.getItem(data, noFormAttr);
 
@@ -150,9 +154,9 @@
 					}
 
 					if(config.noDataSource) {
-						dataSource = noDataSource.create(config.noDataSource, scope);
+						dataSource = noDataSource.create(config.noDataSource, scope, watch);
 					} else {
-						dataSource = noDataSource.create(config, scope);
+						dataSource = noDataSource.create(config, scope, watch);
 					}
 
 					if(config.templateUrl) {
