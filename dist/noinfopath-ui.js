@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.12
+ *  > @version 2.0.13
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -1398,12 +1398,13 @@
 	}
 
 	function renderPDF(el, n) {
-		var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
-		el.append(tmp);
-		PDFObject.embed(n.blob, tmp, {
+		// var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
+		//el.append(tmp);
+		PDFObject.embed(n.blob, ".no-file-viewer", {
 			height: "auto",
 			width: "auto"
 		});
+
 	}
 
 	function renderODF(el, n) {
@@ -1423,13 +1424,17 @@
 	}
 
 	function renderImage(el, n) {
-		el.append("<div class=\"no-file-viewer no-flex-item size-1\" style=\"overflow: auto;\"><img/></div>");
 
-		var img = el.find("img");
+
+		var c = el.find(".no-file-viewer"),
+			img = angular.element("<img>");
+
 		img.attr("src", n.blob);
 		//img.addClass("full-width");
 		img.css("height", "100%");
 		img.css("width", "100%");
+
+		c.html(img);
 	}
 
 	var mimeTypes = {
@@ -1448,7 +1453,7 @@
 		} else {
 			mime = n.type;
 		}
-		removeViewerContainer(el);
+		//removeViewerContainer(el);
 		mimeTypes[mime](el, n);
 
 
@@ -1460,6 +1465,10 @@
 		function _link(scope, el, attrs) {
 			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
 				comp = noInfoPath.getItem(config, attrs.noForm);
+
+			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
+
+			el.html(tmp);
 
 			scope.$watch(comp.ngModel, function (n, o, s) {
 
@@ -1477,29 +1486,35 @@
 		};
 	}
 
-	function NoFileViewerDirective($compile, $state, noLocalFileStorage) {
+	function NoFileViewerDirective($compile, $state, $timeout, noLocalFileStorage) {
 
 		function _compile(el, attrs) {
+			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
+
+			el.html(tmp);
 
 			return function(scope, el, attrs) {
 				if(attrs.url) {
 					render(el, {type: attrs.type, blob: attrs.url});
+					if(attrs.url.indexOf("data") > -1) URL.revokeObjectURL(file.url);
 				} else if(attrs.fileId) {
 					noLocalFileStorage.get(attrs.fileId)
 						.then(function(file){
 							render(el, file);
+							URL.revokeObjectURL(file.blob);
 						})
 						.catch(function(err){
 							console.error(err);
 						});
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
-						el.empty();
+						//el.empty();
 
 						if(n && n.FileID){
 							noLocalFileStorage.get(n.FileID)
 								.then(function(file){
 									render(el, file);
+									URL.revokeObjectURL(file.blob);
 								})
 								.catch(function(err){
 									console.error(err);
@@ -1522,7 +1537,7 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
-		.directive("noFileViewer", ["$compile", "$state", "noLocalFileStorage", NoFileViewerDirective]);
+		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileStorage", NoFileViewerDirective]);
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
 
 //show.js
