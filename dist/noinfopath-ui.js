@@ -986,24 +986,31 @@
 
 
 				function finish(data) {
+					var s;
 
+					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
+						s = scope.$root;
+					} else {
+						s = scope;
+					}
 					if(resultType === "one") {
-						if(!scope[config.scopeKey]) {
-							scope[config.scopeKey] = {};
+						if(!s[config.scopeKey]) {
+							s[config.scopeKey] = {};
 						}
+						
 						if(data.paged) {
-							noParameterParser.update(data.paged, scope[config.scopeKey]);
+							noParameterParser.update(data.paged, s[config.scopeKey]);
 						} else {
-							noParameterParser.update(data, scope[config.scopeKey]);
+							noParameterParser.update(data, s[config.scopeKey]);
 						}
 					} else {
-						if(!scope[config.scopeKey]) {
-							scope[config.scopeKey] = [];
+						if(!s[config.scopeKey]) {
+							s[config.scopeKey] = [];
 						}
 						if(data.paged) {
-							scope[config.scopeKey] = data.paged;
+							s[config.scopeKey] = data.paged;
 						} else {
-							scope[config.scopeKey] = data;
+							s[config.scopeKey] = data;
 						}
 					}
 
