@@ -79,8 +79,7 @@
 				function finish(data) {
 					var s;
 
-					if(config.noDataPanel && config.noDataPanel.
-					) {
+					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
 						s = scope.$root;
 					} else {
 						s = scope;
