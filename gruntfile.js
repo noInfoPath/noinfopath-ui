@@ -32,7 +32,6 @@ module.exports = function(grunt) {
 		        	'src/shared-datasource.js',
 		        	//'src/datepicker.js',
 		        	'src/lookup.js',
-		        	'src/tabs.js',
 		        	'src/btn-group.js',
                     'src/data-panel.js',
                     'src/misc.js',
