@@ -8,22 +8,28 @@
 	}
 
 	function renderIframe(el, n) {
-		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + n.blob + "\">iFrames not supported</iframe>");
-	}
+		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + n.blob + "\">iFrames not supported</iframe>");
 
+		el.find(".no-file-viewer").html(iframe);
+	}
+	function renderIframe3(el, n) {
+		console.log(n);
+		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + (n.url || n.blob) + "\">iFrames not supported</iframe>");
+
+		el.find(".no-file-viewer").html(iframe);
+	}
 	function renderIframe2(el, n) {
 		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>"),
 			url = window.URL || window.webkitURL,
 			blob =  new Blob([n.blob], {type: n.type});
 
 		iframe.src = url.createObjectURL(blob);
-
 	}
 
 	function renderPDF(el, n) {
 		// var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
 		//el.append(tmp);
-		PDFObject.embed(n.blob, ".no-file-viewer", {
+		PDFObject.embed(n.blob, $(".no-file-viewer",el), {
 			height: "auto",
 			width: "auto"
 		});
@@ -61,7 +67,7 @@
 	}
 
 	var mimeTypes = {
-		"application/pdf": renderPDF,
+		"application/pdf": renderIframe3,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
 		"image": renderImage,
 		"text/plain": renderIframe,
@@ -69,19 +75,19 @@
 	};
 
 	function render(el, n) {
-		var mime = n.type.toLowerCase().split("/");
+		var type = n.fileObj ? n.fileObj.type : n.type,
+			mime = type.toLowerCase().split("/");
 
 		if(mime[0] === "image") {
 			mime = mime[0];
 		} else {
-			mime = n.type;
+			mime = type;
 		}
 		//removeViewerContainer(el);
 		mimeTypes[mime](el, n);
 
 
 	}
-
 
 	function NoInfoPathPDFViewerDirective($state, noFormConfig) {
 
@@ -110,6 +116,97 @@
 	}
 
 	function NoFileViewerDirective($compile, $state, $timeout, noLocalFileStorage) {
+		function _cleanUp(url) {
+			var revoke = window.URL.revokeObjectURL || window.webkitURL.revokeObjectURL;
+
+			$timeout(function(){
+				revoke(url);
+			},1000);
+		}
+
+		function _clear(el) {
+			$(".no-file-viewer",el).empty();
+		}
+
+		function _read(fileId, el) {
+
+			return noLocalFileStorage.get(fileId)
+				.then(function(file){
+					render(el, file);
+					_cleanUp(file.blob);
+				})
+				.catch(function(err){
+					console.error(err);
+				});
+		}
+
+		function _compile(el, attrs) {
+			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
+
+			el.html(tmp);
+
+			return function(scope, el, attrs) {
+
+
+				if(attrs.url) {
+					render(el, {type: attrs.type, blob: attrs.url});
+					if(attrs.url.indexOf("data:") > -1) cleanUp(attrs.url)
+				} else if(attrs.fileId) {
+					if(noInfoPath.isGuid(attrs.fileId)) {
+						_read(attrs.fileId, el)
+					} else {
+						scope.$watch(attrs.waitFor, function(n, o){
+							//console.info("file-viewer watch: ", n, o);
+							if(n && noInfoPath.isGuid(n.ID)) {
+								var fid = noInfoPath.getItem(n, attrs.fileId);
+								_read(fid, el);
+							} else {
+								_clear();
+							}
+						});
+
+						// scope.$watchCollection(attrs.waitFor, function(n, o){
+						// 	//console.info("file-viewer watchCollection: ", n, o);
+						// 	if(n && noInfoPath.isGuid(n.ID)) {
+						// 		var fid = noInfoPath.getItem(n, attrs.fileId);
+						// 		_read(fid, el);
+						// 	} else {
+						// 		_clear();
+						// 	}
+						// });
+					}
+				}else{
+					scope.$watch(attrs.waitFor, function(n, o){
+						if(n && n.FileID) _read(n.FileID, el);
+					});
+				}
+
+
+			};
+
+		}
+
+		return {
+			restrict: "E",
+			compile: _compile
+		};
+	}
+
+	function NoFileViewer2Directive($compile, $state, $timeout, noLocalFileSystem) {
+		function _clear(el) {
+			$(".no-file-viewer",el).empty();
+		}
+
+		function _read(fileId, el) {
+
+			return noLocalFileSystem.getUrl(fileId)
+				.then(function(file){
+					render(el, file);
+				})
+				.catch(function(err){
+					console.error(err);
+				});
+		}
 
 		function _compile(el, attrs) {
 			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
@@ -118,32 +215,35 @@
 
 			return function(scope, el, attrs) {
 				if(attrs.url) {
+					if(!attrs.type) throw "noFileViewer directive requires a type attribute when the url attribute is provided"
 					render(el, {type: attrs.type, blob: attrs.url});
-					if(attrs.url.indexOf("data") > -1) URL.revokeObjectURL(file.url);
 				} else if(attrs.fileId) {
-					noLocalFileStorage.get(attrs.fileId)
-						.then(function(file){
-							render(el, file);
-							URL.revokeObjectURL(file.blob);
-						})
-						.catch(function(err){
-							console.error(err);
+					if(noInfoPath.isGuid(attrs.fileId)) {
+						render(el, noLocalFileSystem.getUrl(attrs.fileId));
+					} else {
+						scope.$watch(attrs.waitFor, function(n, o){
+							//console.info("file-viewer watch: ", n, o);
+							if(n && noInfoPath.isGuid(n.ID)) {
+								var fid = noInfoPath.getItem(n, attrs.fileId);
+								_read(fid, el);
+							} else {
+								_clear();
+							}
 						});
+
+						// scope.$watchCollection(attrs.waitFor, function(n, o){
+						// 	//console.info("file-viewer watchCollection: ", n, o);
+						// 	if(n && noInfoPath.isGuid(n.ID)) {
+						// 		var fid = noInfoPath.getItem(n, attrs.fileId);
+						// 		_read(fid, el);
+						// 	} else {
+						// 		_clear();
+						// 	}
+						// });
+					}
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
-						//el.empty();
-
-						if(n && n.FileID){
-							noLocalFileStorage.get(n.FileID)
-								.then(function(file){
-									render(el, file);
-									URL.revokeObjectURL(file.blob);
-								})
-								.catch(function(err){
-									console.error(err);
-								});
-						}
-
+						if(n && n.FileID) _read(n.FileID, el);
 					});
 				}
 
@@ -160,5 +260,5 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
-		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileStorage", NoFileViewerDirective]);
+		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", NoFileViewer2Directive]);
 })(angular /*, PDFJS, odf experimental code dependencies*/ );

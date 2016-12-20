@@ -5,15 +5,19 @@
 		function _done(comp, scope, el, blob) {
 			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
 
-			if(!allScopeDocs) {
-				allScopeDocs = [];
-				noInfoPath.setItem(scope, comp.ngModel, allScopeDocs);
+
+
+			if(comp.multiple) {
+				if(!allScopeDocs) {
+					allScopeDocs = [];
+					noInfoPath.setItem(scope, comp.ngModel, allScopeDocs);
+				}
+
+				allScopeDocs.push(blob);
+			} else {
+				noInfoPath.setItem(scope, comp.ngModel, blob);
+				scope.$emit("NoFileUpload::dataReady", blob);
 			}
-
-			allScopeDocs.push(blob);
-
-			if(!comp.multiple) scope.$emit("NoFileUpload::dataReady", blob);
-
 			//_reset(el);
 		}
 
@@ -61,7 +65,7 @@
 
 				$q.all(promises)
 					.then(function(results){
-						noInfoPath.setItem(scope, comp.ngModel, results);
+						noInfoPath.setItem(scope, comp.ngModel, comp.multiple ? results : results[0]);
 						//console.log(results);
 					})
 					.catch(function(err){

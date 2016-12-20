@@ -73,35 +73,30 @@
 				var config,
 					resultType = "one",
 					dataSource,
-					noFormAttr = attrs.noForm;
+					noFormAttr = attrs.noForm,
+					_scope;
+
 
 
 				function finish(data) {
-					var s;
 
-					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
-						s = scope.$root;
-					} else {
-						s = scope;
-					}
+
 					if(resultType === "one") {
-						if(!s[config.scopeKey]) {
-							s[config.scopeKey] = {};
-						}
-						
+
+
 						if(data.paged) {
-							noParameterParser.update(data.paged, s[config.scopeKey]);
+							noParameterParser.update(data.paged, _scope[config.scopeKey]);
 						} else {
-							noParameterParser.update(data, s[config.scopeKey]);
+							noParameterParser.update(data, _scope[config.scopeKey]);
 						}
 					} else {
-						if(!s[config.scopeKey]) {
-							s[config.scopeKey] = [];
+						if(!_scope[config.scopeKey]) {
+							_scope[config.scopeKey] = [];
 						}
 						if(data.paged) {
-							s[config.scopeKey] = data.paged;
+							_scope[config.scopeKey] = data.paged;
 						} else {
-							s[config.scopeKey] = data;
+							_scope[config.scopeKey] = data;
 						}
 					}
 
@@ -115,15 +110,15 @@
 						}
 					}
 
-					if(scope.waitingFor) {
-						scope.waitingFor[config.scopeKey] = false;
+					if(_scope.waitingFor) {
+						_scope.waitingFor[config.scopeKey] = false;
 					}
 
 					PubSub.publish("noDataPanel::dataReady", {config: config, data: data});
 				}
 
 				function refresh() {
-					dataSource[resultType]()
+					return dataSource[resultType]()
 						.then(finish)
 						.catch(error);
 				}
@@ -144,8 +139,18 @@
 				function noForm_ready(data) {
 					config = noInfoPath.getItem(data, noFormAttr);
 
-					scope[config.scopeKey + "_api"] = {};
-					scope[config.scopeKey + "_api"].refresh = refresh;
+					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
+						_scope = scope.$root;
+					} else {
+						_scope = scope;
+					}
+
+					if(!_scope[config.scopeKey]) {
+						_scope[config.scopeKey] = {};
+					}
+
+					_scope[config.scopeKey + "_api"] = {};
+					_scope[config.scopeKey + "_api"].refresh = refresh;
 
 					if(config.noDataPanel) {
 						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
