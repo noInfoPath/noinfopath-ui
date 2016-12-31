@@ -69,9 +69,9 @@
 	var mimeTypes = {
 		"application/pdf": renderIframe3,
 		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": renderODF,
-		"image": renderImage,
-		"text/plain": renderIframe,
-		"text/html": renderIframe
+		"image": renderIframe3,
+		"text/plain": renderIframe3,
+		"text/html": renderIframe3
 	};
 
 	function render(el, n) {
