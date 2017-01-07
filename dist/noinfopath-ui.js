@@ -637,6 +637,8 @@
 					//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
 				} else {
 					sel.attr("ng-model", lookup.ngModel); //TODO replace with smarter logic
+					sel.attr("name", lookup.ngModel);
+					el.attr("name", lookup.ngModel)
 				}
 
 			}
