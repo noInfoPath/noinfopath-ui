@@ -129,7 +129,7 @@
 
 				return noActionQueue.synchronize(execQueue)
 					.then(function (results) {
-						console.log(results);
+						//console.log(results);
 					})
 					.catch(function (err) {
 						scope.noNavigationError = err;

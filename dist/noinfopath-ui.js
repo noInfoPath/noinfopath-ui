@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.17
+ *  > @version 2.0.18
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -682,6 +682,8 @@
 				lookup = ctx.lookup,
 				sel = el.first();
 
+			
+
 			function populateDropDown(form, lookup) {
 				var dataSource = noDataSource.create(form.noDataSource, scope, scope);
 
@@ -886,7 +888,7 @@
 
 				return noActionQueue.synchronize(execQueue)
 					.then(function (results) {
-						console.log(results);
+						//console.log(results);
 					})
 					.catch(function (err) {
 						scope.noNavigationError = err;
