@@ -1410,7 +1410,7 @@
 		el.find(".no-file-viewer").html(iframe);
 	}
 	function renderIframe3(el, n) {
-		console.log(n);
+		//console.log(n);
 		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + (n.url || n.blob) + "\">iFrames not supported</iframe>");
 
 		el.find(".no-file-viewer").html(iframe);
@@ -1472,18 +1472,20 @@
 	};
 
 	function render(el, n) {
-		var type = n.fileObj ? n.fileObj.type : n.type,
-			mime = type.toLowerCase().split("/");
-
-		if(mime[0] === "image") {
-			mime = mime[0];
+		if(n === "FILE_NOT_FOUND") {
+			el.html("<div class='no-flex'><div class='no-flex-item'><h3>File Not Found</h3></div></div>");
 		} else {
-			mime = type;
+			var type = n.fileObj ? n.fileObj.type : n.type,
+				mime = type.toLowerCase().split("/");
+
+			if(mime[0] === "image") {
+				mime = mime[0];
+			} else {
+				mime = type;
+			}
+			//removeViewerContainer(el);
+			mimeTypes[mime](el, n);
 		}
-		//removeViewerContainer(el);
-		mimeTypes[mime](el, n);
-
-
 	}
 
 	function NoInfoPathPDFViewerDirective($state, noFormConfig) {
@@ -1598,7 +1600,11 @@
 
 			return noLocalFileSystem.getUrl(fileId)
 				.then(function(file){
-					render(el, file);
+					if(!!file) {
+						render(el, file);
+					} else {
+						render(el, "FILE_NOT_FOUND")
+					}
 				})
 				.catch(function(err){
 					console.error(err);
