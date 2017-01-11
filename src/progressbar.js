@@ -4,7 +4,7 @@
 		.directive("noProgressbar", ['$timeout', 'lodash', function($timeout, _) {
 
 			var link = function(scope, el, attr, ctrl) {
-
+					el.css("poistion", "relative")
 					function update() {
 						var p = angular.element(el.children()[0]),
 							m = angular.element(el.children()[1]);
@@ -18,7 +18,7 @@
 
 
 					el.addClass("progress");
-					el.append('<div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"/><div class="no-progress-message"></div>');
+					el.html('<div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"/><div class="no-progress-message text-center" style="position: absolute; top: 0; left:0; bottom: 0; right: 0; z-index: 100"></div>');
 
 					//Watching for changes to this progress bar instance.
 					scope.$watchCollection(attr.noProgressbar, function(newData, oldData, scope) {
