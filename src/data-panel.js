@@ -67,7 +67,7 @@
 	     //     }
 
 
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", function ($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub) {
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", function ($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
 
 			function _link(scope, el, attrs) {
 				var config,
@@ -75,7 +75,6 @@
 					dataSource,
 					noFormAttr = attrs.noForm,
 					_scope;
-
 
 
 				function finish(data) {
@@ -114,6 +113,8 @@
 						_scope.waitingFor[config.scopeKey] = false;
 					}
 
+					noAreaLoader.markComponentLoaded($state.current.name, noFormAttr);
+
 					PubSub.publish("noDataPanel::dataReady", {config: config, data: data});
 				}
 
@@ -138,6 +139,8 @@
 
 				function noForm_ready(data) {
 					config = noInfoPath.getItem(data, noFormAttr);
+
+					noAreaLoader.markComponentLoading($state.current.name, noFormAttr);
 
 					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
 						_scope = scope.$root;

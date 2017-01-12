@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.20
+ *  > @version 2.0.22
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -980,7 +980,7 @@
 	     //     }
 
 
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", function ($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub) {
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", function ($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
 
 			function _link(scope, el, attrs) {
 				var config,
@@ -988,7 +988,6 @@
 					dataSource,
 					noFormAttr = attrs.noForm,
 					_scope;
-
 
 
 				function finish(data) {
@@ -1027,6 +1026,8 @@
 						_scope.waitingFor[config.scopeKey] = false;
 					}
 
+					noAreaLoader.markComponentLoaded($state.current.name, noFormAttr);
+
 					PubSub.publish("noDataPanel::dataReady", {config: config, data: data});
 				}
 
@@ -1051,6 +1052,8 @@
 
 				function noForm_ready(data) {
 					config = noInfoPath.getItem(data, noFormAttr);
+
+					noAreaLoader.markComponentLoading($state.current.name, noFormAttr);
 
 					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
 						_scope = scope.$root;
@@ -1664,18 +1667,7 @@
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
 		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", NoFileViewer2Directive])
-		.directive("noImg", [function(){
-			return {
-				restrict: "E",
-				compile: function(el, attrs) {
-
-					return function(scope, el, attrs) {
-						console.log(attrs.url);
-						el.html("<img src=\"" + attrs.url + "\" style=\"width: 7in; height: 100%\">")
-					}
-				}
-			};
-		}]);
+	;
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
 
 //show.js

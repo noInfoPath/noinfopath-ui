@@ -267,16 +267,5 @@
 	angular.module("noinfopath.ui")
 		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
 		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", NoFileViewer2Directive])
-		.directive("noImg", [function(){
-			return {
-				restrict: "E",
-				compile: function(el, attrs) {
-
-					return function(scope, el, attrs) {
-						console.log(attrs.url);
-						el.html("<img src=\"" + attrs.url + "\" style=\"width: 7in; height: 100%\">")
-					}
-				}
-			};
-		}]);
+	;
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
