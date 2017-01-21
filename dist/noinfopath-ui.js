@@ -1,7 +1,7 @@
 /*
  *  # noinfopath.ui
  *
- *  > @version 2.0.22
+ *  > @version 2.0.23
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
  */
@@ -996,19 +996,24 @@
 					if(resultType === "one") {
 
 
-						if(data.paged) {
+						if(!!data && data.paged) {
 							noParameterParser.update(data.paged, _scope[config.scopeKey]);
-						} else {
+						} else if(!!data){
 							noParameterParser.update(data, _scope[config.scopeKey]);
+						} else {
+							noParameterParser.update({}, _scope[config.scopeKey]);
 						}
 					} else {
 						if(!_scope[config.scopeKey]) {
 							_scope[config.scopeKey] = [];
 						}
-						if(data.paged) {
+
+						if(!!data && data.paged) {
 							_scope[config.scopeKey] = data.paged;
-						} else {
+						} else if(!!data){
 							_scope[config.scopeKey] = data;
+						} else {
+							_scope[config.scopeKey] = [];
 						}
 					}
 
