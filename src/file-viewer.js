@@ -13,10 +13,11 @@
 		el.find(".no-file-viewer").html(iframe);
 	}
 	function renderIframe3(el, n) {
-		//console.log(n);
+		console.log("no-file-viewer::renderIframe3", n, el);
+
 		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + (n.url || n.blob) + "\">iFrames not supported</iframe>");
 
-		el.find(".no-file-viewer").html(iframe);
+		el.html(iframe[0].outerHTML);
 	}
 	function renderIframe2(el, n) {
 		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>"),
@@ -74,124 +75,32 @@
 		"text/html": renderIframe3
 	};
 
-	function render(el, n) {
-		if(n === "FILE_NOT_FOUND") {
-			el.html("<div class='no-flex'><div class='no-flex-item'><h3>File Not Found</h3></div></div>");
-		} else {
-			var type = n.fileObj ? n.fileObj.type : n.type,
-				mime = type.toLowerCase().split("/");
+	function render(el, n, msg) {
 
-			if(mime[0] === "image") {
-				mime = mime[0];
-			} else {
-				mime = type;
-			}
-			//removeViewerContainer(el);
-			mimeTypes[mime](el, n);
-		}
-	}
+		$(el).empty();
 
-	function NoInfoPathPDFViewerDirective($state, noFormConfig) {
+		switch(n) {
+			case "FILE_NOT_FOUND":
+				el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '>" + (msg || "File Not Found") + "</h3></div>");
+				break;
+			case "LOADING":
+				el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '><div class='progress'><div class=\"progress-bar progress-bar-info progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"100\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 100%\"></div></h3></div>");
+				break;
+			default:
+				var type = n.fileObj ? n.fileObj.type : n.type,
+					mime = type.toLowerCase().split("/");
 
-		function _link(scope, el, attrs) {
-			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
-				comp = noInfoPath.getItem(config, attrs.noForm);
-
-			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
-
-			el.html(tmp);
-
-			scope.$watch(comp.ngModel, function (n, o, s) {
-
-				if(n) {
-					render(el, n);
+				if(mime[0] === "image") {
+					mime = mime[0];
+				} else {
+					mime = type;
 				}
-
-			});
-
-		}
-
-		return {
-			restrict: "E",
-			link: _link
-		};
-	}
-
-	function NoFileViewerDirective($compile, $state, $timeout, noLocalFileStorage) {
-		function _cleanUp(url) {
-			var revoke = window.URL.revokeObjectURL || window.webkitURL.revokeObjectURL;
-
-			$timeout(function(){
-				revoke(url);
-			},1000);
-		}
-
-		function _clear(el) {
-			$(".no-file-viewer",el).empty();
-		}
-
-		function _read(fileId, el) {
-
-			return noLocalFileStorage.get(fileId)
-				.then(function(file){
-					render(el, file);
-					_cleanUp(file.blob);
-				})
-				.catch(function(err){
-					console.error(err);
-				});
-		}
-
-		function _compile(el, attrs) {
-			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
-
-			el.html(tmp);
-
-			return function(scope, el, attrs) {
-
-
-				if(attrs.url) {
-					render(el, {type: attrs.type, blob: attrs.url});
-					if(attrs.url.indexOf("data:") > -1) cleanUp(attrs.url)
-				} else if(attrs.fileId) {
-					if(noInfoPath.isGuid(attrs.fileId)) {
-						_read(attrs.fileId, el)
-					} else {
-						scope.$watch(attrs.waitFor, function(n, o){
-							//console.info("file-viewer watch: ", n, o);
-							if(n && noInfoPath.isGuid(n.ID)) {
-								var fid = noInfoPath.getItem(n, attrs.fileId);
-								_read(fid, el);
-							} else {
-								_clear();
-							}
-						});
-
-						// scope.$watchCollection(attrs.waitFor, function(n, o){
-						// 	//console.info("file-viewer watchCollection: ", n, o);
-						// 	if(n && noInfoPath.isGuid(n.ID)) {
-						// 		var fid = noInfoPath.getItem(n, attrs.fileId);
-						// 		_read(fid, el);
-						// 	} else {
-						// 		_clear();
-						// 	}
-						// });
-					}
-				}else{
-					scope.$watch(attrs.waitFor, function(n, o){
-						if(n && n.FileID) _read(n.FileID, el);
-					});
-				}
-
-
-			};
+				//removeViewerContainer(el);
+				mimeTypes[mime](el, n);
+				break;
 
 		}
 
-		return {
-			restrict: "E",
-			compile: _compile
-		};
 	}
 
 	function NoFileViewer2Directive($compile, $state, $timeout, noLocalFileSystem) {
@@ -199,43 +108,58 @@
 			$(".no-file-viewer",el).empty();
 		}
 
-		function _read(fileId, el) {
+		function _read(el, fileId, notFoundMessage) {
+			if(fileId) {
+				render(el, "LOADING");
+				return noLocalFileSystem.getUrl(fileId)
+					.then(function(file){
+						if(!!file) {
+							render(el, file);
+						} else {
+							render(el, "FILE_NOT_FOUND");
+						}
+					})
+					.catch(function(err){
+						console.error(err);
+					});
+			} else {
+				render(el, "FILE_NOT_FOUND", notFoundMessage);
+			}
 
-			return noLocalFileSystem.getUrl(fileId)
-				.then(function(file){
-					if(!!file) {
-						render(el, file);
-					} else {
-						render(el, "FILE_NOT_FOUND")
-					}
-				})
-				.catch(function(err){
-					console.error(err);
-				});
 		}
 
 		function _compile(el, attrs) {
+
 			var tmp = $("<div class=\"no-file-viewer no-flex no-flex-item size-1\" style=\"overflow: auto;\"></div>");
 
 			el.html(tmp);
 
 			return function(scope, el, attrs) {
+				scope.noFileViewer = {
+					refresh: _read.bind(null, el)
+				};
+
 				if(attrs.url) {
-					if(!attrs.type) throw "noFileViewer directive requires a type attribute when the url attribute is provided"
+					if(!attrs.type) throw "noFileViewer directive requires a type attribute when the url attribute is provided";
 					render(el, {type: attrs.type, blob: attrs.url});
 				} else if(attrs.fileId) {
 					if(noInfoPath.isGuid(attrs.fileId)) {
 						render(el, noLocalFileSystem.getUrl(attrs.fileId));
 					} else {
-						scope.$watch(attrs.waitFor, function(n, o){
+						scope.$watch(attrs.waitFor, function(key, msg, n, o){
 							//console.info("file-viewer watch: ", n, o);
-							if(n && noInfoPath.isGuid(n.ID)) {
-								var fid = noInfoPath.getItem(n, attrs.fileId);
-								_read(fid, el);
+							//if(n && noInfoPath.isGuid(n.ID)) {
+							if(n) {
+								//scope.noFileViewer.fileId = noInfoPath.getItem(n, key);
+								_read(el, noInfoPath.getItem(n, key), msg);
+								// if(scope.noFileViewer.fileId) {
+								// } else {
+								// 	render(el, "FILE_NOT_FOUND");
+								// }
 							} else {
 								_clear();
 							}
-						});
+						}.bind(null, attrs.fileId, attrs.notFoundMessage));
 
 						// scope.$watchCollection(attrs.waitFor, function(n, o){
 						// 	//console.info("file-viewer watchCollection: ", n, o);
@@ -249,7 +173,7 @@
 					}
 				}else{
 					scope.$watch(attrs.waitFor, function(n, o){
-						if(n && n.FileID) _read(n.FileID, el);
+						if(n && n.FileID) _read(el, n.FileID);
 					});
 				}
 
@@ -265,7 +189,7 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
+		//.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
 		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", NoFileViewer2Directive])
 	;
 })(angular /*, PDFJS, odf experimental code dependencies*/ );

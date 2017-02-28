@@ -154,6 +154,8 @@
 				input = el.find("input"),
 				button = el.find("button");
 
+			//noInfoPath.setItem(scope, comp.ngModel, undefined);
+
 			el.bind("drop", _drop.bind(null, comp, scope, el, attrs));
 			el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
 			el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
