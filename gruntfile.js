@@ -41,8 +41,8 @@ module.exports = function(grunt) {
 					'src/file-viewer.js',
                     'src/show.js',
 					'src/listview.js',
-					'src/dnd-cover.js'
-
+					'src/dnd-cover.js',
+					'src/notify.js'
 		        ],
 		        dest: 'dist/noinfopath-ui.js'
 		    },
