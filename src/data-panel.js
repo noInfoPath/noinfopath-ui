@@ -130,9 +130,48 @@
 
 		}
 
-		function Version2(scope, el, attrs,ctx) {
-			//TODO: Construct noDataSource
-			scope[ctx.component.scopeKey] = new noInfoPath.data.NoDataPanelInfo();
+		function Version2(scope, el, attrs, ctx) {			
+			noAreaLoader.markComponentLoading($state.current.name, noFormAttr);
+
+			if (config.noDataPanel && config.noDataPanel.saveOnRootScope) {
+				_scope = scope.$root;
+			} else {
+				_scope = scope;
+			}
+
+			if (config.noDataSource) {
+				dataSource = noDataSource.create(config.noDataSource, scope, watch);
+			} else {
+				dataSource = noDataSource.create(config, scope, watch);
+			}
+
+			scope[ctx.component.scopeKey] = new noInfoPath.data.NoDataModel(dataSource);
+
+			if (config.noDataPanel) {
+				resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
+
+				if (config.noDataPanel.refresh) {
+					scope.$watchCollection(config.noDataPanel.refresh.property, function (newval, oldval) {
+						if (newval) {
+							refresh();
+						}
+					});
+				}
+			}			
+
+			if (config.templateUrl) {
+				noTemplateCache.get(config.templateUrl)
+					.then(function (tpl) {
+						var t = $compile(tpl),
+							params = [],
+							c = t(scope);
+
+						el.append(c);
+						refresh();
+					});
+			} else {
+				refresh();
+			}			
 		}
 
 		function _link(scope, el, attrs) {
@@ -140,20 +179,15 @@
 				resultType = "one",
 				dataSource,
 				noFormAttr = attrs.noForm,
-				_scope;
-
-			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope),
-				noDataPanel = angular.merge({}, {version: "1"}, ctx.noDataPanel);
-
+				_scope,
+				ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope),
+				noDataPanel = angular.merge({}, {version: "1"}, ctx.component.noDataPanel);
 
 			if(noDataPanel.version === "1") {
 				Version1(scope, el, attrs, ctx);
 			} else {
 				Version2(scope, el, attrs, ctx);
 			}
-
-
-
 		}
 
 		return {
@@ -162,8 +196,6 @@
 			scope: false
 		};
 	}
-
-
 
 	angular.module("noinfopath.ui")
 		/*
