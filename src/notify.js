@@ -15,7 +15,7 @@
 				"success": "alert-success"
 			},
 			dismissible = "alert-dismissible",
-			timeout = 1000,
+			timeout = 100,
 			defaultOptions = {
 				ttl: 1, //in seconds
 				dismissible: false,
