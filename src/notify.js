@@ -35,7 +35,7 @@
 	 * | ttl         | This is the time to live. It defaults to `1000` ms (1 second).                                                        |
 	 * | dismissable | This is default to `false`. If set to true, the notification will have an "x" and stay on the screen until dismissed. |
 	 * | type        | This corresponds to the bootstrap classes. Possible values are `warning`, `info`, `danger`, or `success`. Default is `info`.  |
-	 * | id          | A specific id can be given show the same message cannot be shown more than once.                                    |
+	 * | id          | A specific id can be given so the same message cannot be shown repeatedly.                                    |
 	 *
 	 *	### How it Works
 	 *	When append message is called, an element is appended to the DOM, off the `<no-notifications>` element.
