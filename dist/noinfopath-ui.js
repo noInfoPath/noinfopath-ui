@@ -1999,6 +1999,7 @@
 	 * | ttl         | This is the time to live. It defaults to `1000` ms (1 second).                                                        |
 	 * | dismissable | This is default to `false`. If set to true, the notification will have an "x" and stay on the screen until dismissed. |
 	 * | type        | This corresponds to the bootstrap classes. Possible values are `warning`, `info`, `danger`, or `success`. Default is `info`.  |
+	 * | classes          | An array of CSS classes to add onto the notification                                   |
 	 * | id          | A specific id can be given so the same message cannot be shown repeatedly.                                    |
 	 *
 	 *	### How it Works
@@ -2022,14 +2023,16 @@
             defaultOptions = {
                 ttl: 1000, //in milliseconds
                 dismissible: false,
-                type: "info"
+                type: "info",
+				classes: []
             },
             container = $("no-notifications");
 
         function _appendMessage(message, options) {
             var tmpOptions = angular.extend({}, defaultOptions, options),
                 notifcation = $(tpl),
-                btn = $(xtmp);
+                btn = $(xtmp),
+				classes = [alertTypes[tmpOptions.type]].concat(tmpOptions.classes);
 
 			if(!tmpOptions.id) tmpOptions.id = noInfoPath.createUUID();
 
@@ -2039,7 +2042,7 @@
 				ids.push(tmpOptions.id);
 			}
 
-            notifcation.addClass(alertTypes[tmpOptions.type]);
+            notifcation.addClass(classes.join(" "));
 			notifcation.attr("message-id", tmpOptions.id);
 
 
@@ -2065,7 +2068,7 @@
 			var messageId = el.attr("message-id"),
 				messageIdNdx = ids.indexOf(messageId);
 
-			ids.splice(messageId, 1);
+			ids.splice(messageIdNdx, 1);
 
 			el.animate({
 				opacity: 0,
