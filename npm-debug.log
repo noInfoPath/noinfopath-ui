@@ -1,0 +1,141 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'publish' ]
+2 info using npm@3.10.8
+3 info using node@v6.9.1
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   escapedName: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: '/Users/gochinj/ws/noinfopath/noinfopath-ui',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory /Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package.tgz not in flight; packing
+9 verbose correctMkdir /Users/gochinj/.npm correctMkdir not in flight; initializing
+10 info lifecycle @noinfopath/noinfopath-ui@2.0.24~prepublish: @noinfopath/noinfopath-ui@2.0.24
+11 silly lifecycle @noinfopath/noinfopath-ui@2.0.24~prepublish: no script for prepublish, continuing
+12 verbose tar pack [ '/Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package.tgz',
+12 verbose tar pack   '/Users/gochinj/ws/noinfopath/noinfopath-ui' ]
+13 verbose tarball /Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package.tgz
+14 verbose folder /Users/gochinj/ws/noinfopath/noinfopath-ui
+15 verbose addLocalTarball adding from inside cache /Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package.tgz
+16 verbose correctMkdir /Users/gochinj/.npm correctMkdir not in flight; initializing
+17 silly cache afterAdd @noinfopath/noinfopath-ui@2.0.24
+18 verbose afterAdd /Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package/package.json not in flight; writing
+19 verbose correctMkdir /Users/gochinj/.npm correctMkdir not in flight; initializing
+20 verbose afterAdd /Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package/package.json written
+21 silly publish { name: '@noinfopath/noinfopath-ui',
+21 silly publish   version: '2.0.24',
+21 silly publish   description: 'noInfoPath UI module',
+21 silly publish   license: 'MIT',
+21 silly publish   author:
+21 silly publish    { name: 'noInfoPath',
+21 silly publish      email: 'info@noInfoPath.org',
+21 silly publish      url: 'http://www.noinfopath.org/' },
+21 silly publish   main: 'noinfopath-ui.js',
+21 silly publish   directories: { test: 'test' },
+21 silly publish   repository:
+21 silly publish    { type: 'git',
+21 silly publish      url: 'http://gitlab.imginconline.com/noinfopath/noinfopath-ui.git' },
+21 silly publish   scripts: { test: 'echo "Error: no test specified" && exit 1' },
+21 silly publish   dependencies:
+21 silly publish    { '@noinfopath/noinfopath-data': '^1.2.15',
+21 silly publish      '@noinfopath/noinfopath-kendo-ui': '^1.2.10',
+21 silly publish      '@noinfopath/noinfopath-logger': '^1.0.1',
+21 silly publish      angular: '^1.5.5',
+21 silly publish      'angular-mocks': '^1.5.5',
+21 silly publish      noinfopath: '^0.2.5' },
+21 silly publish   devDependencies:
+21 silly publish    { 'angular-mocks': '^1.3.8',
+21 silly publish      grunt: '^0.4.5',
+21 silly publish      'grunt-bumpup': '^0.6.2',
+21 silly publish      'grunt-contrib-concat': '^0.5.1',
+21 silly publish      'grunt-contrib-copy': '^0.8.0',
+21 silly publish      'grunt-contrib-watch': '^0.6.1',
+21 silly publish      'grunt-karma': '^0.10.1',
+21 silly publish      'grunt-nodocs': '0.0.11',
+21 silly publish      'grunt-version': '^1.0.0',
+21 silly publish      'jasmine-ajax': '^3.0.0',
+21 silly publish      'jasmine-core': '^2.1.3',
+21 silly publish      jsdoc: '^3.3.0-beta1',
+21 silly publish      'jshint-stylish': '^1.0.1',
+21 silly publish      karma: '^0.12.28',
+21 silly publish      'karma-chrome-launcher': '^0.1.7',
+21 silly publish      'karma-coverage': '^0.2.7',
+21 silly publish      'karma-html-reporter': '^0.2.4',
+21 silly publish      'karma-ie-launcher': '^0.1.5',
+21 silly publish      'karma-jasmine': '^0.3.3',
+21 silly publish      'karma-phantomjs-launcher': '^0.1.4',
+21 silly publish      'karma-safari-launcher': '^0.1.1',
+21 silly publish      'karma-verbose-reporter': '0.0.1',
+21 silly publish      'noinfopath-helpers': '0.0.16',
+21 silly publish      phantomjs: '^1.9.15' },
+21 silly publish   readme: ' # noinfopath.ui\n\n > @version 2.0.24\n[![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)\n\n\n<div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">\n\t<label>Label</label>\n\t<control>\n\t\t<input class="form-control">\n\t</control>\n</div>\n\n### NoBtnGroupDirective\n\n### NoButtonDirective\n\nExtands a standard button element to support noActionQueue configurations\nthat are store in `area.json` files.\n\n\n#### Configuration\n\n```json\n\n{\n\tmyButtonConfig: {\n"actions": [\n\t\t\t{\n\t\t\t\t"provider": "$state",\n\t\t\t\t"method": "go",\n\t\t\t\t"noContextParams": true,\n\t\t\t\t"params": [\n\t\t\t\t\t"efr.project.search",\n\t\t\t\t\t{\n\t\t\t\t\t\t"provider": "noStateHelper",\n\t\t\t\t\t\t"method": "makeStateParams",\n\t\t\t\t\t\t"params": [\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t"key": "id",\n\t\t\t\t\t\t\t\t"provider": "scope",\n\t\t\t\t\t\t\t\t"property": "document.ProjectID.ID"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t],\n\t\t\t\t\t\t"passLocalScope": true\n\t\t\t\t\t}\n\t\t\t\t]\n\t\t\t}\n\t\t]\n\t}\n}\n\n```\n\n\n  ##  noDataPanel\n\n  Renders a data bound panel that can contain\n  any kind of HTML content, which can be bound\n  data on $scope.  The data sources being bound\n  to, are NoInfoPath Data Providers. Note that\n  this directive calls noDataSource.one method,\n  only returns a single data object, not an array.\n\n  ### Sample Usage\n\n  This sample show how to use the noDataPanel\n  directive in your HTML markup.\n\n  ```html\n  <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>\n  ```\n\n  ### Sample Configuration\n\n  ```js\n  {\n      "selection": {\n          "scopeKey": "selection",\n          "dataProvider": "noWebSQL",\n          "databaseName": "FCFNv2",\n          "entityName": "vw_trialplot_selection",\n          "primaryKey": "TrialPlotID",\n          "lookup": {\n              "source": "$stateParams",\n          },\n          "templateUrl": "observations/selection.html"\n      }\n  }\n  ```\n\n',
+21 silly publish   readmeFilename: 'README.md',
+21 silly publish   gitHead: '42cb9460dc93b91baeb429ab65e37a7d961e5c31',
+21 silly publish   _id: '@noinfopath/noinfopath-ui@2.0.24',
+21 silly publish   _shasum: 'c5fb7705ebcec35ba9f245279bf7e191800a84ec',
+21 silly publish   _from: '.' }
+22 verbose getPublishConfig undefined
+23 silly mapToRegistry name @noinfopath/noinfopath-ui
+24 silly mapToRegistry scope (from package name) @noinfopath
+25 verbose mapToRegistry no registry URL found in name for scope @noinfopath
+26 silly mapToRegistry using default registry
+27 silly mapToRegistry registry https://registry.npmjs.org/
+28 silly mapToRegistry data Result {
+28 silly mapToRegistry   raw: '@noinfopath/noinfopath-ui',
+28 silly mapToRegistry   scope: '@noinfopath',
+28 silly mapToRegistry   escapedName: '@noinfopath%2fnoinfopath-ui',
+28 silly mapToRegistry   name: '@noinfopath/noinfopath-ui',
+28 silly mapToRegistry   rawSpec: '',
+28 silly mapToRegistry   spec: 'latest',
+28 silly mapToRegistry   type: 'tag' }
+29 silly mapToRegistry uri https://registry.npmjs.org/@noinfopath%2fnoinfopath-ui
+30 verbose publish registryBase https://registry.npmjs.org/
+31 silly publish uploading /Users/gochinj/.npm/@noinfopath/noinfopath-ui/2.0.24/package.tgz
+32 verbose request uri https://registry.npmjs.org/@noinfopath%2fnoinfopath-ui
+33 verbose request sending authorization for write operation
+34 info attempt registry request try #1 at 12:18:47 PM
+35 verbose request using bearer token for auth
+36 verbose request id ccd0278e234a8290
+37 http request PUT https://registry.npmjs.org/@noinfopath%2fnoinfopath-ui
+38 http 403 https://registry.npmjs.org/@noinfopath%2fnoinfopath-ui
+39 verbose headers { 'content-type': 'application/json',
+39 verbose headers   'cache-control': 'max-age=0',
+39 verbose headers   'content-length': '96',
+39 verbose headers   'accept-ranges': 'bytes',
+39 verbose headers   date: 'Fri, 03 Mar 2017 17:18:50 GMT',
+39 verbose headers   via: '1.1 varnish',
+39 verbose headers   connection: 'keep-alive',
+39 verbose headers   'x-served-by': 'cache-iad2623-IAD',
+39 verbose headers   'x-cache': 'MISS',
+39 verbose headers   'x-cache-hits': '0',
+39 verbose headers   'x-timer': 'S1488561527.592877,VS0,VE3006' }
+40 verbose request invalidating /Users/gochinj/.npm/registry.npmjs.org/_40noinfopath_252fnoinfopath-ui on PUT
+41 error publish Failed PUT 403
+42 verbose stack Error: "You cannot publish over the previously published version 2.0.24." : @noinfopath/noinfopath-ui
+42 verbose stack     at makeError (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:302:12)
+42 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:290:14)
+42 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:210:14)
+42 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:187:22)
+42 verbose stack     at emitTwo (events.js:106:13)
+42 verbose stack     at Request.emit (events.js:191:7)
+42 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1044:10)
+42 verbose stack     at emitOne (events.js:96:13)
+42 verbose stack     at Request.emit (events.js:188:7)
+42 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:965:12)
+43 verbose statusCode 403
+44 verbose pkgid @noinfopath/noinfopath-ui
+45 verbose cwd /Users/gochinj/ws/noinfopath/noinfopath-ui
+46 error Darwin 16.4.0
+47 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "publish"
+48 error node v6.9.1
+49 error npm  v3.10.8
+50 error code E403
+51 error "You cannot publish over the previously published version 2.0.24." : @noinfopath/noinfopath-ui
+52 error If you need help, you may report this error at:
+52 error     <https://github.com/npm/npm/issues>
+53 verbose exit [ 1, true ]
