@@ -59,7 +59,7 @@
 		var c = el.find(".no-file-viewer"),
 			img = angular.element("<img>");
 
-		img.attr("src", n.blob);
+		img.attr("src", n.url || n.blob);
 		//img.addClass("full-width");
 		img.css("height", "100%");
 		img.css("width", "100%");
@@ -96,7 +96,11 @@
 					mime = type;
 				}
 				//removeViewerContainer(el);
-				mimeTypes[mime](el, n);
+				if(msg) {
+					renderImage(el, n);
+				} else {
+					mimeTypes[mime](el, n);
+				}
 				break;
 
 		}
@@ -144,7 +148,7 @@
 					render(el, {type: attrs.type, blob: attrs.url});
 				} else if(attrs.fileId) {
 					if(noInfoPath.isGuid(attrs.fileId)) {
-						render(el, noLocalFileSystem.getUrl(attrs.fileId));
+						render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
 					} else {
 						scope.$watch(attrs.waitFor, function(key, msg, n, o){
 							//console.info("file-viewer watch: ", n, o);

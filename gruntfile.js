@@ -41,6 +41,7 @@ module.exports = function(grunt) {
 					'src/file-viewer.js',
                     'src/show.js',
 					'src/listview.js',
+                    'src/thumbnail-viewer.js',
 					'src/dnd-cover.js',
 					'src/notify.js'
 		        ],
@@ -79,7 +80,7 @@ module.exports = function(grunt) {
         watch: {
             dev: {
               files: ['src/**/*.*', 'test/**/*.spec.js'],
-              tasks: ['compile']
+              tasks: ['concat:noinfopath']
             }
         },
         nodocs: {
