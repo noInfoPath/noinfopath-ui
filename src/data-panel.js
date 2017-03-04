@@ -1,8 +1,9 @@
 //data-panel.js
 (function (angular, undefined) {
+    "use strict";
 
 	function NoDataPanelDirective($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
-		function Version1(scope, el, attrs, ctx) {
+		function version1(scope, el, attrs, ctx) {
 			function finish(data) {
 
 
@@ -130,23 +131,34 @@
 
 		}
 
-		function Version2(scope, el, attrs, ctx) {			
+		function version2(scope, el, attrs, ctx) {	
+		    //NOTE: 1) noFormAttr not defined.
 			noAreaLoader.markComponentLoading($state.current.name, noFormAttr);
 
+            //NOTE: 2) Use config.noDataPanel = angular.merge({}, defaultOptions, config.noDataPanel) instead of 
+            //      checking for the existence of `config.noDataPanel`.  So, create a variable called `defaultOptions`
+            //      and add default properties as needed.
 			if (config.noDataPanel && config.noDataPanel.saveOnRootScope) {
 				_scope = scope.$root;
 			} else {
 				_scope = scope;
 			}
 
+            //NOTE: 3) As of V2 putting data source configuration directly on the config object is no longer
+            //      supported. So this `if` statement is not requried. Throw and exception if the the
+            //      `noDataSource` property is missing.
 			if (config.noDataSource) {
 				dataSource = noDataSource.create(config.noDataSource, scope, watch);
 			} else {
 				dataSource = noDataSource.create(config, scope, watch);
 			}
 
+            //NOTE: 4) `scope` should be `_scope`
 			scope[ctx.component.scopeKey] = new noInfoPath.data.NoDataModel(dataSource);
 
+            //NOTE: 5) Again, based on note #2 config.noDataPanel will always exists. Add `resultType: "one"`
+            //      to the `defaultOptions`. Remove the outer `if` statement and remove the assignment to
+            //      the `resultType`.
 			if (config.noDataPanel) {
 				resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
 
@@ -159,6 +171,7 @@
 				}
 			}			
 
+            //NOTE: 6) Move `templateUrl property to `noDataPanel` property.
 			if (config.templateUrl) {
 				noTemplateCache.get(config.templateUrl)
 					.then(function (tpl) {
@@ -175,18 +188,18 @@
 		}
 
 		function _link(scope, el, attrs) {
-			var config,
-				resultType = "one",
-				dataSource,
-				noFormAttr = attrs.noForm,
-				_scope,
+			var config,  //NOTE: 7) Delete, ctx parameter will have what you need once you are in the Version functions.
+				resultType = "one",  //NOTE: 8) Delete; see note #5.
+				dataSource, //NOTE: 9) Delete; declare in the Version functions.
+				noFormAttr = attrs.noForm, //NOTE: 10) Delete; see note #1.
+				_scope, //NOTE: 11) Delete; declare in the Version functions.
 				ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope),
-				noDataPanel = angular.merge({}, {version: "1"}, ctx.component.noDataPanel);
+				noDataPanel = angular.merge({}, {version: "1"}, ctx.component.noDataPanel);  //NOTE: 12a) pass this in to Version2 as a parameter.
 
 			if(noDataPanel.version === "1") {
-				Version1(scope, el, attrs, ctx);
+				version1(scope, el, attrs, ctx);
 			} else {
-				Version2(scope, el, attrs, ctx);
+				version2(scope, el, attrs, ctx);  //NOTE: 12b) New Prototype: Version2(scope, el, attrs, noDataPanel, ctx)
 			}
 		}
 
@@ -198,6 +211,7 @@
 	}
 
 	angular.module("noinfopath.ui")
+	    //NOTE:  13) Document all properties in detail.
 		/*
 		 *   ##  noDataPanel
 		 *
