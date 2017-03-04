@@ -63,7 +63,7 @@ myButtonConfig: {
   this directive calls noDataSource.one method,
   only returns a single data object, not an array.
 
-  ### Sample Usage
+### Sample Usage
 
   This sample show how to use the noDataPanel
   directive in your HTML markup.
