@@ -3,13 +3,14 @@
  > @version 2.0.25
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
-
-<div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">
-	<label>Label</label>
-	<control>
-		<input class="form-control">
-	</control>
-</div>
+```html
+    <div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">
+    	<label>Label</label>
+    	<control>
+    		<input class="form-control">
+    	</control>
+    </div>
+```
 
 ### NoBtnGroupDirective
 
@@ -24,36 +25,36 @@ that are store in `area.json` files.
 ```json
 
 {
-	myButtonConfig: {
-"actions": [
-			{
-				"provider": "$state",
-				"method": "go",
-				"noContextParams": true,
-				"params": [
-					"efr.project.search",
-					{
-						"provider": "noStateHelper",
-						"method": "makeStateParams",
-						"params": [
-							{
-								"key": "id",
-								"provider": "scope",
-								"property": "document.ProjectID.ID"
-							}
-						],
-						"passLocalScope": true
-					}
-				]
-			}
-		]
+myButtonConfig: {
+    "actions": [
+    			{
+    				"provider": "$state",
+    				"method": "go",
+    				"noContextParams": true,
+    				"params": [
+    					"efr.project.search",
+    					{
+    						"provider": "noStateHelper",
+    						"method": "makeStateParams",
+    						"params": [
+    							{
+    								"key": "id",
+    								"provider": "scope",
+    								"property": "document.ProjectID.ID"
+    							}
+    						],
+    						"passLocalScope": true
+    					}
+    				]
+    			}
+    		]
 	}
 }
 
 ```
 
 
-  ##  noDataPanel
+##  noDataPanel
 
   Renders a data bound panel that can contain
   any kind of HTML content, which can be bound
@@ -71,7 +72,7 @@ that are store in `area.json` files.
   <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>
   ```
 
-  ### Sample Configuration
+### Sample Configuration
 
   ```js
   {
@@ -89,28 +90,29 @@ that are store in `area.json` files.
   }
   ```
 
-  ##  noNotificationService
+##  noNotificationService
 
-  Has the ability to create notifications in the DOM with a message and specific options.
+Has the ability to create notifications in the DOM with a message and specific options.
 
-  ### Sample Usage
+### Sample Usage
 
-  This sample show how to use the noNotificationService
-  service in your code.
+This sample show how to use the noNotificationService
+service in your code.
 
-  ```js
-  noNotificationService.appendMessage("Hello World", {id: "jawnjawnjawn"});
-  ```
+```js
+noNotificationService.appendMessage("Hello World", {id: "jawnjawnjawn"});
+```
 
-  ### Sample Options
+### Sample Options
 
-  ```js
+```js
 {
 	ttl: 1000, // Time to live in milliseconds
 	dismissible: false, // If true, message will be stuck until dismissed
 	type: "info" // A specific type that connects to bootstrap classes. Can be warning, info, danger, or success
 }
-  ```
+
+```
 | Option Name | Description                                                                                                         |
 |-------------|---------------------------------------------------------------------------------------------------------------------|
 | ttl         | This is the time to live. It defaults to `1000` ms (1 second).                                                        |
