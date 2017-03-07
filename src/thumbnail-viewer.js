@@ -30,7 +30,7 @@
 		}
 
 		function _compile(el, attrs) {
-			ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity);
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, {}, attrs.noForm);
 
 			return _link;
 		}
