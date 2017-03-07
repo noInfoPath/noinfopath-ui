@@ -16,12 +16,22 @@ module.exports = function(grunt) {
 						dest: '/Users/gochinj/ws/fcfn/fcfn-wip-0.7/fcfn-varietydev-forms/lib/js/noinfopath'
 					}
 				]
+			},
+			wiki: {
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: ['docs/*.md'],
+						dest: '../wikis/noinfopath-ui.wiki/'
+					}
+				]
 			}
 		},
 	    concat: {
 		    noinfopath: {
 		        src: [
-		        	'src/globals.js',
+		        	'src/home.js',
 		        	'src/progressbar.js',
 		        	//'src/autocomplete.js',
 		        	'src/breadcrumb.js',
@@ -74,23 +84,38 @@ module.exports = function(grunt) {
         		prefix: '@version\\s*'
       		},
     		defaults: {
-    			src: ['src/globals.js']
+    			src: ['src/**.js']
     		}
     	},
         watch: {
             dev: {
               files: ['src/**/*.*', 'test/**/*.spec.js'],
               tasks: ['concat:noinfopath']
-            }
+          },
+              document: {
+                  files: ['src/**/*.*'],
+                  tasks: ['document']
+              }
         },
         nodocs: {
     		"internal": {
     			options: {
-    				src: 'dist/noinfopath-ui.js',
+    				src: 'src/*.js',
     				dest: 'docs/noinfopath-ui.md',
-    				start: ['/*','/**']
+    				start: ['/*','/**'],
+                    multiDocs: {
+                        multiFiles: true,
+                        dest: "docs/"
+                    }
     			}
     		},
+            "makeReadme": {
+                options: {
+                    src: 'src/home.js',
+                    dest: "README.md",
+                    start: ['/*']
+                }
+            },
     		"public": {
     			options: {
     				src: 'dist/noinfopath-ui.js',
@@ -110,11 +135,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-nodocs');
 
 	//Default task(s).
-	grunt.registerTask('document', ['concat:noinfopath', 'nodocs:internal', 'concat:readme']);
 	grunt.registerTask('compile', ['karma:continuous', 'concat:noinfopath', 'nodocs:internal', 'concat:readme']);
     grunt.registerTask('notest', ['concat:noinfopath', 'copy:test']);
     grunt.registerTask('test-menu', ['karma:menu']);
     grunt.registerTask('build', ['karma:continuous', 'bumpup','version','concat:noinfopath','nodocs:internal','concat:readme']);
+    grunt.registerTask('document', ['concat:noinfopath', 'nodocs:internal', 'nodocs:makeReadme', 'copy:wiki']);
 
 
 };
