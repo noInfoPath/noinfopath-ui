@@ -26,7 +26,7 @@ module.exports = function(config) {
         'node_modules/@noinfopath/noinfopath-data/dist/noinfopath-dexie.js',
         'node_modules/@noinfopath/noinfopath-data/dist/noinfopath-data.js',
         'node_modules/@noinfopath/noinfopath-logger/dist/noinfopath-logger.js',
-        'src/globals.js',
+        'src/home.js',
         'src/menu.js',
         'src/progressbar.js',
         'src/resize.js',
