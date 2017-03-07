@@ -23,7 +23,33 @@
 	"use strict";
 
 	function NoThumbnailViewerDirective($compile, $state, noFormConfig) {
-		function _link(scope, el, attrs) {
+
+		function _createFileViewers(fileIds) {
+			var html = "";
+			for(var i=0; i<fileIds.length; i++) {
+				html += "<no-file-viewer type=\"image\" show-as-image=\"yes\" file-id=\"" + fileIds[i] + "\"></no-file-viewer>";
+			}
+			return html;
+		}
+
+		function _link(ctx, scope, el, attrs) {
+
+			var pg = ctx.component.noGrid.referenceOnParentScopeAs;
+
+			scope.$watch(pg+"._data", function(n, o, s) {
+				if(n) {
+					if(n && !!n.length) {
+						var fileIds = n.map(function(blob) {
+							return blob.FileID;
+						}),
+						noFileViewersHtml = _createFileViewers(fileIds);
+
+						el.html($compile(noFileViewersHtml)(scope));
+					}
+				}
+
+			});
+
 			el.append("wassup");
 			// TODO ATTRS WE NEED: showAsImage, fileId
 
@@ -32,7 +58,7 @@
 		function _compile(el, attrs) {
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, {}, attrs.noForm);
 
-			return _link;
+			return _link.bind(null, ctx);
 		}
 
 		return {

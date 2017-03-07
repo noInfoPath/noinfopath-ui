@@ -59,6 +59,8 @@
 		var c = el.find(".no-file-viewer"),
 			img = angular.element("<img>");
 
+		if(!!c) c = el;
+
 		img.attr("src", n.url || n.blob);
 		//img.addClass("full-width");
 		img.css("height", "100%");
@@ -118,7 +120,7 @@
 				return noLocalFileSystem.getUrl(fileId)
 					.then(function(file){
 						if(!!file) {
-							render(el, file);
+							render(el, file, notFoundMessage);
 						} else {
 							render(el, "FILE_NOT_FOUND");
 						}
@@ -148,7 +150,7 @@
 					render(el, {type: attrs.type, blob: attrs.url});
 				} else if(attrs.fileId) {
 					if(noInfoPath.isGuid(attrs.fileId)) {
-						render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
+						_read(el, attrs.fileId, !!attrs.showAsImage);
 					} else {
 						scope.$watch(attrs.waitFor, function(key, msg, n, o){
 							//console.info("file-viewer watch: ", n, o);
