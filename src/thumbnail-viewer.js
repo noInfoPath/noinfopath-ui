@@ -84,9 +84,6 @@
 
 
         function _link(ctx, scope, el, attrs) {
-
-            var pg = ctx.component.noGrid.referenceOnParentScopeAs;
-
             if (!!attrs.draggableThumbnails) {
                 scope.dragNdropConfig = {
                     "provider": "thumbnailDragAndDrop",
@@ -106,9 +103,21 @@
 				});
             }
 
+            var pg = ctx.component.noGrid.referenceOnParentScopeAs,
+                grid = el.parent().find("grid").data("kendoGrid");
+
+            grid.bind("dataBound", function() {
+                var d = grid.dataSource.data();
+
+                console.log(scope[pg]);
+                console.log(grid);
+
+            });
+
             scope.$watch(pg + "._data", function(n, o, s) {
                 if (n) {
                     if (n && !!n.length) {
+                        console.log("WE OUT HERE WAYCHING SCOPES KANKINGLY");
                         _idList = n.map(function(blob) {
                             return blob.FileID;
                         });
@@ -126,10 +135,6 @@
 
         function _compile(el, attrs) {
             var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, {}, attrs.noForm);
-
-			if(!!attrs.draggableThumbnails) {
-			//	el.attr("dnd-list", "");
-			}
 
             return _link.bind(null, ctx);
         }
