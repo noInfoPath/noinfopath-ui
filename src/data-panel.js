@@ -2,7 +2,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.30 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.31 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -209,14 +209,52 @@
 		}
 
 		function version2(scope, el, attrs, noDataPanel, ctx) {
-			var defaultOptions = {
-      	resultType: "one"
-      },
-      _scope;	
+			var _scope, dataSource;	
+
+			function refresh() {
+				return dataSource[noDataPanel.resultType]()
+					.then(finish)
+					.catch(error);
+			}
+
+			function error(err) {
+				scope.waitingForError = {
+					error: err,
+					src: config
+				};
+
+				console.error(scope.waitingForError);
+			}
+
+			function watch(dsConfig, filterCfg, value, n, o, s) {
+				// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+			}
+
+			function finish(data) {
+				if (ctx.component.hiddenFields) {
+					for (var h in ctx.component.hiddenFields) {
+						var hf = ctx.component.hiddenFields[h],
+							value = noInfoPath.getItem(scope, hf.scopeKey);
+
+						noInfoPath.setItem(scope, hf.ngModel, value);
+					}
+				}
+
+				_scope[ctx.component.scopeKey].noUpdate(data);
+
+				if (_scope.waitingFor) {
+					_scope.waitingFor[ctx.component.scopeKey] = false;
+				}
+
+				noAreaLoader.markComponentLoaded($state.current.name, attrs.noForm);
+
+				PubSub.publish("noDataPanel::dataReady", {
+					config: ctx.component,
+					data: data
+				});
+			}
 
 			noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
-      
-      noDataPanel = angular.merge({}, defaultOptions, noDataPanel);
 
 			if (noDataPanel.saveOnRootScope) {
 				_scope = scope.$root;
@@ -224,11 +262,12 @@
 				_scope = scope;
 			}
 
-			if (!config.noDataSource) {
+			if (!ctx.component.noDataSource) {
 				throw "noDataPanel :: noDataSource is not defined";
-			}
+			} 
 
-			_scope[ctx.component.scopeKey] = new noInfoPath.data.NoDataModel(dataSource);
+			dataSource = noDataSource.create(ctx.component.noDataSource, scope, angular.noop);
+			_scope[ctx.component.scopeKey] = new noInfoPath.data.NoDataModel(_scope[ctx.component.scopeKey]);
 
 			if (noDataPanel.refresh) {
 				scope.$watchCollection(noDataPanel.refresh.property, function (newval, oldval) {
