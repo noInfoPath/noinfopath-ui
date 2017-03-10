@@ -81,34 +81,38 @@
 
 	function NoDataPanelDirective($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
 		function version1(scope, el, attrs, ctx) {
-			var _scope;
+			var config,
+					resultType = "one",
+					dataSource,
+					noFormAttr = attrs.noForm,
+					_scope;
 
 			function finish(data) {
 				if (resultType === "one") {
 					if (!!data && data.paged) {
-						noParameterParser.update(data.paged, _scope[config.scopeKey]);
+						noParameterParser.update(data.paged, _scope[ctx.component.scopeKey]);
 					} else if (!!data) {
-						noParameterParser.update(data, _scope[config.scopeKey]);
+						noParameterParser.update(data, _scope[ctx.component.scopeKey]);
 					} else {
-						noParameterParser.update({}, _scope[config.scopeKey]);
+						noParameterParser.update({}, _scope[ctx.component.scopeKey]);
 					}
 				} else {
-					if (!_scope[config.scopeKey]) {
-						_scope[config.scopeKey] = [];
+					if (!_scope[ctx.component.scopeKey]) {
+						_scope[ctx.component.scopeKey] = [];
 					}
 
 					if (!!data && data.paged) {
-						_scope[config.scopeKey] = data.paged;
+						_scope[ctx.component.scopeKey] = data.paged;
 					} else if (!!data) {
-						_scope[config.scopeKey] = data;
+						_scope[ctx.component.scopeKey] = data;
 					} else {
-						_scope[config.scopeKey] = [];
+						_scope[ctx.component.scopeKey] = [];
 					}
 				}
 
-				if (config.hiddenFields) {
-					for (var h in config.hiddenFields) {
-						var hf = config.hiddenFields[h],
+				if (ctx.component.hiddenFields) {
+					for (var h in ctx.component.hiddenFields) {
+						var hf = ctx.component.hiddenFields[h],
 							value = noInfoPath.getItem(scope, hf.scopeKey);
 
 						noInfoPath.setItem(scope, hf.ngModel, value);
@@ -116,13 +120,13 @@
 				}
 
 				if (_scope.waitingFor) {
-					_scope.waitingFor[config.scopeKey] = false;
+					_scope.waitingFor[ctx.component.scopeKey] = false;
 				}
 
-				noAreaLoader.markComponentLoaded($state.current.name, noFormAttr);
+				noAreaLoader.markComponentLoaded($state.current.name, attrs.noForm);
 
 				PubSub.publish("noDataPanel::dataReady", {
-					config: config,
+					config: ctx.component,
 					data: data
 				});
 			}
@@ -147,28 +151,28 @@
 			}
 
 			function noForm_ready(data) {
-				config = noInfoPath.getItem(data, noFormAttr);
+				var config = noInfoPath.getItem(data, attrs.noForm);
 
-				noAreaLoader.markComponentLoading($state.current.name, noFormAttr);
+				noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
 
-				if (config.noDataPanel && config.noDataPanel.saveOnRootScope) {
+				if (ctx.component.noDataPanel && ctx.component.noDataPanel.saveOnRootScope) {
 					_scope = scope.$root;
 				} else {
 					_scope = scope;
 				}
 
-				if (!_scope[config.scopeKey]) {
-					_scope[config.scopeKey] = {};
+				if (!_scope[ctx.component.scopeKey]) {
+					_scope[ctx.component.scopeKey] = {};
 				}
 
-				_scope[config.scopeKey + "_api"] = {};
-				_scope[config.scopeKey + "_api"].refresh = refresh;
+				_scope[ctx.component.scopeKey + "_api"] = {};
+				_scope[ctx.component.scopeKey + "_api"].refresh = refresh;
 
-				if (config.noDataPanel) {
-					resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
+				if (ctx.component.noDataPanel) {
+					resultType = ctx.component.noDataPanel.resultType ? ctx.component.noDataPanel.resultType : "one";
 
-					if (config.noDataPanel.refresh) {
-						scope.$watchCollection(config.noDataPanel.refresh.property, function (newval, oldval) {
+					if (ctx.component.noDataPanel.refresh) {
+						scope.$watchCollection(ctx.component.noDataPanel.refresh.property, function (newval, oldval) {
 							if (newval) {
 								refresh();
 							}
@@ -177,15 +181,15 @@
 
 				}
 
-				if (config.noDataSource) {
-					dataSource = noDataSource.create(config.noDataSource, scope, watch);
+				if (ctx.component.noDataSource) {
+					dataSource = noDataSource.create(ctx.component.noDataSource, scope, watch);
 				} else {
-					dataSource = noDataSource.create(config, scope, watch);
+					dataSource = noDataSource.create(ctx.component, scope, watch);
 				}
 
-				if (config.noDataPanel && config.noDataPanel.templateUrl) {
+				if (ctx.component.noDataPanel && ctx.component.noDataPanel.templateUrl) {
 
-					noTemplateCache.get(config.noDataPanel.templateUrl)
+					noTemplateCache.get(ctx.component.noDataPanel.templateUrl)
 						.then(function (tpl) {
 							var t = $compile(tpl),
 								params = [],
@@ -250,8 +254,8 @@
 		}
 
 		function _link(scope, el, attrs) {
-			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope),
-				noDataPanel = angular.merge({}, {version: "1"}, ctx.component.noDataPanel);
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope, attrs.noForm),
+				noDataPanel = angular.merge({}, {version: "1", resultType: "one"}, ctx.component.noDataPanel);
 
 			if(noDataPanel.version === "1") {
 				version1(scope, el, attrs, ctx);
