@@ -1,15 +1,20 @@
- # noinfopath.ui
+[NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
 
- > @version 2.0.25
+___
+
+[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.25 *
+
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
+Copyright (c) 2017 The NoInfoPath Group, LLC.
 
-<div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">
-	<label>Label</label>
-	<control>
-		<input class="form-control">
-	</control>
-</div>
+Licensed under the MIT License. (MIT)
+
+___
+
+noAutoComplete Directive
+------------------------
+
 
 ### NoBtnGroupDirective
 
@@ -89,6 +94,28 @@ that are store in `area.json` files.
   }
   ```
 
+[NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
+
+___
+
+[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.25 *
+
+[![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+
+Copyright (c) 2017 The NoInfoPath Group, LLC.
+
+Licensed under the MIT License. (MIT)
+
+___
+
+
+<div class="no-ctrl-group" noid="NOIDbe97eec4fd53452ba72be0281d83bbad" dnd-list="" dnd-drop="">
+	<label>Label</label>
+	<control>
+		<input class="form-control">
+	</control>
+</div>
+
   ##  noNotificationService
 
   Has the ability to create notifications in the DOM with a message and specific options.
@@ -123,4 +150,22 @@ that are store in `area.json` files.
 When append message is called, an element is appended to the DOM, off the `<no-notifications>` element.
 It uses CSS defined in `_notification.scss`. `$interval` is used to update the `age` property on the element.
 When the age is greater than the `ttl` defined in the options, the element is removed.
+
+[NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
+
+___
+
+[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.25 *
+
+[![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+
+Copyright (c) 2017 The NoInfoPath Group, LLC.
+
+Licensed under the MIT License. (MIT)
+
+___
+
+noThumbnailViewer Directive
+------------------------
+
 
