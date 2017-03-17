@@ -22,13 +22,16 @@
 (function(angular, undefined) {
     "use strict";
 
-	var _idList, droppedId, scopeVal;
+	var _idList, backupData, droppedId, scopeVal, pg, ctx, grid, isDirty = false;
 
-    function ThumbnailDragAndDropService($compile, $state, noFormConfig) {
+    var renderFn;
+
+    function ThumbnailDragAndDropService($compile, $state, noFormConfig, PubSub, noNavigationManager, noTransactionCache, noLoginService, $rootScope, $q) {
 
         function NoThumbnailClass() {
 
         }
+
 
         this.getThumbnailConstructor = function() {
             return NoThumbnailClass;
@@ -81,6 +84,57 @@
             childToMove.insertBefore(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx) + ")"));
             scope[scopeVal] = _idList;
 
+
+            if(!isDirty) {
+                isDirty = true;
+                noNavigationManager.changeNavBar(ctx, scope, noThumbnailViewer, "mainNavBar", "photos.dirty");
+                PubSub.publish("no-validation::dirty-state-changed", {
+                    isDirty: true,
+                });
+            }
+
+        };
+
+        this.cancel = function() {
+            noNavigationManager.changeNavBar({}, {}, "", "mainNavBar", "photos");
+            PubSub.publish("no-validation::dirty-state-changed", "photos");
+            renderFn();
+        };
+
+        this.save = function() {
+            var dbName = ctx.component.noThumbnailViewer.dbName;
+            var entityName = ctx.component.noThumbnailViewer.dbTable;
+            var noTransactionConfig = {
+        			noDataSource: {
+        				dataProvider: "noIndexedDB",
+        				databaseName: dbName,
+        				entityName: entityName,
+        				primaryKey: "ID",
+        				noTransaction: {
+        					update: true
+        				}
+        			}
+        		},
+                promises = [],
+        		noTrans = noTransactionCache.beginTransaction(noLoginService.user.userId, noTransactionConfig, $rootScope);
+
+            for(var i=0; i<_idList.length; i++) {
+                var update = $rootScope["noIndexedDb_" + dbName][entityName].noUpdate(_idList[i], noTrans);
+
+                promises.push(update);
+            }
+
+            return $q.all(promises)
+        		.then(function (resp) {
+        			noTransactionCache.endTransaction(noTrans);
+                    noNavigationManager.changeNavBar({}, {}, "", "mainNavBar", "photos");
+                    PubSub.publish("no-validation::dirty-state-changed", "photos");
+        		})
+        		.catch(function (err) {
+        			console.error(err);
+        		});
+
+
         };
 
         this.dragleave = function(event, scope) {
@@ -90,6 +144,7 @@
 
         };
     }
+
 
     function NoThumbnailViewerDirective($compile, $state, noFormConfig) {
 
@@ -131,50 +186,36 @@
                             "provider": "noConfig",
                             "method": "noPalette"
                         }
-                    },
-					"dropped": Date.now()
+                    }
                 };
 
-				// scope.$watch("dragNdropConfig.dropped", function(n, o, s) {
-                //     if(n !== o) {
-                //         _render(ctx, scope, el, attrs);
-                //     }
-				// });
             }
 
-            var pg = ctx.component.noGrid.referenceOnParentScopeAs,
-                grid = el.parent().find("grid").data("kendoGrid");
+            pg = ctx.component.noGrid.referenceOnParentScopeAs;
+            grid = el.parent().find("grid").data("kendoGrid");
 
-            grid.bind("dataBound", function() {
+            function _prerender() {
                 var d = grid.dataSource.data();
                 if(d && !!d.length) {
                     _idList = d.toJSON();
+                    isDirty = false;
                     scope[scopeVal] = _idList;
                     _render(ctx, scope, el, attrs);
                 }
+            }
 
-            });
 
-            // scope.$watch(pg + "._data", function(n, o, s) {
-            //     if (n) {
-            //         if (n && !!n.length) {
-            //             console.log("WE OUT HERE WAYCHING SCOPES KANKINGLY");
-            //             _idList = n.map(function(blob) {
-            //                 return blob.FileID;
-            //             });
-            //
-			// 			_render(ctx, scope, el, attrs);
-            //         }
-            //     }
-            //
-            // });
+            renderFn = _prerender;
+
+            grid.bind("dataBound", _prerender);
+
 
             el.append("No Photos!");
 
         }
 
         function _compile(el, attrs) {
-            var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, {}, attrs.noForm);
+            ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, {}, attrs.noForm);
             scopeVal = ctx.component.noThumbnailViewer.saveDataOnScopeAs;
             return _link.bind(null, ctx);
         }
@@ -187,5 +228,6 @@
 
     angular.module("noinfopath.ui")
         .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", NoThumbnailViewerDirective])
-        .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", ThumbnailDragAndDropService]);
+        .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
+                 "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService]);
 })(angular);
