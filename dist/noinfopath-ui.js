@@ -1839,9 +1839,17 @@
 (function(angular, undefined) {
     "use strict";
 
-	var _idList;
+	var _idList, droppedId;
 
     function ThumbnailDragAndDropService($compile, $state, noFormConfig) {
+
+        function NoThumbnailClass() {
+
+        }
+
+        this.getThumbnailConstructor = function() {
+            return NoThumbnailClass;
+        };
 
         this.dragstart = function(event, scope, element, droppedInfo, datasource) {
             var fileid = element.children().attr("file-id");
@@ -1859,13 +1867,32 @@
 
         this.drop = function(event, scope, currentFileID, location, droppedInfo) {
 			console.log(location);
-            var index = _idList.indexOf(currentFileID);
+            droppedId = currentFileID;
 
-            _idList.splice(index, 1);
+            var index,
+                noThumbnailViewer = angular.element(event.currentTarget),
+                children = noThumbnailViewer.find(".no-thumbnail");
 
-            _idList.splice(location, 0, currentFileID);
+            for(var i=0; i<_idList.length; i++) {
+                if(_idList[i].FileID === currentFileID) {
+                    index = i;
+                    break;
+                }
+            }
 
-            scope.dragNdropConfig.dropped = Date.now();
+            var photoThatWillBeReplaced = _idList.splice(index, 1)[0];
+
+            _idList.splice(location, 0, photoThatWillBeReplaced);
+
+            for(var j=0; j<_idList.length; j++) {
+                _idList[j].Order = j;
+            }
+
+            var childToMove = noThumbnailViewer.find(".no-thumbnail.dndDraggingSource");
+            var thumbnailNdx = location+2;
+
+            childToMove.insertBefore(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx) + ")"));
+
         };
 
         this.dragleave = function(event, scope) {
@@ -1881,21 +1908,24 @@
         // TOO SPECIFIC TO RM RIGHT NOW!
 
 		function _render(ctx, scope, el, attrs) {
-			var noFileViewersHtml = _createFileViewers(_idList);
-			el.html($compile(noFileViewersHtml)(scope));
+            var children = el.find(".no-thumbnail");
+            var noFileViewersHtml = _createFileViewers(_idList.map(function(blob, index) {
+                blob.Order = blob.Order || index;
+                return blob.FileID;
+            }));
+            el.html($compile(noFileViewersHtml)(scope));
 		}
 
         function _createFileViewers(fileIds) {
             var html = "";
             for (var i = 0; i < fileIds.length; i++) {
                 // lol
-                html += "<div class=\"no-thumbnail\" dnd-draggable>";
+                html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileIds[i] + "\">";
                     html += "<no-file-viewer type=\"image\" show-as-image=\"yes\" file-id=\"" + fileIds[i] + "\">";
                     html += '</no-file-viewer>';
                     html += '<input class="form-control" placeholder="Description">';
                 html += "</div>";
             }
-			_idList = fileIds;
             return html;
         }
 
@@ -1913,11 +1943,11 @@
 					"dropped": Date.now()
                 };
 
-				scope.$watch("dragNdropConfig.dropped", function(n, o, s) {
-                    if(n !== o) {
-                        _render(ctx, scope, el, attrs);
-                    }
-				});
+				// scope.$watch("dragNdropConfig.dropped", function(n, o, s) {
+                //     if(n !== o) {
+                //         _render(ctx, scope, el, attrs);
+                //     }
+				// });
             }
 
             var pg = ctx.component.noGrid.referenceOnParentScopeAs,
@@ -1925,28 +1955,29 @@
 
             grid.bind("dataBound", function() {
                 var d = grid.dataSource.data();
+                if(d && !!d.length) {
+                    _idList = d.toJSON();
 
-                console.log(scope[pg]);
-                console.log(grid);
-
-            });
-
-            scope.$watch(pg + "._data", function(n, o, s) {
-                if (n) {
-                    if (n && !!n.length) {
-                        console.log("WE OUT HERE WAYCHING SCOPES KANKINGLY");
-                        _idList = n.map(function(blob) {
-                            return blob.FileID;
-                        });
-
-						_render(ctx, scope, el, attrs);
-                    }
+                    _render(ctx, scope, el, attrs);
                 }
 
             });
 
-            el.append("wassup");
-            // TODO ATTRS WE NEED: showAsImage, fileId
+            // scope.$watch(pg + "._data", function(n, o, s) {
+            //     if (n) {
+            //         if (n && !!n.length) {
+            //             console.log("WE OUT HERE WAYCHING SCOPES KANKINGLY");
+            //             _idList = n.map(function(blob) {
+            //                 return blob.FileID;
+            //             });
+            //
+			// 			_render(ctx, scope, el, attrs);
+            //         }
+            //     }
+            //
+            // });
+
+            el.append("No Photos!");
 
         }
 
