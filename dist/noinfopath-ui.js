@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.31* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.32* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.31 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.32 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -934,7 +934,7 @@
  *
  *	## noDataPanel Directive
  *
- *	Renders a databound panel that can contain any kind of HTML content, which can be bound data on $scope. 
+ *	Renders a databound panel that can contain any kind of HTML content, which can be bound data on $scope.
  *	The datasources bring bound to are NoInfoPath data providers.
  *
  *	### Sample HTML
@@ -962,7 +962,7 @@
  *				},
  *				"templateUrl": "foo.html"
  *			},
- *			"noDataSource": {			
+ *			"noDataSource": {
  *  			"dataProvider": "noWebSQL",
  *  			"databaseName": "testdb",
  *  			"entityName": "Foo",
@@ -981,7 +981,7 @@
  *  	}
  *	}
  *  ```
- *	
+ *
  *	|Configuration Property|Type|Description|
  *	|----------------------|----|-----------|
  *	|scopeKey|String|The property that the NoDataPanel directive will databind to|
@@ -992,29 +992,231 @@
  *	|noDataPanel.saveOnRootScope|Boolean|Default false. Sets what NoDataPanel returns on the local scope if false, or the rootScope if true.|
  *	|noDataPanel.templateUrl|String|The path to an html document to load within the NoDataPanel directive|
  *	|noDataPanel.version|Interger|Default `1`. If version is `1`, NoDataPanel saves a [NoResults](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/classes) object to the scopeKey. If version is `2`, NoDataPanel saves a [NoDataModel](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/classes) object to the scopeKey|
- *	|noDataSource|Object|Configuration for NoInfoPath Data NoDataSource. Read more here: [NoDataSource](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/data-source)|	
-*/
+ *	|noDataSource|Object|Configuration for NoInfoPath Data NoDataSource. Read more here: [NoDataSource](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/data-source)|
+ */
 
 (function (angular, undefined) {
-    "use strict";
+	"use strict";
 
 	function NoDataPanelDirective($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
-		function version1(scope, el, attrs, ctx) {
-			var config,
-					resultType = "one",
-					dataSource,
-					noFormAttr = attrs.noForm,
-					_scope;
+		function _resolveScope(saveOnRootScope, scope, compKey) {
+			return $q(function(resolve, reject){
+				try{
+					var tmpScope = scope,
+						tmpVal, tmpApi;
 
-			function finish(data) {
+					tmpScope = saveOnRootScope ? scope.$root : scope;
+
+					if (compKey) {
+						tmpVal = noInfoPath.getItem(tmpScope, compKey);
+						if (tmpVal) {
+							noInfoPath.setItem(tmpScope, compKey, tmpVal);
+							resolve(tmpScope);
+						}else {
+							//noInfoPath.setItem(tmpScope, compKey, {}); //Possible BUG
+
+							var unwatch = scope.$watch(compKey, function(unwatch, n, o, s){
+								if(n) {
+									noInfoPath.setItem(s, compKey, n);
+									if(unwatch) unwatch();
+									resolve(s);
+								}
+							}.bind(null, unwatch));
+						}
+
+						tmpApi = noInfoPath.getItem(tmpScope, compKey + "_api");
+						noInfoPath.setItem(tmpScope, compKey + "_api", angular.extend({}, tmpApi));
+					} else {
+						resolve(tmpScope);
+					}
+
+
+				} catch (err) {
+					reject(err);
+				}
+
+			});
+
+		}
+
+		function _placeModelOnScope(schema, scopeKey, scope, noWrapper) {
+			var srcModel = noInfoPath.getItem(scope, scopeKey),
+				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+
+			noInfoPath.setItem(scope, scopeKey, wrappedModel);
+		}
+
+		function _setupWatches(resultType, compKey, dataPanel, dataSource, scope, refresh) {
+			var unbinders = [];
+
+			noInfoPath.setItem(scope, compKey + "_api.refresh", refresh);
+
+			if (dataPanel.refresh && dataPanel.refresh.property) {
+				unbinders.push(scope.$watchCollection(dataPanel.refresh.property, function (refresh, newval, oldval) {
+					if (newval && newval !== oldval) {
+						refresh();
+					}
+				}.bind(null, refresh)));
+			}
+
+			return unbinders;
+		}
+
+		function _resolveTemplate(scope, templateUrl, refresh) {
+			if (templateUrl) {
+				noTemplateCache.get(templateUrl)
+					.then(function (tpl) {
+						var t = $compile(tpl),
+							params = [],
+							c = t(scope);
+
+						el.append(c);
+						refresh();
+					});
+			} else {
+				refresh();
+			}
+		}
+
+		function _resolveDataSource(dsCfg, scope, fn) {
+			if (dsCfg) {
+				return noDataSource.create(dsCfg, scope, fn);
+			} else {
+				throw "noDataPanel::noDataSource is not defined";
+			}
+
+		}
+
+		function _refresh(resultType, dataSource, finish, error) {
+			return dataSource[resultType]()
+				.then(finish)
+				.catch(error);
+		}
+
+		function _error(scope, config, err) {
+			scope.waitingForError = {
+				error: err,
+				src: config
+			};
+
+			console.error(scope.waitingForError);
+		}
+
+		function _watch(dsConfig, filterCfg, value, n, o, s) {
+			// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+		}
+
+		function _resolveResultType(resultType) {
+			return resultType ? resultType : "one";
+		}
+
+		function version1(stateName, scope, el, attrs, ctx) {
+			var _config,
+				_scope,
+				_dataSource,
+				_curriedFinish,
+				_curriedError,
+				_unbinders = [],
+				_resultType = "one",
+				noFormAttr = attrs.noForm,
+				dataPanel = angular.merge({}, {
+					version: "1",
+					resultType: "one"
+				}, ctx.component.noDataPanel);
+
+			function __finish(ctx, stateName, resultType, dataSource, scope, data) {
 				if (resultType === "one") {
 					if (!!data && data.paged) {
-						noParameterParser.update(data.paged, _scope[ctx.component.scopeKey]);
+						noParameterParser.update(data.paged, scope[ctx.component.scopeKey]);
 					} else if (!!data) {
-						noParameterParser.update(data, _scope[ctx.component.scopeKey]);
+						noParameterParser.update(data, scope[ctx.component.scopeKey]);
 					} else {
-						noParameterParser.update({}, _scope[ctx.component.scopeKey]);
+						noParameterParser.update({}, scope[ctx.component.scopeKey]);
 					}
+				} else {
+					if (!scope[ctx.component.scopeKey]) {
+						scope[ctx.component.scopeKey] = [];
+					}
+
+					if (!!data && data.paged) {
+						scope[ctx.component.scopeKey] = data.paged;
+					} else if (!!data) {
+						scope[ctx.component.scopeKey] = data;
+					} else {
+						scope[ctx.component.scopeKey] = [];
+					}
+				}
+
+				if (ctx.component.hiddenFields) {
+					for (var h in ctx.component.hiddenFields) {
+						var hf = ctx.component.hiddenFields[h],
+							value = noInfoPath.getItem(scope, hf.scopeKey);
+
+						noInfoPath.setItem(scope, hf.ngModel, value);
+					}
+				}
+
+				if (scope.waitingFor) {
+					scope.waitingFor[ctx.component.scopeKey] = false;
+				}
+
+				noAreaLoader.markComponentLoaded(stateName, ctx.componentKey);
+
+				PubSub.publish("noDataPanel::dataReady", {
+					config: ctx.component,
+					data: data
+				});
+			}
+
+			noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
+
+			_config = noInfoPath.getItem(data, attrs.noForm);
+
+			_resultType = _resolveResultType(dataPanel.resultType);
+
+			_scope = _resolveScope(dataPanel.saveOnRootScope, scope);
+
+			_dataSource = _resolveDataSource(ctx.datasource, scope, _watch);
+
+			_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope, true);
+
+			_curriedFinish = __finish.bind(null, ctx, $state.current.name, _resultType, _dataSource, _scope);
+
+			_curriedError = _error.bind(null, scope, _config);
+
+			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _curriedFinish, _curriedError);
+
+			_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, dataPanel, _dataSource, scope, _curriedRefresh);
+
+
+			_resolveTemplate(scope, dataPanel.templateUrl, _curriedRefresh);
+
+
+			noForm_ready(ctx.form);
+
+			return $q.when(_unbinders);
+		}
+
+		function version2(stateName, scope, el, attrs, ctx) {
+			var _config,
+				_resultType,
+				_scope,
+				_dataSource,
+				_curriedFinish,
+				_curriedError,
+				_curriedRefresh,
+				_unbinders = [],
+				_dataPanel = angular.merge({}, {
+					version: 2,
+					resultType: "one"
+				}, ctx.component.noDataPanel),
+				_schema = scope["noDbSchema_" + ctx.datasource.databaseName].entity(ctx.datasource.entityName);
+
+			function __finish(ctx, stateName, resultType, dataSource, scope, data) {
+				if (resultType === "one") {
+					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
+					model.current = data;
+					model.commit();
 				} else {
 					if (!_scope[ctx.component.scopeKey]) {
 						_scope[ctx.component.scopeKey] = [];
@@ -1038,129 +1240,7 @@
 					}
 				}
 
-				if (_scope.waitingFor) {
-					_scope.waitingFor[ctx.component.scopeKey] = false;
-				}
-
-				noAreaLoader.markComponentLoaded($state.current.name, attrs.noForm);
-
-				PubSub.publish("noDataPanel::dataReady", {
-					config: ctx.component,
-					data: data
-				});
-			}
-
-			function refresh() {
-				return dataSource[resultType]()
-					.then(finish)
-					.catch(error);
-			}
-
-			function error(err) {
-				scope.waitingForError = {
-					error: err,
-					src: config
-				};
-
-				console.error(scope.waitingForError);
-			}
-
-			function watch(dsConfig, filterCfg, value, n, o, s) {
-				// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
-			}
-
-			function noForm_ready(data) {
-				var config = noInfoPath.getItem(data, attrs.noForm);
-
-				noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
-
-				if (ctx.component.noDataPanel && ctx.component.noDataPanel.saveOnRootScope) {
-					_scope = scope.$root;
-				} else {
-					_scope = scope;
-				}
-
-				if (!_scope[ctx.component.scopeKey]) {
-					_scope[ctx.component.scopeKey] = {};
-				}
-
-				_scope[ctx.component.scopeKey + "_api"] = {};
-				_scope[ctx.component.scopeKey + "_api"].refresh = refresh;
-
-				if (ctx.component.noDataPanel) {
-					resultType = ctx.component.noDataPanel.resultType ? ctx.component.noDataPanel.resultType : "one";
-
-					if (ctx.component.noDataPanel.refresh) {
-						scope.$watchCollection(ctx.component.noDataPanel.refresh.property, function (newval, oldval) {
-							if (newval) {
-								refresh();
-							}
-						});
-					}
-
-				}
-
-				if (ctx.component.noDataSource) {
-					dataSource = noDataSource.create(ctx.component.noDataSource, scope, watch);
-				} else {
-					dataSource = noDataSource.create(ctx.component, scope, watch);
-				}
-
-				if (ctx.component.noDataPanel && ctx.component.noDataPanel.templateUrl) {
-
-					noTemplateCache.get(ctx.component.noDataPanel.templateUrl)
-						.then(function (tpl) {
-							var t = $compile(tpl),
-								params = [],
-								c = t(scope);
-
-							el.append(c);
-
-							refresh();
-
-						});
-				} else {
-					refresh();
-				}
-			}
-
-			noForm_ready(ctx.form);
-		}
-
-		function version2(scope, el, attrs, noDataPanel, ctx) {
-			var _scope, dataSource;	
-
-			function refresh() {
-				return dataSource[noDataPanel.resultType]()
-					.then(finish)
-					.catch(error);
-			}
-
-			function error(err) {
-				scope.waitingForError = {
-					error: err,
-					src: config
-				};
-
-				console.error(scope.waitingForError);
-			}
-
-			function watch(dsConfig, filterCfg, value, n, o, s) {
-				// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
-			}
-
-			function finish(data) {
-				if (ctx.component.hiddenFields) {
-					for (var h in ctx.component.hiddenFields) {
-						var hf = ctx.component.hiddenFields[h],
-							value = noInfoPath.getItem(scope, hf.scopeKey);
-
-						noInfoPath.setItem(scope, hf.ngModel, value);
-					}
-				}
-
-				_scope[ctx.component.scopeKey].noUpdate(data);
-
+				//Deprecated for version2.  noAreaLoader replaces this
 				if (_scope.waitingFor) {
 					_scope.waitingFor[ctx.component.scopeKey] = false;
 				}
@@ -1175,51 +1255,58 @@
 
 			noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
 
-			if (noDataPanel.saveOnRootScope) {
-				_scope = scope.$root;
-			} else {
-				_scope = scope;
-			}
+			_config = ctx.component; //noInfoPath.getItem(ctx.form, attrs.noForm);
 
-			if (!ctx.component.noDataSource) {
-				throw "noDataPanel :: noDataSource is not defined";
-			} 
+			_resultType = _resolveResultType(_dataPanel.resultType);
 
-			dataSource = noDataSource.create(ctx.component.noDataSource, scope, angular.noop);
-			_scope[ctx.component.scopeKey] = new noInfoPath.data.NoDataModel(_scope[ctx.component.scopeKey]);
+			return _resolveScope(_dataPanel.saveOnRootScope, scope, ctx.component.scopeKey)
+				.then(function(scope) {
+					_scope = scope;
 
-			if (noDataPanel.refresh) {
-				scope.$watchCollection(noDataPanel.refresh.property, function (newval, oldval) {
-					if (newval) {
-						refresh();
-					}
+					_dataSource = _resolveDataSource(ctx.datasource, scope, angular.noop);
+
+					_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope);
+
+					_curriedFinish = __finish.bind(null, ctx, $state.current.name, _resultType, _dataSource, _scope);
+
+					_curriedError = _error.bind(null, scope, _config);
+
+					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _curriedFinish, _curriedError);
+
+					_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, _dataPanel, _dataSource, scope, _curriedRefresh);
+
+					_resolveTemplate(scope, _dataPanel.templateUrl, _curriedRefresh);
+
+					return _unbinders;
+				})
+				.catch(function(err){
+					console.error(err);
 				});
-			}			
 
-			if (noDataPanel.templateUrl) {
-				noTemplateCache.get(noDataPanel.templateUrl)
-					.then(function (tpl) {
-						var t = $compile(tpl),
-							params = [],
-							c = t(scope);
 
-						el.append(c);
-						refresh();
-					});
-			} else {
-				refresh();
-			}			
 		}
 
 		function _link(scope, el, attrs) {
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope, attrs.noForm),
-				noDataPanel = angular.merge({}, {version: "1", resultType: "one"}, ctx.component.noDataPanel);
+				ver = angular.extend({}, {
+					version: 1
+				}, ctx.component.noDataPanel).version, promise;
 
-			if(noDataPanel.version === "1") {
-				version1(scope, el, attrs, ctx);
+			if (Number(ver) === 1) {
+				promise = version1($state.current.name, scope, el, attrs, ctx);
+
 			} else {
-				version2(scope, el, attrs, noDataPanel, ctx);
+				promise = version2($state.current.name, scope, el, attrs, ctx);
 			}
+
+			promise.then(function(unbinders){
+				scope.$on("$destroy", function (unbinders) {
+					unbinders.forEach(function (unbind) {
+						unbind();
+					});
+				}.bind(null, unbinders));
+			});
+
 		}
 
 		return {
@@ -1230,9 +1317,9 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", NoDataPanelDirective])
-	;
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", NoDataPanelDirective]);
 })(angular);
+
 //alpha-filter.js
 (function(angular, undefined) {
 	"use strict";
@@ -1922,7 +2009,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.31 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.32 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *

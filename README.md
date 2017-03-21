@@ -2,7 +2,7 @@
 
 ___
 
-[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.25 *
+[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.32 *
 
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
@@ -61,7 +61,7 @@ that are store in `area.json` files.
  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  ___
 
- [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.41 *
+ [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.32 *
 
  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
 
@@ -133,14 +133,13 @@ The datasources bring bound to are NoInfoPath data providers.
 |noDataPanel.templateUrl|String|The path to an html document to load within the NoDataPanel directive|
 |noDataPanel.version|Interger|Default `1`. If version is `1`, NoDataPanel saves a [NoResults](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/classes) object to the scopeKey. If version is `2`, NoDataPanel saves a [NoDataModel](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/classes) object to the scopeKey|
 |noDataSource|Object|Configuration for NoInfoPath Data NoDataSource. Read more here: [NoDataSource](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/data-source)|
-TEST
 
 [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
 
 NoInfoPath UI (noinfopath-ui)
 =============================================
 
-*@version 2.0.42* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+*@version 2.0.32* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
 Copyright (c) 2017 The NoInfoPath Group, LLC.
 
@@ -193,7 +192,7 @@ When the `age` is greater than the `ttl` defined in the options, the element is 
 
 ___
 
-[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.25 *
+[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.32 *
 
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
