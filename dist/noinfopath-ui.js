@@ -1970,7 +1970,7 @@
 		function _render(ctx, scope, el, attrs) {
             var children = el.find(".no-thumbnail");
             var noFileViewersHtml = _createFileViewers(_idList.map(function(blob, index) {
-                blob.OrderBy = blob.OrderBy || index;
+                blob.OrderBy = angular.isNumber(blob.OrderBy) ? blob.OrderBy : index;
                 var fid = blob.FileID;
                 scope.fileIdOrderMap[fid] = blob.OrderBy;
                 return blob.FileID;
