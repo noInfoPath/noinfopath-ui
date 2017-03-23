@@ -109,9 +109,7 @@
 
             for(var i=0; i<_idList.length; i++) {
                 var update = $rootScope["noIndexedDb_" + dbName][entityName].noUpdate(_idList[i], noTrans);
-                promises.push(update.then(function(resp) {
-                    console.log(resp);
-                }));
+                promises.push(update);
             }
 
             return $q.all(promises)
@@ -157,7 +155,7 @@
             var noFileViewersHtml = _createFileViewers(_idList.map(function(blob, index) {
                 blob.OrderBy = angular.isNumber(blob.OrderBy) ? blob.OrderBy : index;
                 var fid = blob.FileID;
-                scope[formControlName][fid] = blob.OrderBy;
+                scope[formControlName][fid] = blob.Description;
                 return blob.FileID;
             }), formControlName);
             el.html($compile(noFileViewersHtml)(scope));
@@ -216,7 +214,9 @@
             function _prerender() {
                 var d = grid.dataSource.data();
                 if(d && !!d.length) {
-                    _idList = d.toJSON();
+                    _idList = d.toJSON().sort(function(a, b) {
+                        return a.OrderBy - b.OrderBy;
+                    });
                     isDirty = false;
                     scope[scopeVal] = _idList;
                     _render(ctx, scope, el, attrs);
