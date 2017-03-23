@@ -22,20 +22,13 @@
 (function(angular, undefined) {
     "use strict";
 
-	var _idList, backupData, droppedId, scopeVal, pg, ctx, grid, isDirty = false;
+	var _idList, backupData, droppedId, scopeVal, ctx, grid, formControlName, isDirty = false;
 
     var renderFn;
 
     function ThumbnailDragAndDropService($compile, $state, noFormConfig, PubSub, noNavigationManager, noTransactionCache, noLoginService, $rootScope, $q) {
 
-        function NoThumbnailClass() {
-
-        }
-
-
-        this.getThumbnailConstructor = function() {
-            return NoThumbnailClass;
-        };
+        var SELF = this;
 
         this.dragstart = function(event, scope, element, droppedInfo, datasource) {
             var fileid = element.children().attr("file-id");
@@ -70,7 +63,6 @@
             _idList.splice( spliceIndex, 0, photoThatWillBeReplaced);
 
             for(var j=0; j<_idList.length; j++) {
-                scope.fileIdOrderMap[_idList[j].FileID] = j;
                 _idList[j].OrderBy = j;
             }
 
@@ -87,17 +79,14 @@
 
             if(!isDirty) {
                 isDirty = true;
-                noNavigationManager.changeNavBar(ctx, scope, noThumbnailViewer, "mainNavBar", "photos.dirty");
-                PubSub.publish("no-validation::dirty-state-changed", {
-                    isDirty: true,
-                });
+                SELF.changeToDirtyNavbar();
+
             }
 
         };
 
         this.cancel = function() {
-            noNavigationManager.changeNavBar({}, {}, "", "mainNavBar", "photos");
-            PubSub.publish("no-validation::dirty-state-changed", "photos");
+            SELF.changeToNormalNavbar();
             renderFn();
         };
 
@@ -120,17 +109,17 @@
 
             for(var i=0; i<_idList.length; i++) {
                 var update = $rootScope["noIndexedDb_" + dbName][entityName].noUpdate(_idList[i], noTrans);
-
-                promises.push(update);
+                promises.push(update.then(function(resp) {
+                    console.log(resp);
+                }));
             }
 
             return $q.all(promises)
-        		.then(function (resp) {
+        		.then(function(resp) {
         			noTransactionCache.endTransaction(noTrans);
-                    noNavigationManager.changeNavBar({}, {}, "", "mainNavBar", "photos");
-                    PubSub.publish("no-validation::dirty-state-changed", "photos");
+                    SELF.changeToNormalNavbar();
         		})
-        		.catch(function (err) {
+        		.catch(function(err) {
         			console.error(err);
         		});
 
@@ -143,40 +132,71 @@
         this.click = function(event, scope, element) {
 
         };
+
+        this.changeToDirtyNavbar = function() {
+            noNavigationManager.changeNavBar({}, {}, {}, "mainNavBar", "photos.dirty");
+            PubSub.publish("no-validation::dirty-state-changed", {
+                isDirty: true,
+            });
+        };
+
+        this.changeToNormalNavbar = function() {
+            isDirty = false;
+            noNavigationManager.changeNavBar({}, {}, "", "mainNavBar", "photos");
+            PubSub.publish("no-validation::dirty-state-changed", "photos");
+        };
     }
 
 
-    function NoThumbnailViewerDirective($compile, $state, noFormConfig) {
+    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailService) {
 
         // TOO SPECIFIC TO RM RIGHT NOW!
 
-		function _render(ctx, scope, el, attrs) {
+		function _render(ctx, scope, el, attrs, ctrls) {
             var children = el.find(".no-thumbnail");
             var noFileViewersHtml = _createFileViewers(_idList.map(function(blob, index) {
                 blob.OrderBy = angular.isNumber(blob.OrderBy) ? blob.OrderBy : index;
                 var fid = blob.FileID;
-                scope.fileIdOrderMap[fid] = blob.OrderBy;
+                scope[formControlName][fid] = blob.OrderBy;
                 return blob.FileID;
-            }));
+            }), formControlName);
             el.html($compile(noFileViewersHtml)(scope));
+
+            el.find("input").change(function() {
+                if(!isDirty) {
+                    isDirty = true;
+                    noThumbnailService.changeToDirtyNavbar();
+                }
+                var fileId = this.parentElement.attributes['file-id'].value;
+                for(var j=0; j<_idList.length; j++) {
+                    if(_idList[j].FileID === fileId) {
+                        _idList[j].Description = this.value;
+                        break;
+                    }
+                }
+            });
+
 		}
 
-        function _createFileViewers(fileIds) {
+        function _createFileViewers(fileIds, formControlName) {
             var html = "";
             for (var i = 0; i < fileIds.length; i++) {
                 // lol
                 html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileIds[i] + "\">";
                     html += "<no-file-viewer type=\"image\" show-as-image=\"yes\" file-id=\"" + fileIds[i] + "\">";
                     html += '</no-file-viewer>';
-                    html += '<input class="form-control" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
+                    // html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
+                    html += '<input class="form-control" ng-model=\"' + formControlName + "[\'" + fileIds[i] + '\']\" placeholder="Description">';
                 html += "</div>";
             }
-            return html;
+            return html + "";
         }
 
 
         function _link(ctx, scope, el, attrs) {
-            scope.fileIdOrderMap = {};
+
+            formControlName = attrs.ngForm || "photoThumbnailForm";
+            scope[formControlName] = scope[formControlName] || {};
 
             if (!!attrs.draggableThumbnails) {
                 scope.dragNdropConfig = {
@@ -191,8 +211,7 @@
 
             }
 
-            pg = ctx.component.noGrid.referenceOnParentScopeAs;
-            grid = el.parent().find("grid").data("kendoGrid");
+            grid = el.parent().parent().find("grid").data("kendoGrid");
 
             function _prerender() {
                 var d = grid.dataSource.data();
@@ -227,7 +246,7 @@
     }
 
     angular.module("noinfopath.ui")
-        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", NoThumbnailViewerDirective])
+        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", NoThumbnailViewerDirective])
         .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
                  "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService]);
 })(angular);
