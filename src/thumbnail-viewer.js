@@ -22,7 +22,7 @@
 (function(angular, undefined) {
     "use strict";
 
-	var _idList, backupData, droppedId, scopeVal, ctx, grid, formControlName, isDirty = false;
+    var _idList, backupData, droppedId, scopeVal, ctx, grid, formControlName, isDirty = false;
 
     var renderFn;
 
@@ -32,7 +32,7 @@
 
         this.dragstart = function(event, scope, element, droppedInfo, datasource) {
             var fileid = element.children().attr("file-id");
-			console.log("we dragging");
+            console.log("we dragging");
             return fileid;
         };
 
@@ -40,44 +40,44 @@
             return true;
         };
 
-		this.getLocation = function(element, placeHolder) {
-			console.log("getting location");
-		};
+        this.getLocation = function(element, placeHolder) {
+            console.log("getting location");
+        };
 
         this.drop = function(event, scope, currentFileID, location, droppedInfo) {
-			console.log(location);
+            console.log(location);
             droppedId = currentFileID;
 
             var index,
                 noThumbnailViewer = angular.element(event.currentTarget),
                 children = noThumbnailViewer.find(".no-thumbnail");
 
-            for(var i=0; i<_idList.length; i++) {
-                if(_idList[i].FileID === currentFileID) {
+            for (var i = 0; i < _idList.length; i++) {
+                if (_idList[i].FileID === currentFileID) {
                     index = i;
                     break;
                 }
             }
             var photoThatWillBeReplaced = _idList.splice(index, 1)[0];
-            var spliceIndex = (location>index) ? (location-1) : location;
-            _idList.splice( spliceIndex, 0, photoThatWillBeReplaced);
+            var spliceIndex = (location > index) ? (location - 1) : location;
+            _idList.splice(spliceIndex, 0, photoThatWillBeReplaced);
 
-            for(var j=0; j<_idList.length; j++) {
+            for (var j = 0; j < _idList.length; j++) {
                 _idList[j].OrderBy = j;
             }
 
             var childToMove = noThumbnailViewer.find(".no-thumbnail.dndDraggingSource");
-            var thumbnailNdx = location+2;
+            var thumbnailNdx = location + 2;
 
-            if(thumbnailNdx > _idList.length+1) {
-                childToMove.insertAfter(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx-2) + ")"));
+            if (thumbnailNdx > _idList.length + 1) {
+                childToMove.insertAfter(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx - 2) + ")"));
             }
 
             childToMove.insertBefore(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx) + ")"));
             scope[scopeVal] = _idList;
 
 
-            if(!isDirty) {
+            if (!isDirty) {
                 isDirty = true;
                 SELF.changeToDirtyNavbar();
 
@@ -94,38 +94,37 @@
             var dbName = ctx.component.noThumbnailViewer.dbName;
             var entityName = ctx.component.noThumbnailViewer.dbTable;
             var noTransactionConfig = {
-        			noDataSource: {
-        				dataProvider: "noIndexedDB",
-        				databaseName: dbName,
-        				entityName: entityName,
-        				primaryKey: "ID",
-        				noTransaction: {
-        					update: true
-        				}
-        			}
-        		},
+                    noDataSource: {
+                        dataProvider: "noIndexedDB",
+                        databaseName: dbName,
+                        entityName: entityName,
+                        primaryKey: "ID",
+                        noTransaction: {
+                            update: true
+                        }
+                    }
+                },
                 promises = [],
-        		noTrans = noTransactionCache.beginTransaction(noLoginService.user.userId, noTransactionConfig, $rootScope);
+                noTrans = noTransactionCache.beginTransaction(noLoginService.user.userId, noTransactionConfig, $rootScope);
 
-            for(var i=0; i<_idList.length; i++) {
+            for (var i = 0; i < _idList.length; i++) {
                 var update = $rootScope["noIndexedDb_" + dbName][entityName].noUpdate(_idList[i], noTrans);
                 promises.push(update);
             }
 
             return $q.all(promises)
-        		.then(function(resp) {
-        			noTransactionCache.endTransaction(noTrans);
+                .then(function(resp) {
+                    noTransactionCache.endTransaction(noTrans);
                     SELF.changeToNormalNavbar();
-        		})
-        		.catch(function(err) {
-        			console.error(err);
-        		});
+                })
+                .catch(function(err) {
+                    console.error(err);
+                });
 
 
         };
 
-        this.dragleave = function(event, scope) {
-        };
+        this.dragleave = function(event, scope) {};
 
         this.click = function(event, scope, element) {
 
@@ -150,7 +149,7 @@
 
         // TOO SPECIFIC TO RM RIGHT NOW!
 
-		function _render(ctx, scope, el, attrs, ctrls) {
+        function _render(ctx, scope, el, attrs, ctrls) {
             var children = el.find(".no-thumbnail");
             var noFileViewersHtml = _createFileViewers(_idList.map(function(blob, index) {
                 blob.OrderBy = angular.isNumber(blob.OrderBy) ? blob.OrderBy : index;
@@ -161,30 +160,30 @@
             el.html($compile(noFileViewersHtml)(scope));
 
             el.find("input").change(function() {
-                if(!isDirty) {
+                if (!isDirty) {
                     isDirty = true;
                     noThumbnailService.changeToDirtyNavbar();
                 }
                 var fileId = this.parentElement.attributes['file-id'].value;
-                for(var j=0; j<_idList.length; j++) {
-                    if(_idList[j].FileID === fileId) {
+                for (var j = 0; j < _idList.length; j++) {
+                    if (_idList[j].FileID === fileId) {
                         _idList[j].Description = this.value;
                         break;
                     }
                 }
             });
 
-		}
+        }
 
         function _createFileViewers(fileIds, formControlName) {
             var html = "";
             for (var i = 0; i < fileIds.length; i++) {
                 // lol
                 html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileIds[i] + "\">";
-                    html += "<no-file-viewer type=\"image\" show-as-image=\"yes\" file-id=\"" + fileIds[i] + "\">";
-                    html += '</no-file-viewer>';
-                    // html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
-                    html += '<input class="form-control" ng-model=\"' + formControlName + "[\'" + fileIds[i] + '\']\" placeholder="Description">';
+                html += "<no-file-viewer type=\"image\" show-as-image=\"yes\" file-id=\"" + fileIds[i] + "\">";
+                html += '</no-file-viewer>';
+                // html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
+                html += '<input class="form-control" ng-model=\"' + formControlName + "[\'" + fileIds[i] + '\']\" placeholder="Description">';
                 html += "</div>";
             }
             return html;
@@ -212,20 +211,18 @@
             grid = el.parent().parent().find("grid").data("kendoGrid");
 
             function _prerender() {
-                $timeout(function() {
-                    var d = grid.dataSource.data();
-                    if(d && !!d.length) {
-                        if(_idList[0] && (d[0].FileID === _idList[0].FileID)) return;
-                        _idList = d.toJSON().sort(function(a, b) {
-                            return a.OrderBy - b.OrderBy;
-                        });
-                        isDirty = false;
-                        _render(ctx, scope, el, attrs);
-                        scope[scopeVal] = _idList;
-                    } else {
-                        el.html("No Photos!");
-                    }
-                }, 3);
+                var d = grid.dataSource.data();
+                if (d && !!d.length) {
+                    if (_idList[0] && (d[0].FileID === _idList[0].FileID)) return;
+                    _idList = d.toJSON().sort(function(a, b) {
+                        return a.OrderBy - b.OrderBy;
+                    });
+                    isDirty = false;
+                    _render(ctx, scope, el, attrs);
+                    scope[scopeVal] = _idList;
+                } else {
+                    el.html("No Photos!");
+                }
             }
 
 
@@ -258,5 +255,6 @@
     angular.module("noinfopath.ui")
         .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", "PubSub", "$timeout", NoThumbnailViewerDirective])
         .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
-                 "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService]);
+            "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService
+        ]);
 })(angular);
