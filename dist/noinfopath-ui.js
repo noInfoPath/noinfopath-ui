@@ -1962,7 +1962,7 @@
     }
 
 
-    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailService, PubSub, $timeout) {
+    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailViewerService, PubSub, $timeout) {
 
         // TOO SPECIFIC TO RM RIGHT NOW!
 
@@ -1979,7 +1979,7 @@
             el.find("input").change(function() {
                 if (!isDirty) {
                     isDirty = true;
-                    noThumbnailService.changeToDirtyNavbar();
+                    noThumbnailViewerService.changeToDirtyNavbar();
                 }
                 var fileId = this.parentElement.attributes['file-id'].value;
                 for (var j = 0; j < _idList.length; j++) {
@@ -2014,7 +2014,7 @@
 
             if (!!attrs.draggableThumbnails) {
                 scope.dragNdropConfig = {
-                    "provider": "thumbnailDragAndDrop",
+                    "provider": "noThumbnailViewerService",
                     "palette": {
                         "dataSource": {
                             "provider": "noConfig",
@@ -2079,8 +2079,8 @@
     }
 
     angular.module("noinfopath.ui")
-        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", "PubSub", "$timeout", NoThumbnailViewerDirective])
-        .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
+        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "noThumbnailViewerService", "PubSub", "$timeout", NoThumbnailViewerDirective])
+        .service("noThumbnailViewerService", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
             "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService
         ]);
 })(angular);
