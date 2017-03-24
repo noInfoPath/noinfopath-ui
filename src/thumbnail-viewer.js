@@ -146,7 +146,7 @@
     }
 
 
-    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailService) {
+    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailService, PubSub) {
 
         // TOO SPECIFIC TO RM RIGHT NOW!
 
@@ -187,7 +187,7 @@
                     html += '<input class="form-control" ng-model=\"' + formControlName + "[\'" + fileIds[i] + '\']\" placeholder="Description">';
                 html += "</div>";
             }
-            return html + "";
+            return html || "No Photos";
         }
 
 
@@ -211,15 +211,15 @@
 
             grid = el.parent().parent().find("grid").data("kendoGrid");
 
-            function _prerender() {
+            function _prerender(fromTabChange) {
                 var d = grid.dataSource.data();
-                if(d && !!d.length) {
+                if(d && !!d.length || fromTabChange) {
                     _idList = d.toJSON().sort(function(a, b) {
                         return a.OrderBy - b.OrderBy;
                     });
                     isDirty = false;
-                    scope[scopeVal] = _idList;
                     _render(ctx, scope, el, attrs);
+                    scope[scopeVal] = _idList;
                 }
             }
 
@@ -227,6 +227,12 @@
             renderFn = _prerender;
 
             grid.bind("dataBound", _prerender);
+
+
+            PubSub.subscribe("noTabs::change", function(tabInfo) {
+                _idList = [];
+                _prerender(true);
+            });
 
 
             el.append("No Photos!");
@@ -246,7 +252,7 @@
     }
 
     angular.module("noinfopath.ui")
-        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", NoThumbnailViewerDirective])
+        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", "PubSub", NoThumbnailViewerDirective])
         .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
                  "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService]);
 })(angular);
