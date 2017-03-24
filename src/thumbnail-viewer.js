@@ -146,7 +146,7 @@
     }
 
 
-    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailService, PubSub) {
+    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailService, PubSub, $timeout) {
 
         // TOO SPECIFIC TO RM RIGHT NOW!
 
@@ -187,7 +187,7 @@
                     html += '<input class="form-control" ng-model=\"' + formControlName + "[\'" + fileIds[i] + '\']\" placeholder="Description">';
                 html += "</div>";
             }
-            return html || "No Photos";
+            return html;
         }
 
 
@@ -211,16 +211,21 @@
 
             grid = el.parent().parent().find("grid").data("kendoGrid");
 
-            function _prerender(fromTabChange) {
-                var d = grid.dataSource.data();
-                if(d && !!d.length || fromTabChange) {
-                    _idList = d.toJSON().sort(function(a, b) {
-                        return a.OrderBy - b.OrderBy;
-                    });
-                    isDirty = false;
-                    _render(ctx, scope, el, attrs);
-                    scope[scopeVal] = _idList;
-                }
+            function _prerender() {
+                $timeout(function() {
+                    var d = grid.dataSource.data();
+                    if(d && !!d.length) {
+                        if(_idList[0] && (d[0].FileID === _idList[0].FileID)) return;
+                        _idList = d.toJSON().sort(function(a, b) {
+                            return a.OrderBy - b.OrderBy;
+                        });
+                        isDirty = false;
+                        _render(ctx, scope, el, attrs);
+                        scope[scopeVal] = _idList;
+                    } else {
+                        el.html("No Photos!");
+                    }
+                }, 3);
             }
 
 
@@ -231,7 +236,6 @@
 
             PubSub.subscribe("noTabs::change", function(tabInfo) {
                 _idList = [];
-                _prerender(true);
             });
 
 
@@ -252,7 +256,7 @@
     }
 
     angular.module("noinfopath.ui")
-        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", "PubSub", NoThumbnailViewerDirective])
+        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "thumbnailDragAndDrop", "PubSub", "$timeout", NoThumbnailViewerDirective])
         .service("thumbnailDragAndDrop", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
                  "noLoginService", "$rootScope", "$q", ThumbnailDragAndDropService]);
 })(angular);
