@@ -213,10 +213,13 @@
             function _prerender() {
                 var d = grid.dataSource.data();
                 if (d && !!d.length) {
-                    if (_idList[0] && (d[0].FileID === _idList[0].FileID)) return;
-                    _idList = d.toJSON().sort(function(a, b) {
+                    d = d.toJSON().sort(function(a, b) {
                         return a.OrderBy - b.OrderBy;
                     });
+
+                    if (_idList[0] && (d[0].FileID === _idList[0].FileID)) return;
+
+                    _idList = d;
                     isDirty = false;
                     _render(ctx, scope, el, attrs);
                     scope[scopeVal] = _idList;
@@ -231,12 +234,18 @@
             grid.bind("dataBound", _prerender);
 
 
-            PubSub.subscribe("noTabs::change", function(tabInfo) {
+            var pubSubID = PubSub.subscribe("noTabs::change", function(tabInfo) {
                 _idList = [];
             });
 
 
             el.append("No Photos!");
+
+            el.on("$destroy", function() {
+                // ALWAYS CLEAN UP YOUR BINDINGS AND SUBSCRIPTIONS
+                grid.unbind("dataBound");
+                PubSub.unsubscribe(pubSubID);
+            });
 
         }
 
