@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.42* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.34* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -643,8 +643,8 @@
 					//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
 				} else {
 					sel.attr("ng-model", lookup.ngModel); //TODO replace with smarter logic
-					sel.attr("name", lookup.ngModel);
-					el.attr("name", lookup.ngModel)
+					sel.attr("name", lookup.name);
+					el.attr("name", lookup.name);
 				}
 
 			}
@@ -688,7 +688,7 @@
 				lookup = ctx.lookup,
 				sel = el.first();
 
-			
+
 
 			function populateDropDown(form, lookup) {
 				var dataSource = noDataSource.create(form.noDataSource, scope, scope);
@@ -917,216 +917,413 @@
 	;
 })(angular);
 
-//data-panel.js
+/*
+ *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
+ *  ___
+ *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.34 *
+ *
+ *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
+ *
+ *  Copyright (c) 2017 The NoInfoPath Group, LLC.
+ *
+ *  Licensed under the MIT License. (MIT)
+ *
+ *  ___
+ *
+ *
+ *	## noDataPanel Directive
+ *
+ *	Renders a databound panel that can contain any kind of HTML content, which can be bound data on $scope.
+ *	The datasources bring bound to are NoInfoPath data providers.
+ *
+ *	### Sample HTML
+ *
+ *  ```html
+ *  <no-data-panel no-form="noForms.noComponents.foo"/>
+ *  ```
+ *
+ *	|Property|Description|
+ *	|--------|-----------|
+ *	|no-form|The property that the configuration is located for the NoDataPanel|
+ *
+ *	### Sample Configuration
+ *
+ *  ```json
+ *  {
+ *  	"foo": {
+ *  		"scopeKey": "foo",
+ *			"noDataPanel": {
+ *				"version": 1,
+ *				"saveOnRootScope": true,
+ *				"resultType": "one"
+ *				"refresh": {
+ *					"property": "bar"
+ *				},
+ *				"templateUrl": "foo.html"
+ *			},
+ *			"noDataSource": {
+ *  			"dataProvider": "noWebSQL",
+ *  			"databaseName": "testdb",
+ *  			"entityName": "Foo",
+ *  			"primaryKey": "FooID",
+ *				"filter": [
+ *					{
+ *						"field": "FooID",
+ *						"operator": "eq",
+ *						"value": {
+ *							"source": "$stateParams",
+ *							"property": "id"
+ *						}
+ *					}
+ *				]
+ *  		}
+ *  	}
+ *	}
+ *  ```
+ *
+ *	|Configuration Property|Type|Description|
+ *	|----------------------|----|-----------|
+ *	|scopeKey|String|The property that the NoDataPanel directive will databind to|
+ *	|noDataPanel|Object|A configuration object specific to the NoDataPanel directive|
+ *	|noDataPanel.refresh|Object|An object holding configuration that will trigger the NoDataPanel to request data again|
+ *	|noDataPanel.refresh.property|String|The property on the scope that the NoDataPanel to watch. On change, it will request the data again|
+ *	|noDataPanel.resultType|String|Default `one`. The type of call that will be performed when the NoDataPanel uses the NoDataSource to query for data|
+ *	|noDataPanel.saveOnRootScope|Boolean|Default false. Sets what NoDataPanel returns on the local scope if false, or the rootScope if true.|
+ *	|noDataPanel.templateUrl|String|The path to an html document to load within the NoDataPanel directive|
+ *	|noDataPanel.version|Interger|Default `1`. If version is `1`, NoDataPanel saves a [NoResults](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/classes) object to the scopeKey. If version is `2`, NoDataPanel saves a [NoDataModel](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/classes) object to the scopeKey|
+ *	|noDataSource|Object|Configuration for NoInfoPath Data NoDataSource. Read more here: [NoDataSource](http://gitlab.imginconline.com/noinfopath/noinfopath-data/wikis/data-source)|
+ */
+
 (function (angular, undefined) {
-	angular.module("noinfopath.ui")
-		/*
-		 *   ##  noDataPanel
-		 *
-		 *   Renders a data bound panel that can contain
-		 *   any kind of HTML content, which can be bound
-		 *   data on $scope.  The data sources being bound
-		 *   to, are NoInfoPath Data Providers. Note that
-		 *   this directive calls noDataSource.one method,
-		 *   only returns a single data object, not an array.
-		 *
-		 *   ### Sample Usage
-		 *
-		 *   This sample show how to use the noDataPanel
-		 *   directive in your HTML markup.
-		 *
-		 *   ```html
-		 *   <no-data-panel no-config="noForms.trialPlot.noComponents.selection"/>
-		 *   ```
-		 *
-		 *   ### Sample Configuration
-		 *
-		 *   ```js
-		 *   {
-		 *       "selection": {
-		 *           "scopeKey": "selection",
-		 *           "dataProvider": "noWebSQL",
-		 *           "databaseName": "FCFNv2",
-		 *           "entityName": "vw_trialplot_selection",
-		 *           "primaryKey": "TrialPlotID",
-		 *           "lookup": {
-		 *               "source": "$stateParams",
-		 *           },
-		 *           "templateUrl": "observations/selection.html"
-		 *       }
-		 *   }
-		 *   ```
-		 */
+	"use strict";
 
+	function NoDataPanelDirective($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
+		function _resolveScope(saveOnRootScope, scope, compKey) {
+			return $q(function(resolve, reject){
+				try{
+					var tmpScope = scope,
+						tmpVal, tmpApi;
 
-		// 	"cooperatorView": {
-	     //       "scopeKey": "cooperatorView",
-	     //       "noDataPanel": {
-	     //         "refresh": {
-	     //           "provider": "scope",
-	     //           "property": "cooperator"
-	     //         }
-	     //       },
-	     //       "noDataSource": {
-	     //         "dataProvider": "noWebSQL",
-	     //         "databaseName": "FCFNv2",
-	     //         "entityName": "vw_cooperator_summary",
-	     //         "primaryKey": "CooperatorID",
-	     //         "filter": [
-	     //           {
-	     //             "field": "CooperatorID",
-	     //             "operator": "eq",
-	     //             "value": {
-	     //               "source": "$stateParams",
-	     //               "property": "id"
-	     //             }
-	     //           }
-	     //         ]
-	     //       }
-	     //     }
+					tmpScope = saveOnRootScope ? scope.$root : scope;
 
+					if (compKey) {
+						tmpVal = noInfoPath.getItem(tmpScope, compKey);
+						if (tmpVal) {
+							noInfoPath.setItem(tmpScope, compKey, tmpVal);
+							resolve(tmpScope);
+						}else {
+							//noInfoPath.setItem(tmpScope, compKey, {}); //Possible BUG
 
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", function ($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
-
-			function _link(scope, el, attrs) {
-				var config,
-					resultType = "one",
-					dataSource,
-					noFormAttr = attrs.noForm,
-					_scope;
-
-
-				function finish(data) {
-
-
-					if(resultType === "one") {
-
-
-						if(!!data && data.paged) {
-							noParameterParser.update(data.paged, _scope[config.scopeKey]);
-						} else if(!!data){
-							noParameterParser.update(data, _scope[config.scopeKey]);
-						} else {
-							noParameterParser.update({}, _scope[config.scopeKey]);
-						}
-					} else {
-						if(!_scope[config.scopeKey]) {
-							_scope[config.scopeKey] = [];
-						}
-
-						if(!!data && data.paged) {
-							_scope[config.scopeKey] = data.paged;
-						} else if(!!data){
-							_scope[config.scopeKey] = data;
-						} else {
-							_scope[config.scopeKey] = [];
-						}
-					}
-
-					if(config.hiddenFields) {
-						for(var h in config.hiddenFields) {
-							var hf = config.hiddenFields[h],
-								value = noInfoPath.getItem(scope, hf.scopeKey);
-
-							//console.log(hidden);
-							noInfoPath.setItem(scope, hf.ngModel, value);
-						}
-					}
-
-					if(_scope.waitingFor) {
-						_scope.waitingFor[config.scopeKey] = false;
-					}
-
-					noAreaLoader.markComponentLoaded($state.current.name, noFormAttr);
-
-					PubSub.publish("noDataPanel::dataReady", {config: config, data: data});
-				}
-
-				function refresh() {
-					return dataSource[resultType]()
-						.then(finish)
-						.catch(error);
-				}
-
-				function error(err) {
-					scope.waitingForError = {
-						error: err,
-						src: config
-					};
-
-					console.error(scope.waitingForError);
-				}
-
-				function watch(dsConfig, filterCfg, value, n, o, s) {
-					console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
-				}
-
-				function noForm_ready(data) {
-					config = noInfoPath.getItem(data, noFormAttr);
-
-					noAreaLoader.markComponentLoading($state.current.name, noFormAttr);
-
-					if(config.noDataPanel && config.noDataPanel.saveOnRootScope) {
-						_scope = scope.$root;
-					} else {
-						_scope = scope;
-					}
-
-					if(!_scope[config.scopeKey]) {
-						_scope[config.scopeKey] = {};
-					}
-
-					_scope[config.scopeKey + "_api"] = {};
-					_scope[config.scopeKey + "_api"].refresh = refresh;
-
-					if(config.noDataPanel) {
-						resultType = config.noDataPanel.resultType ? config.noDataPanel.resultType : "one";
-
-						if(config.noDataPanel.refresh) {
-							scope.$watchCollection(config.noDataPanel.refresh.property, function (newval, oldval) {
-								if(newval) {
-									refresh();
+							var unwatch = scope.$watch(compKey, function(unwatch, n, o, s){
+								if(n) {
+									noInfoPath.setItem(s, compKey, n);
+									if(unwatch) unwatch();
+									resolve(s);
 								}
-							});
+							}.bind(null, unwatch));
 						}
 
+						tmpApi = noInfoPath.getItem(tmpScope, compKey + "_api");
+						noInfoPath.setItem(tmpScope, compKey + "_api", angular.extend({}, tmpApi));
+					} else {
+						resolve(tmpScope);
 					}
 
-					if(config.noDataSource) {
-						dataSource = noDataSource.create(config.noDataSource, scope, watch);
-					} else {
-						dataSource = noDataSource.create(config, scope, watch);
-					}
 
-					if(config.templateUrl) {
+				} catch (err) {
+					reject(err);
+				}
 
-						noTemplateCache.get(config.templateUrl)
-							.then(function (tpl) {
-								var t = $compile(tpl),
-									params = [],
-									c = t(scope);
+			});
 
-								el.append(c);
+		}
 
-								refresh();
+		function _placeModelOnScope(schema, scopeKey, scope, noWrapper) {
+			var srcModel = noInfoPath.getItem(scope, scopeKey),
+				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
 
-							});
-					} else {
+			noInfoPath.setItem(scope, scopeKey, wrappedModel);
+		}
+
+		function _setupWatches(resultType, compKey, dataPanel, dataSource, scope, refresh) {
+			var unbinders = [];
+
+			noInfoPath.setItem(scope, compKey + "_api.refresh", refresh);
+
+			if (dataPanel.refresh && dataPanel.refresh.property) {
+				unbinders.push(scope.$watchCollection(dataPanel.refresh.property, function (refresh, newval, oldval) {
+					if (newval && newval !== oldval) {
 						refresh();
 					}
-				}
-
-
-				noForm_ready(noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope));
-
+				}.bind(null, refresh)));
 			}
 
-			return {
-				restrict: "E",
-				link: _link,
-				scope: false
+			return unbinders;
+		}
+
+		function _resolveTemplate(scope, templateUrl, refresh) {
+			if (templateUrl) {
+				noTemplateCache.get(templateUrl)
+					.then(function (tpl) {
+						var t = $compile(tpl),
+							params = [],
+							c = t(scope);
+
+						el.append(c);
+						refresh();
+					});
+			} else {
+				refresh();
+			}
+		}
+
+		function _resolveDataSource(dsCfg, scope, fn) {
+			if (dsCfg) {
+				return noDataSource.create(dsCfg, scope, fn);
+			} else {
+				throw "noDataPanel::noDataSource is not defined";
+			}
+
+		}
+
+		function _refresh(resultType, dataSource, noDataPanel, finish, error) {
+			return dataSource[resultType]()
+				.then(finish)
+				.catch(function(err){
+					if(noDataPanel.httpBadRequestAllowed){
+						finish({});
+					} else {
+						throw err;
+					}
+				});
+		}
+
+		function _error(scope, config, err) {
+			scope.waitingForError = {
+				error: err,
+				src: config
 			};
-    }]);
+
+			console.error(scope.waitingForError);
+		}
+
+		function _watch(dsConfig, filterCfg, value, n, o, s) {
+			// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+		}
+
+		function _resolveResultType(resultType) {
+			return resultType ? resultType : "one";
+		}
+
+		function version1(stateName, scope, el, attrs, ctx) {
+			var _config,
+				_scope,
+				_dataSource,
+				_curriedFinish,
+				_curriedError,
+				_unbinders = [],
+				_resultType = "one",
+				noFormAttr = attrs.noForm,
+				dataPanel = angular.merge({}, {
+					version: "1",
+					resultType: "one"
+				}, ctx.component.noDataPanel);
+
+			function __finish(ctx, stateName, resultType, dataSource, scope, data) {
+				if (resultType === "one") {
+					if (!!data && data.paged) {
+						noParameterParser.update(data.paged, scope[ctx.component.scopeKey]);
+					} else if (!!data) {
+						noParameterParser.update(data, scope[ctx.component.scopeKey]);
+					} else {
+						noParameterParser.update({}, scope[ctx.component.scopeKey]);
+					}
+				} else {
+					if (!scope[ctx.component.scopeKey]) {
+						scope[ctx.component.scopeKey] = [];
+					}
+
+					if (!!data && data.paged) {
+						scope[ctx.component.scopeKey] = data.paged;
+					} else if (!!data) {
+						scope[ctx.component.scopeKey] = data;
+					} else {
+						scope[ctx.component.scopeKey] = [];
+					}
+				}
+
+				if (ctx.component.hiddenFields) {
+					for (var h in ctx.component.hiddenFields) {
+						var hf = ctx.component.hiddenFields[h],
+							value = noInfoPath.getItem(scope, hf.scopeKey);
+
+						noInfoPath.setItem(scope, hf.ngModel, value);
+					}
+				}
+
+				if (scope.waitingFor) {
+					scope.waitingFor[ctx.component.scopeKey] = false;
+				}
+
+				noAreaLoader.markComponentLoaded(stateName, ctx.componentKey);
+
+				PubSub.publish("noDataPanel::dataReady", {
+					config: ctx.component,
+					data: data
+				});
+			}
+
+			noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
+
+			_config = noInfoPath.getItem(data, attrs.noForm);
+
+			_resultType = _resolveResultType(dataPanel.resultType);
+
+			_scope = _resolveScope(dataPanel.saveOnRootScope, scope);
+
+			_dataSource = _resolveDataSource(ctx.datasource, scope, _watch);
+
+			_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope, true);
+
+			_curriedFinish = __finish.bind(null, ctx, $state.current.name, _resultType, _dataSource, _scope);
+
+			_curriedError = _error.bind(null, scope, _config);
+
+			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
+
+			_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, dataPanel, _dataSource, scope, _curriedRefresh);
+
+
+			_resolveTemplate(scope, dataPanel.templateUrl, _curriedRefresh);
+
+
+			noForm_ready(ctx.form);
+
+			return $q.when(_unbinders);
+		}
+
+		function version2(stateName, scope, el, attrs, ctx) {
+			var _config,
+				_resultType,
+				_scope,
+				_dataSource,
+				_curriedFinish,
+				_curriedError,
+				_curriedRefresh,
+				_unbinders = [],
+				_dataPanel = angular.merge({}, {
+					version: 2,
+					resultType: "one"
+				}, ctx.component.noDataPanel),
+				_schema = scope["noDbSchema_" + ctx.datasource.databaseName].entity(ctx.datasource.entityName);
+
+			function __finish(ctx, stateName, resultType, dataSource, scope, data) {
+				if (resultType === "one") {
+					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
+					model.current = data;
+					model.commit();
+				} else {
+					if (!_scope[ctx.component.scopeKey]) {
+						_scope[ctx.component.scopeKey] = [];
+					}
+
+					if (!!data && data.paged) {
+						_scope[ctx.component.scopeKey] = data.paged;
+					} else if (!!data) {
+						_scope[ctx.component.scopeKey] = data;
+					} else {
+						_scope[ctx.component.scopeKey] = [];
+					}
+				}
+
+				if (ctx.component.hiddenFields) {
+					for (var h in ctx.component.hiddenFields) {
+						var hf = ctx.component.hiddenFields[h],
+							value = noInfoPath.getItem(scope, hf.scopeKey);
+
+						noInfoPath.setItem(scope, hf.ngModel, value);
+					}
+				}
+
+				//Deprecated for version2.  noAreaLoader replaces this
+				if (_scope.waitingFor) {
+					_scope.waitingFor[ctx.component.scopeKey] = false;
+				}
+
+				noAreaLoader.markComponentLoaded($state.current.name, attrs.noForm);
+
+				PubSub.publish("noDataPanel::dataReady", {
+					config: ctx.component,
+					data: data
+				});
+			}
+
+			noAreaLoader.markComponentLoading($state.current.name, attrs.noForm);
+
+			_config = ctx.component; //noInfoPath.getItem(ctx.form, attrs.noForm);
+
+			_resultType = _resolveResultType(_dataPanel.resultType);
+
+			return _resolveScope(_dataPanel.saveOnRootScope, scope, ctx.component.scopeKey)
+				.then(function(scope) {
+					_scope = scope;
+
+					_dataSource = _resolveDataSource(ctx.datasource, scope, angular.noop);
+
+					_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope);
+
+					_curriedFinish = __finish.bind(null, ctx, $state.current.name, _resultType, _dataSource, _scope);
+
+					_curriedError = _error.bind(null, scope, _config);
+
+					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
+
+					_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, _dataPanel, _dataSource, scope, _curriedRefresh);
+
+					_resolveTemplate(scope, _dataPanel.templateUrl, _curriedRefresh);
+
+					return _unbinders;
+				})
+				.catch(function(err){
+					console.error(err);
+				});
+
+
+		}
+
+		function _link(scope, el, attrs) {
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope, attrs.noForm),
+				ver = angular.extend({}, {
+					version: 1
+				}, ctx.component.noDataPanel).version, promise;
+
+			if (Number(ver) === 1) {
+				promise = version1($state.current.name, scope, el, attrs, ctx);
+
+			} else {
+				promise = version2($state.current.name, scope, el, attrs, ctx);
+			}
+
+			promise.then(function(unbinders){
+				scope.$on("$destroy", function (unbinders) {
+					unbinders.forEach(function (unbind) {
+						unbind();
+					});
+				}.bind(null, unbinders));
+			});
+
+		}
+
+		return {
+			restrict: "E",
+			link: _link,
+			scope: false
+		};
+	}
+
+	angular.module("noinfopath.ui")
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", NoDataPanelDirective]);
 })(angular);
 
 //alpha-filter.js
@@ -1228,7 +1425,7 @@
 //file-upload.js
 (function (angular, undefined) {
 
-	function NoFileUploadDirective($q, $state, noLocalFileStorage, noFormConfig) {
+	function NoFileUploadDirective1($q, $state, noLocalFileStorage, noFormConfig) {
 		function _done(comp, scope, el, blob) {
 			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
 
@@ -1407,8 +1604,171 @@
 			restrict: "E"
 		};
 	}
+
+	function NoFileUploadDirective2($q, $state, noLocalFileSystem, noLocalFileStorage, noFormConfig) {
+		function _done(comp, scope, el, blob) {
+			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
+
+
+
+			if(comp.multiple) {
+				if(!allScopeDocs) {
+					allScopeDocs = [];
+					noInfoPath.setItem(scope, comp.ngModel, allScopeDocs);
+				}
+
+				allScopeDocs.push(blob);
+			} else {
+				noInfoPath.setItem(scope, comp.ngModel, blob);
+				scope.$emit("NoFileUpload::dataReady", blob);
+			}
+			//_reset(el);
+		}
+
+		function _fault(err) {
+			console.error(err);
+		}
+
+		function _progress(e) {
+			console.info(e);
+		}
+
+		function _drop(comp, scope, el, attrs, e) {
+			if(e !== null || e !== undefined) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
+
+			try {
+				if(e.originalEvent.dataTransfer) {
+					var typeNames = e.originalEvent.dataTransfer.types,
+						types = {
+							files: e.originalEvent.dataTransfer.files,
+							items: e.originalEvent.dataTransfer.items
+						};
+
+					for(var ti = 0; ti < typeNames.length; ti++) {
+						var typeName = typeNames[ti],
+							type = types[typeName.toLowerCase()];
+
+						noInfoPath.setItem(scope, comp.ngModel, comp.multiple ? type : type[0]);
+					}
+				} else {
+					noInfoPath.setItem(scope, comp.ngModel, comp.multiple ? e.originalEvent.srcElement.files : e.originalEvent.srcElement.files[0]);
+				}
+			} catch(err) {
+				console.error(err);
+			}
+			return false;
+		}
+
+		function _dragEnterAndOver(scope, el, config, attrs, e) {
+			if(e !== null || e !== undefined) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
+
+			if(attrs && attrs.noForm) {
+				var comp = noInfoPath.getItem(config, attrs.noForm),
+					filetype = comp.accept;
+
+				if(filetype && filetype.indexOf(e.originalEvent.dataTransfer.items[0].type) === -1) {
+					e.originalEvent.dataTransfer.dropEffect = "none";
+					scope.$emit("NoFileUpload::illegalFileType");
+				} else {
+					e.originalEvent.dataTransfer.dropEffect = "copy";
+					scope.$emit("NoFileUpload::legalFileType");
+				}
+			}
+			return false;
+		}
+
+		function _dragLeave(e) {
+			if(e !== null || e !== undefined) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
+
+			e.originalEvent.dataTransfer.dropEffect = "none";
+			return false;
+		}
+
+		function _reset(el) {
+			var ctrl = el.find("input")[0];
+
+			try {
+				ctrl.value = null;
+			} catch(ex) {}
+
+			if(ctrl.value) {
+				ctrl.parentNode.replaceChild(ctrl.cloneNode(true), ctrl);
+			}
+		}
+
+		function _template(el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity),
+				comp = noInfoPath.getItem(config, attrs.noForm),
+				accepts;
+
+			if(angular.isArray(comp.accept)) {
+				accepts = "accept=\"" + comp.accept + "\"";
+			}else if(angular.isObject(comp.accept)){
+				accepts = "accept=\"" + comp.accept[$state.params.type] + "\"";
+			}else{
+				accepts= "";
+			}
+
+			var ngModel = comp.ngModel ? "{{" + comp.ngModel + ".name || \"Drop File Here\" }}" : "",
+				x, required = "", multiple = "";
+
+			if (attrs.$attr.required || comp.required) required = " required";
+			if (attrs.$attr.multiple || comp.multiple) multiple = " multiple";
+
+			if(el.is(".no-flex")) {
+				x = "<input type=\"file\" class=\"ng-hide\"" + accepts +  required + multiple + "><div class=\"no-flex\"><button class=\"no-flex\" type=\"button\">Choose a File</button><div class=\"no-flex\">" + ngModel + "</div></div>";
+
+			} else {
+				x = "<input type=\"file\" class=\"ng-hide\"" + accepts + required + multiple + "><div class=\"input-group\"><span class=\"input-group-btn\"><button class=\"btn btn-default\" type=\"button\">Choose a File</button></span><div class=\"file-list\">" + ngModel + "</div></div>";
+			}
+			return x;
+		}
+
+		function _link(scope, el, attrs) {
+			var config = noFormConfig.getFormByRoute($state.current.name, $state.params.entity, scope),
+				comp = noInfoPath.getItem(config, attrs.noForm),
+				input = el.find("input"),
+				button = el.find("button");
+
+			//noInfoPath.setItem(scope, comp.ngModel, undefined);
+
+			el.bind("drop", _drop.bind(null, comp, scope, el, attrs));
+			el.bind('dragenter', _dragEnterAndOver.bind(null, scope, el, config, attrs));
+			el.bind('dragover', _dragEnterAndOver.bind(null, scope, el, config, attrs));
+			el.bind('dragleave', _dragLeave);
+			$("body")
+				.bind("dragenter", _dragLeave);
+			$("body")
+				.bind("dragover", _dragLeave);
+			button.click(function (e) {
+				if(input) {
+					input.click();
+				}
+				e.preventDefault();
+			});
+
+			input.bind("change", _drop.bind(null, comp, scope, el, attrs));
+		}
+
+		return {
+			link: _link,
+			template: _template,
+			restrict: "E"
+		};
+	}
+
 	angular.module("noinfopath.ui")
-		.directive("noFileUpload", ["$q", "$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective]);
+//		.directive("noFileUpload", ["$q", "$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective2]);
+		.directive("noFileUpload", ["$q", "$state", "noLocalFileSystem", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective2]);
 })(angular);
 
 //file-viewer.js
@@ -1432,6 +1792,17 @@
 
 		el.html(iframe[0].outerHTML);
 	}
+
+	function renderIframe4(el, u) {
+		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\">iFrames not supported</iframe>");
+		el.html(iframe[0].outerHTML);
+	}
+
+	function renderImage4(el, u) {
+		var iframe = $("<img class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\"/>");
+		el.html(iframe[0].outerHTML);
+	}
+
 	function renderIframe2(el, n) {
 		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>"),
 			url = window.URL || window.webkitURL,
@@ -1471,8 +1842,6 @@
 
 		var c = el.find(".no-file-viewer"),
 			img = angular.element("<img>");
-
-		if(!!c) c = el;
 
 		img.attr("src", n.url || n.blob);
 		//img.addClass("full-width");
@@ -1533,7 +1902,7 @@
 				return noLocalFileSystem.getUrl(fileId)
 					.then(function(file){
 						if(!!file) {
-							render(el, file, notFoundMessage);
+							render(el, file);
 						} else {
 							render(el, "FILE_NOT_FOUND");
 						}
@@ -1554,6 +1923,8 @@
 			el.html(tmp);
 
 			return function(scope, el, attrs) {
+				var unWatch;
+
 				scope.noFileViewer = {
 					refresh: _read.bind(null, el)
 				};
@@ -1563,39 +1934,36 @@
 					render(el, {type: attrs.type, blob: attrs.url});
 				} else if(attrs.fileId) {
 					if(noInfoPath.isGuid(attrs.fileId)) {
-						_read(el, attrs.fileId, !!attrs.showAsImage);
+						render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
 					} else {
-						scope.$watch(attrs.waitFor, function(key, msg, n, o){
+						unWatch = scope.$watch(attrs.waitFor, function(key, msg, n, o){
 							//console.info("file-viewer watch: ", n, o);
 							//if(n && noInfoPath.isGuid(n.ID)) {
 							if(n) {
-								//scope.noFileViewer.fileId = noInfoPath.getItem(n, key);
-								_read(el, noInfoPath.getItem(n, key), msg);
-								// if(scope.noFileViewer.fileId) {
-								// } else {
-								// 	render(el, "FILE_NOT_FOUND");
-								// }
+
 							} else {
 								_clear();
 							}
 						}.bind(null, attrs.fileId, attrs.notFoundMessage));
-
-						// scope.$watchCollection(attrs.waitFor, function(n, o){
-						// 	//console.info("file-viewer watchCollection: ", n, o);
-						// 	if(n && noInfoPath.isGuid(n.ID)) {
-						// 		var fid = noInfoPath.getItem(n, attrs.fileId);
-						// 		_read(fid, el);
-						// 	} else {
-						// 		_clear();
-						// 	}
-						// });
 					}
 				}else{
-					scope.$watch(attrs.waitFor, function(n, o){
-						if(n && n.FileID) _read(el, n.FileID);
+					unWatch = scope.$watch(attrs.waitFor, function(n, o){
+						if(n) {
+							if(attrs.fitToWindow) {
+								renderImage4(el, n);
+							} else {
+								renderIframe4(el, n);
+							}
+						}
 					});
 				}
 
+				scope.$on("$destroy", function() {
+					if(unWatch) {
+						unWatch();
+						unWatch = null;
+					}
+				});
 
 			};
 
@@ -1820,7 +2188,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.25 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.34 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -1833,329 +2201,34 @@
  * noThumbnailViewer Directive
  * ------------------------
  *
- */
+*/
 
 //file-viewer.js
-(function(angular, undefined) {
-    "use strict";
+(function (angular, undefined) {
+	"use strict";
 
-    var _idList, backupData, droppedId, scopeVal, ctx, grid, formControlName, isDirty = false, renderFn;
+	function NoThumbnailViewerDirective($compile, $state, noFormConfig) {
+		function _link(scope, el, attrs) {
+			el.append("wassup");
+			// TODO ATTRS WE NEED: showAsImage, fileId
 
+		}
 
-    /*
-     *
-     * ## noThumbnailViewerService
-     *
-     * ### Dependecies
-     * + $compile
-     * + $state
-     * + noFormConfig
-     * + PubSub
-     * + noNavigationManager
-     * + noTransactionCache
-     * + noLoginService
-     * + $rootScope
-     * + $q
-     *
-     * ### What is this for?
-     * This service provides an API for outside NoInfoPath libraries (like noActionQueue) to interact with the `noThumbnailViewerDirective`. In also
-     * provides the methods neccesary that are called as hooks in the `no-dnd` (The code behind the drag and drop).
-     * The functions that are used by the drag and drop are as follows:
-     *
-     *  | Method Name | Description                                                                                                                                                                                                        |
-     *  |-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-     *  | dragstart   | When the element is started to be dragged, this code pulls the `file-id` off of the attribute of the element. This `file-id` is considered the `dataTransfer`, if you know anything about HTML5 drag and drop.     |
-     *  | dragover    | All this function does is true. If a `drag` event should be disabled for any reason, additional code can be added here and return false.                                                                           |
-     *  | drop        | The drop is the complicated piece of code. When an element is dropped, this basically removes the element and places it in the correct position. Then, the `_idList` is updated, and the `navbar` state is changed |
-     *  | click       | This event is triggered whenever an draggable element is clicked.                                                                                                                                                  |
-     *
-     * The other methods included are pretty self explanatory. The `cancel` method reverts the navbar to original state and undoes any changes. The `changeToDirtyNavbar` and
-     * `changeToNormalNavbar` methods do what they say, and are called in the Directive and in this service. They use the `PubSub` mechanism to achieve this, in a way that
-     * fakes the way that it is normally done by actual validation.
-     *
-     * The `save` method uses noTransactionCache to save to the `json` that tells it what dbName and dbTable to write to. See example config below.
-     *
-     *
-     *
-     * There is an internal array that takes care of the data called `_idList`. More about this to follow. The flow of the drag and drop can basically be summed
-     * up to be as follows.
-     *
-     * 1. User *DRAGS* a Thumbnail.
-     * 2. `dragstart` method fired
-     * 3. The thumbnail that is being dragged gets the `.dndDraggingSource` source class, which hides it to simulate that the user is picking it up and moving it.
-     * 3. `no-dnd-lists` code creates a placeholder element, and auto positions it based on mouse pointer.
-     * 4. User *DROPS* a Thumbnail.
-     * 5. `drop` method fired, and passes the location of where it is dropped relative to the other elements.
-     * 5. The inner `_idList` is updated to reflect the new location.
-     * 6. The `OrderBy` field is updated on each element to be the correct one.
-     * 6. Thumbnail that is being moved is removed from the DOM, and placed where it needs to go.
-     * 7. If the viewer is not already dirty, then it will change the navbar to the dirty navbar.
-     *
-     */
-    function NoThumbnailViewerService($compile, $state, noFormConfig, PubSub, noNavigationManager, noTransactionCache, noLoginService, $rootScope, $q) {
+		function _compile(el, attrs) {
+			ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity);
 
-        var SELF = this;
+			return _link;
+		}
 
-        this.dragstart = function(event, scope, element, droppedInfo, datasource) {
-            var fileid = element.children().attr("file-id");
-            console.log("we dragging");
-            return fileid;
-        };
+		return {
+			restrict: "E",
+			compile: _compile
+		};
+	}
 
-        this.dragover = function(event, scope, droppedInfo, options) {
-            return true;
-        };
-
-        this.drop = function(event, scope, currentFileID, location, droppedInfo) {
-            console.log(location);
-            droppedId = currentFileID;
-
-            var index,
-                noThumbnailViewer = angular.element(event.currentTarget),
-                children = noThumbnailViewer.find(".no-thumbnail");
-
-            for (var i = 0; i < _idList.length; i++) {
-                if (_idList[i].FileID === currentFileID) {
-                    index = i;
-                    break;
-                }
-            }
-            var photoThatWillBeReplaced = _idList.splice(index, 1)[0];
-            var spliceIndex = (location > index) ? (location - 1) : location;
-            _idList.splice(spliceIndex, 0, photoThatWillBeReplaced);
-
-            for (var j = 0; j < _idList.length; j++) {
-                _idList[j].OrderBy = j;
-            }
-
-            var childToMove = noThumbnailViewer.find(".no-thumbnail.dndDraggingSource");
-            var thumbnailNdx = location + 2;
-
-            if (thumbnailNdx > _idList.length + 1) {
-                childToMove.insertAfter(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx - 2) + ")"));
-            }
-
-            childToMove.insertBefore(angular.element(".no-thumbnail:nth-child(" + (thumbnailNdx) + ")"));
-            scope[scopeVal] = _idList;
-
-
-            if (!isDirty) {
-                isDirty = true;
-                SELF.changeToDirtyNavbar();
-
-            }
-
-        };
-
-        this.cancel = function() {
-            SELF.changeToNormalNavbar();
-            renderFn();
-        };
-
-        this.save = function() {
-            var dbName = ctx.component.noThumbnailViewer.dbName;
-            var entityName = ctx.component.noThumbnailViewer.dbTable;
-            var noTransactionConfig = {
-                    noDataSource: {
-                        dataProvider: "noIndexedDB",
-                        databaseName: dbName,
-                        entityName: entityName,
-                        primaryKey: "ID",
-                        noTransaction: {
-                            update: true
-                        }
-                    }
-                },
-                promises = [],
-                noTrans = noTransactionCache.beginTransaction(noLoginService.user.userId, noTransactionConfig, $rootScope);
-
-            for (var i = 0; i < _idList.length; i++) {
-                var update = $rootScope["noIndexedDb_" + dbName][entityName].noUpdate(_idList[i], noTrans);
-                promises.push(update);
-            }
-
-            return $q.all(promises)
-                .then(function(resp) {
-                    noTransactionCache.endTransaction(noTrans);
-                    SELF.changeToNormalNavbar();
-                })
-                .catch(function(err) {
-                    console.error(err);
-                });
-
-
-        };
-
-        this.click = function(event, scope, element) {
-            // IF WANT TO BE ABLE TO SELECT ITEMS FOR SOME REASON USE THIS
-        };
-
-        this.changeToDirtyNavbar = function() {
-            noNavigationManager.changeNavBar({}, {}, {}, "mainNavBar", "photos.dirty");
-            PubSub.publish("no-validation::dirty-state-changed", {
-                isDirty: true,
-            });
-        };
-
-        this.changeToNormalNavbar = function() {
-            isDirty = false;
-            noNavigationManager.changeNavBar({}, {}, "", "mainNavBar", "photos");
-            PubSub.publish("no-validation::dirty-state-changed", "photos");
-        };
-    }
-
-
-
-    /*
-     *
-     * ## noThumbnailViewerDirective
-     *
-     * ### Dependecies
-     * + A `no-kendo-grid` as a sibling element
-     *
-     * ### Example
-     * ```html
-     * <no-kendo-grid no-form="noForm.noComponents.photos"></no-kendo-grid>
-     * <no-thumbnail-viewer dnd-list draggable-thumbnails="true" no-form="noForm.noComponents.photos"></no-thumbnail-viewer>
-     * ```
-     * The `no-form` property should point to the same hive that is pointed to by the `no-kendo-grid`. If you wish to have drag-and-drop capabilites,
-     * first make sure you have the `noDndList` module, and that you include the `dnd-list` and `draggable-thumbnails='true'` attributes.
-     *
-     *
-     * This hive should be inside the same hive within the grid.
-     * ```js
-     *  "noThumbnailViewer": {
-     *      "saveDataOnScopeAs": "reportPhotoOrderInfo",
-     *      "dbName": "rmEFR2",
-     *      "dbTable": "Documents"
-     *  },
-     * ```
-     *
-     *
-     *
-     *
-     */
-    function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailViewerService, PubSub, $timeout) {
-
-        // TOO SPECIFIC TO RM RIGHT NOW!
-
-        function _render(ctx, scope, el, attrs, ctrls) {
-            var children = el.find(".no-thumbnail");
-            var noFileViewersHtml = _createFileViewers(_idList.map(function(blob, index) {
-                blob.OrderBy = angular.isNumber(blob.OrderBy) ? blob.OrderBy : index;
-                var fid = blob.FileID;
-                scope[formControlName][fid] = blob.Description;
-                return blob.FileID;
-            }), formControlName);
-            el.html($compile(noFileViewersHtml)(scope));
-
-            el.find("input").change(function() {
-                if (!isDirty) {
-                    isDirty = true;
-                    noThumbnailViewerService.changeToDirtyNavbar();
-                }
-                var fileId = this.parentElement.attributes['file-id'].value;
-                for (var j = 0; j < _idList.length; j++) {
-                    if (_idList[j].FileID === fileId) {
-                        _idList[j].Description = this.value;
-                        break;
-                    }
-                }
-            });
-
-        }
-
-        function _createFileViewers(fileIds, formControlName) {
-            var html = "";
-            for (var i = 0; i < fileIds.length; i++) {
-                // lol
-                html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileIds[i] + "\">";
-                html += "<no-file-viewer type=\"image\" show-as-image=\"yes\" file-id=\"" + fileIds[i] + "\">";
-                html += '</no-file-viewer>';
-                // html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
-                html += '<input class="form-control" ng-model=\"' + formControlName + "[\'" + fileIds[i] + '\']\" placeholder="Description">';
-                html += "</div>";
-            }
-            return html;
-        }
-
-
-        function _link(ctx, scope, el, attrs) {
-
-            formControlName = attrs.ngForm || "photoThumbnailForm";
-            scope[formControlName] = scope[formControlName] || {};
-
-            if (!!attrs.draggableThumbnails) {
-                scope.dragNdropConfig = {
-                    "provider": "noThumbnailViewerService",
-                    "palette": {
-                        "dataSource": {
-                            "provider": "noConfig",
-                            "method": "noPalette"
-                        }
-                    }
-                };
-
-            }
-
-            grid = el.parent().parent().find("grid").data("kendoGrid");
-
-            function _prerender() {
-                var d = grid.dataSource.data();
-                if (d && !!d.length) {
-                    d = d.toJSON().sort(function(a, b) {
-                        return a.OrderBy - b.OrderBy;
-                    });
-
-                    if (_idList[0] && (d[0].FileID === _idList[0].FileID)) return;
-
-                    _idList = d;
-                    isDirty = false;
-                    _render(ctx, scope, el, attrs);
-                    scope[scopeVal] = _idList;
-                } else {
-                    el.html("No Photos!");
-                }
-            }
-
-
-            renderFn = _prerender;
-
-            grid.bind("dataBound", _prerender);
-
-
-            var pubSubID = PubSub.subscribe("noTabs::change", function(tabInfo) {
-                _idList = [];
-            });
-
-
-            el.append("No Photos!");
-
-            el.on("$destroy", function() {
-                // ALWAYS CLEAN UP YOUR BINDINGS AND SUBSCRIPTIONS
-                grid.unbind("dataBound");
-                PubSub.unsubscribe(pubSubID);
-            });
-
-        }
-
-        function _compile(el, attrs) {
-            ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, {}, attrs.noForm);
-            scopeVal = ctx.component.noThumbnailViewer.saveDataOnScopeAs;
-            return _link.bind(null, ctx);
-        }
-
-        return {
-            restrict: "E",
-            compile: _compile
-        };
-    }
-
-    angular.module("noinfopath.ui")
-        .directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", "noThumbnailViewerService", "PubSub", "$timeout", NoThumbnailViewerDirective])
-        .service("noThumbnailViewerService", ["$compile", "$state", "noFormConfig", "PubSub", "noNavigationManager", "noTransactionCache",
-            "noLoginService", "$rootScope", "$q", NoThumbnailViewerService
-        ]);
+	angular.module("noinfopath.ui")
+		.directive("noThumbnailViewer", ["$compile", "$state", "noFormConfig", NoThumbnailViewerDirective])
+	;
 })(angular);
 
 (function (angular) {
@@ -2461,4 +2534,4 @@
     angular.module("noinfopath.ui")
         .run(["$rootScope", startup])
         .service("noNotificationService", ["$interval", "$rootScope", NoNotificationService]);
-})(angular);
+})(angular);
