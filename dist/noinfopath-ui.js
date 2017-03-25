@@ -1087,10 +1087,16 @@
 
 		}
 
-		function _refresh(resultType, dataSource, finish, error) {
+		function _refresh(resultType, dataSource, noDataPanel, finish, error) {
 			return dataSource[resultType]()
 				.then(finish)
-				.catch(error);
+				.catch(function(err){
+					if(noDataPanel.httpBadRequestAllowed){
+						finish({});
+					} else {
+						throw err;
+					}
+				});
 		}
 
 		function _error(scope, config, err) {
@@ -1184,7 +1190,7 @@
 
 			_curriedError = _error.bind(null, scope, _config);
 
-			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _curriedFinish, _curriedError);
+			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
 
 			_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, dataPanel, _dataSource, scope, _curriedRefresh);
 
@@ -1271,7 +1277,7 @@
 
 					_curriedError = _error.bind(null, scope, _config);
 
-					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _curriedFinish, _curriedError);
+					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
 
 					_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, _dataPanel, _dataSource, scope, _curriedRefresh);
 
