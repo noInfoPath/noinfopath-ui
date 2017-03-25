@@ -2534,4 +2534,4 @@
     angular.module("noinfopath.ui")
         .run(["$rootScope", startup])
         .service("noNotificationService", ["$interval", "$rootScope", NoNotificationService]);
-})(angular);
+})(angular);

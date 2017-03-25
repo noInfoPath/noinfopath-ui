@@ -206,4 +206,4 @@
 		//.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
 		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", NoFileViewer2Directive])
 	;
-})(angular /*, PDFJS, odf experimental code dependencies*/ );
+})(angular /*, PDFJS, odf experimental code dependencies*/ );
