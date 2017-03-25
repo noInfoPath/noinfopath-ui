@@ -40,8 +40,8 @@
 					//el.append("<input type=\"hidden\" data-bind=\"value:" + lookup.textField +  "\">");
 				} else {
 					sel.attr("ng-model", lookup.ngModel); //TODO replace with smarter logic
-					sel.attr("name", lookup.ngModel);
-					el.attr("name", lookup.ngModel)
+					sel.attr("name", lookup.name);
+					el.attr("name", lookup.name);
 				}
 
 			}
@@ -85,7 +85,7 @@
 				lookup = ctx.lookup,
 				sel = el.first();
 
-			
+
 
 			function populateDropDown(form, lookup) {
 				var dataSource = noDataSource.create(form.noDataSource, scope, scope);

@@ -19,6 +19,17 @@
 
 		el.html(iframe[0].outerHTML);
 	}
+
+	function renderIframe4(el, u) {
+		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\">iFrames not supported</iframe>");
+		el.html(iframe[0].outerHTML);
+	}
+
+	function renderImage4(el, u) {
+		var iframe = $("<img class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\"/>");
+		el.html(iframe[0].outerHTML);
+	}
+
 	function renderIframe2(el, n) {
 		var iframe = el.append("<iframe class=\"no-file-viewer no-flex-item size-1\">iFrames not supported</iframe>"),
 			url = window.URL || window.webkitURL,
@@ -139,6 +150,8 @@
 			el.html(tmp);
 
 			return function(scope, el, attrs) {
+				var unWatch;
+
 				scope.noFileViewer = {
 					refresh: _read.bind(null, el)
 				};
@@ -150,37 +163,34 @@
 					if(noInfoPath.isGuid(attrs.fileId)) {
 						render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
 					} else {
-						scope.$watch(attrs.waitFor, function(key, msg, n, o){
+						unWatch = scope.$watch(attrs.waitFor, function(key, msg, n, o){
 							//console.info("file-viewer watch: ", n, o);
 							//if(n && noInfoPath.isGuid(n.ID)) {
 							if(n) {
-								//scope.noFileViewer.fileId = noInfoPath.getItem(n, key);
-								_read(el, noInfoPath.getItem(n, key), msg);
-								// if(scope.noFileViewer.fileId) {
-								// } else {
-								// 	render(el, "FILE_NOT_FOUND");
-								// }
+
 							} else {
 								_clear();
 							}
 						}.bind(null, attrs.fileId, attrs.notFoundMessage));
-
-						// scope.$watchCollection(attrs.waitFor, function(n, o){
-						// 	//console.info("file-viewer watchCollection: ", n, o);
-						// 	if(n && noInfoPath.isGuid(n.ID)) {
-						// 		var fid = noInfoPath.getItem(n, attrs.fileId);
-						// 		_read(fid, el);
-						// 	} else {
-						// 		_clear();
-						// 	}
-						// });
 					}
 				}else{
-					scope.$watch(attrs.waitFor, function(n, o){
-						if(n && n.FileID) _read(el, n.FileID);
+					unWatch = scope.$watch(attrs.waitFor, function(n, o){
+						if(n) {
+							if(attrs.fitToWindow) {
+								renderImage4(el, n);
+							} else {
+								renderIframe4(el, n);
+							}
+						}
 					});
 				}
 
+				scope.$on("$destroy", function() {
+					if(unWatch) {
+						unWatch();
+						unWatch = null;
+					}
+				});
 
 			};
 
