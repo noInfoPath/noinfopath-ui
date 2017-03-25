@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.32* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.34* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.32 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.34 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -1087,10 +1087,16 @@
 
 		}
 
-		function _refresh(resultType, dataSource, finish, error) {
+		function _refresh(resultType, dataSource, noDataPanel, finish, error) {
 			return dataSource[resultType]()
 				.then(finish)
-				.catch(error);
+				.catch(function(err){
+					if(noDataPanel.httpBadRequestAllowed){
+						finish({});
+					} else {
+						throw err;
+					}
+				});
 		}
 
 		function _error(scope, config, err) {
@@ -1184,7 +1190,7 @@
 
 			_curriedError = _error.bind(null, scope, _config);
 
-			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _curriedFinish, _curriedError);
+			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
 
 			_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, dataPanel, _dataSource, scope, _curriedRefresh);
 
@@ -1271,7 +1277,7 @@
 
 					_curriedError = _error.bind(null, scope, _config);
 
-					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _curriedFinish, _curriedError);
+					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
 
 					_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, _dataPanel, _dataSource, scope, _curriedRefresh);
 
@@ -2182,7 +2188,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.32 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.34 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
