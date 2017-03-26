@@ -21,12 +21,14 @@
 	}
 
 	function renderIframe4(el, u) {
+		console.warn(u);
+
 		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\">iFrames not supported</iframe>");
 		el.html(iframe[0].outerHTML);
 	}
 
 	function renderImage4(el, u) {
-		var iframe = $("<img class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\"/>");
+		var iframe = $("<img class=\"no-file-viewer no-flex-item\" src=\"" + u + "\"/>");
 		el.html(iframe[0].outerHTML);
 	}
 
@@ -161,7 +163,13 @@
 					render(el, {type: attrs.type, blob: attrs.url});
 				} else if(attrs.fileId) {
 					if(noInfoPath.isGuid(attrs.fileId)) {
-						render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
+						var fo = {fileId: attrs.fileId, type: attrs.type};
+
+						noLocalFileSystem.read(fo, "fileId")
+							.then(function(result){
+								renderImage4(el, result.fileEntry.toURL());
+							});
+						//render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
 					} else {
 						unWatch = scope.$watch(attrs.waitFor, function(key, msg, n, o){
 							//console.info("file-viewer watch: ", n, o);
