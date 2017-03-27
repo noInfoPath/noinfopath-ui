@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.35* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.36* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.35 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.36 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -1016,12 +1016,14 @@
 							//noInfoPath.setItem(tmpScope, compKey, {}); //Possible BUG
 
 							var unwatch = scope.$watch(compKey, function(unwatch, n, o, s){
+								console.log(n, o);
 								if(n) {
 									noInfoPath.setItem(s, compKey, n);
 									if(unwatch) unwatch();
-									resolve(s);
 								}
 							}.bind(null, unwatch));
+
+							resolve(tmpScope);
 						}
 
 						tmpApi = noInfoPath.getItem(tmpScope, compKey + "_api");
@@ -1041,9 +1043,12 @@
 
 		function _placeModelOnScope(schema, scopeKey, scope, noWrapper) {
 			var srcModel = noInfoPath.getItem(scope, scopeKey),
-				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+				wrappedModel;
 
-			noInfoPath.setItem(scope, scopeKey, wrappedModel);
+			if(srcModel) {
+				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+				noInfoPath.setItem(scope, scopeKey, wrappedModel);
+			}
 		}
 
 		function _setupWatches(resultType, compKey, dataPanel, dataSource, scope, refresh) {
@@ -1116,6 +1121,22 @@
 			return resultType ? resultType : "one";
 		}
 
+		function _unfollow_data(schema, data) {
+			var foreignKeys = schema.foreignKeys || {};
+
+			for (var fks in foreignKeys) {
+
+				var fk = foreignKeys[fks],
+					datum = data[fk.column];
+
+				if (datum) {
+					data[fk.column] = datum[fk.refColumn] || datum;
+				}
+			}
+
+			return data;
+		}
+
 		function version1(stateName, scope, el, attrs, ctx) {
 			var _config,
 				_scope,
@@ -1182,7 +1203,7 @@
 
 			_scope = _resolveScope(dataPanel.saveOnRootScope, scope);
 
-			_dataSource = _resolveDataSource(ctx.datasource, scope, _watch);
+			_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, _watch);
 
 			_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope, true);
 
@@ -1221,8 +1242,19 @@
 			function __finish(ctx, stateName, resultType, dataSource, scope, data) {
 				if (resultType === "one") {
 					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
-					model.current = data;
-					model.commit();
+
+					if(model) {
+						model.current = data;
+						model.commit();
+
+						if(ctx.widget.saveOnScopeUnfollowedAs) {
+							scope[ctx.widget.saveOnScopeUnfollowedAs] = _unfollow_data(_schema, model.current);
+						}
+					} else {
+						noInfoPath.setItem(scope, ctx.component.scopeKey, data);
+					}
+
+
 				} else {
 					if (!_scope[ctx.component.scopeKey]) {
 						_scope[ctx.component.scopeKey] = [];
@@ -1269,7 +1301,7 @@
 				.then(function(scope) {
 					_scope = scope;
 
-					_dataSource = _resolveDataSource(ctx.datasource, scope, angular.noop);
+					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, angular.noop);
 
 					_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope);
 
@@ -1293,7 +1325,7 @@
 		}
 
 		function _link(scope, el, attrs) {
-			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope, attrs.noForm),
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noDataPanel", attrs.noForm),
 				ver = angular.extend({}, {
 					version: 1
 				}, ctx.component.noDataPanel).version, promise;
@@ -1307,9 +1339,11 @@
 
 			promise.then(function(unbinders){
 				scope.$on("$destroy", function (unbinders) {
-					unbinders.forEach(function (unbind) {
-						unbind();
-					});
+					if(unbinders) {
+						unbinders.forEach(function (unbind) {
+							unbind();
+						});
+					}
 				}.bind(null, unbinders));
 			});
 
@@ -1325,6 +1359,7 @@
 	angular.module("noinfopath.ui")
 		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", NoDataPanelDirective]);
 })(angular);
+
 //alpha-filter.js
 (function(angular, undefined) {
 	"use strict";
@@ -1793,13 +1828,14 @@
 	}
 
 	function renderIframe4(el, u) {
-		console.warn(u);
-
+		el.addClass("flex-stretch");
 		var iframe = $("<iframe class=\"no-file-viewer no-flex-item size-1\" src=\"" + u + "\">iFrames not supported</iframe>");
+
 		el.html(iframe[0].outerHTML);
 	}
 
 	function renderImage4(el, u) {
+		el.addClass("flex-center");
 		var iframe = $("<img class=\"no-file-viewer no-flex-item\" src=\"" + u + "\"/>");
 		el.html(iframe[0].outerHTML);
 	}
@@ -1838,19 +1874,6 @@
 
 	}
 
-	function renderImage(el, n) {
-
-
-		var c = el.find(".no-file-viewer"),
-			img = angular.element("<img>");
-
-		img.attr("src", n.url || n.blob);
-		//img.addClass("full-width");
-		img.css("height", "100%");
-		img.css("width", "100%");
-
-		c.html(img);
-	}
 
 	var mimeTypes = {
 		"application/pdf": renderIframe3,
@@ -1860,39 +1883,49 @@
 		"text/html": renderIframe3
 	};
 
-	function render(el, n, msg) {
 
-		$(el).empty();
+	function NoFileViewer2Directive($compile, $state, $timeout, noLocalFileSystem, noMimeTypes) {
 
-		switch(n) {
-			case "FILE_NOT_FOUND":
-				el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '>" + (msg || "File Not Found") + "</h3></div>");
-				break;
-			case "LOADING":
-				el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '><div class='progress'><div class=\"progress-bar progress-bar-info progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"100\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 100%\"></div></h3></div>");
-				break;
-			default:
-				var type = n.fileObj ? n.fileObj.type : n.type,
-					mime = type.toLowerCase().split("/");
+		function _render(el, n, msg) {
 
-				if(mime[0] === "image") {
-					mime = mime[0];
-				} else {
-					mime = type;
-				}
-				//removeViewerContainer(el);
-				if(msg) {
-					renderImage(el, n);
-				} else {
-					mimeTypes[mime](el, n);
-				}
-				break;
+			$(el).empty();
+
+			switch(n) {
+				case "FILE_NOT_FOUND":
+					el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '>" + (msg || "File Not Found") + "</h3></div>");
+					break;
+				case "LOADING":
+					el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '><div class='progress'><div class=\"progress-bar progress-bar-info progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"100\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 100%\"></div></h3></div>");
+					break;
+				default:
+					var url, type;
+
+					if(n.fileEntry) {
+						type = n.fileObj.type;
+						url = n.fileEntry.toURL();
+					} else if(n.blob) {
+						type = n.type;
+						url = n.blob;
+					}
+
+					//removeViewerContainer(el);
+
+					try{
+						if(noMimeTypes.isImage(n.fileObj ? n.fileObj.type : n.type)) {
+							renderImage4(el, url);
+						} else {
+							renderIframe4(el, url);
+						}
+					} catch(err) {
+						console.error(err);
+					}
+
+					break;
+
+			}
 
 		}
 
-	}
-
-	function NoFileViewer2Directive($compile, $state, $timeout, noLocalFileSystem) {
 		function _clear(el) {
 			$(".no-file-viewer",el).empty();
 		}
@@ -1903,16 +1936,16 @@
 				return noLocalFileSystem.getUrl(fileId)
 					.then(function(file){
 						if(!!file) {
-							render(el, file);
+							_render(el, file);
 						} else {
-							render(el, "FILE_NOT_FOUND");
+							_render(el, "FILE_NOT_FOUND");
 						}
 					})
 					.catch(function(err){
 						console.error(err);
 					});
 			} else {
-				render(el, "FILE_NOT_FOUND", notFoundMessage);
+				_render(el, "FILE_NOT_FOUND", notFoundMessage);
 			}
 
 		}
@@ -1932,14 +1965,18 @@
 
 				if(attrs.url) {
 					if(!attrs.type) throw "noFileViewer directive requires a type attribute when the url attribute is provided";
-					render(el, {type: attrs.type, blob: attrs.url});
+					_render(el, {type: attrs.type, blob: attrs.url});
 				} else if(attrs.fileId) {
-					if(noInfoPath.isGuid(attrs.fileId)) {
-						var fo = {fileId: attrs.fileId, type: attrs.type};
 
-						noLocalFileSystem.read(fo, "fileId")
+					if(noInfoPath.isGuid(attrs.fileId)) {
+						_render(el, "LOADING");
+						noLocalFileSystem.read({fileId: attrs.fileId, type: attrs.type}, "fileId")
 							.then(function(result){
-								renderImage4(el, result.fileEntry.toURL());
+								_render(el, result);
+							})
+							.catch(function(err){
+								console.error(err);
+								_render(el, "FILE_NOT_FOUND");
 							});
 						//render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
 					} else {
@@ -1948,21 +1985,31 @@
 							//if(n && noInfoPath.isGuid(n.ID)) {
 							if(n) {
 
+								noLocalFileSystem.read({fileId: n[attrs.fileId], type: n.type}, "fileId")
+									.then(function(result){
+										console.warn(result);
+										_render(el, result);
+									})
+									.catch(function(err){
+										console.error(err);
+										_render(el, "FILE_NOT_FOUND");
+									});
 							} else {
 								_clear();
 							}
 						}.bind(null, attrs.fileId, attrs.notFoundMessage));
 					}
 				}else{
-					unWatch = scope.$watch(attrs.waitFor, function(n, o){
-						if(n) {
-							if(attrs.fitToWindow) {
-								renderImage4(el, n);
-							} else {
-								renderIframe4(el, n);
-							}
-						}
-					});
+					// unWatch = scope.$watch(attrs.waitFor, function(n, o){
+					// 	if(n) {
+					// 		noLocalFileSystem.read({fileId: n, type: attrs.type}, "fileId")
+					// 			.then(function(result){
+					// 				render(el, result);
+					// 			});
+					// 	}
+					// });
+
+					console.warn("Possible dead code area.");
 				}
 
 				scope.$on("$destroy", function() {
@@ -1984,7 +2031,7 @@
 
 	angular.module("noinfopath.ui")
 		//.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
-		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", NoFileViewer2Directive])
+		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", "noMimeTypes", NoFileViewer2Directive])
 	;
 })(angular /*, PDFJS, odf experimental code dependencies*/ );
 //show.js
@@ -2194,7 +2241,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.35 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.36 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *

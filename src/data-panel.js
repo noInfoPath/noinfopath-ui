@@ -2,7 +2,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.35 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.36 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -97,12 +97,14 @@
 							//noInfoPath.setItem(tmpScope, compKey, {}); //Possible BUG
 
 							var unwatch = scope.$watch(compKey, function(unwatch, n, o, s){
+								console.log(n, o);
 								if(n) {
 									noInfoPath.setItem(s, compKey, n);
 									if(unwatch) unwatch();
-									resolve(s);
 								}
 							}.bind(null, unwatch));
+
+							resolve(tmpScope);
 						}
 
 						tmpApi = noInfoPath.getItem(tmpScope, compKey + "_api");
@@ -122,9 +124,12 @@
 
 		function _placeModelOnScope(schema, scopeKey, scope, noWrapper) {
 			var srcModel = noInfoPath.getItem(scope, scopeKey),
-				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+				wrappedModel;
 
-			noInfoPath.setItem(scope, scopeKey, wrappedModel);
+			if(srcModel) {
+				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+				noInfoPath.setItem(scope, scopeKey, wrappedModel);
+			}
 		}
 
 		function _setupWatches(resultType, compKey, dataPanel, dataSource, scope, refresh) {
@@ -197,6 +202,22 @@
 			return resultType ? resultType : "one";
 		}
 
+		function _unfollow_data(schema, data) {
+			var foreignKeys = schema.foreignKeys || {};
+
+			for (var fks in foreignKeys) {
+
+				var fk = foreignKeys[fks],
+					datum = data[fk.column];
+
+				if (datum) {
+					data[fk.column] = datum[fk.refColumn] || datum;
+				}
+			}
+
+			return data;
+		}
+
 		function version1(stateName, scope, el, attrs, ctx) {
 			var _config,
 				_scope,
@@ -263,7 +284,7 @@
 
 			_scope = _resolveScope(dataPanel.saveOnRootScope, scope);
 
-			_dataSource = _resolveDataSource(ctx.datasource, scope, _watch);
+			_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, _watch);
 
 			_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope, true);
 
@@ -302,8 +323,19 @@
 			function __finish(ctx, stateName, resultType, dataSource, scope, data) {
 				if (resultType === "one") {
 					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
-					model.current = data;
-					model.commit();
+
+					if(model) {
+						model.current = data;
+						model.commit();
+
+						if(ctx.widget.saveOnScopeUnfollowedAs) {
+							scope[ctx.widget.saveOnScopeUnfollowedAs] = _unfollow_data(_schema, model.current);
+						}
+					} else {
+						noInfoPath.setItem(scope, ctx.component.scopeKey, data);
+					}
+
+
 				} else {
 					if (!_scope[ctx.component.scopeKey]) {
 						_scope[ctx.component.scopeKey] = [];
@@ -350,7 +382,7 @@
 				.then(function(scope) {
 					_scope = scope;
 
-					_dataSource = _resolveDataSource(ctx.datasource, scope, angular.noop);
+					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, angular.noop);
 
 					_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope);
 
@@ -374,7 +406,7 @@
 		}
 
 		function _link(scope, el, attrs) {
-			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, scope, attrs.noForm),
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noDataPanel", attrs.noForm),
 				ver = angular.extend({}, {
 					version: 1
 				}, ctx.component.noDataPanel).version, promise;
@@ -388,9 +420,11 @@
 
 			promise.then(function(unbinders){
 				scope.$on("$destroy", function (unbinders) {
-					unbinders.forEach(function (unbind) {
-						unbind();
-					});
+					if(unbinders) {
+						unbinders.forEach(function (unbind) {
+							unbind();
+						});
+					}
 				}.bind(null, unbinders));
 			});
 
