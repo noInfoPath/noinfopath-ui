@@ -2351,7 +2351,7 @@
 			state.data.sorted.splice(spliceIndex, 0, photoThatWillBeReplaced);
 
 			for (var j = 0; j < state.data.sorted.length; j++) {
-				state.data.sorted[j].OrderBy = j;
+				state.data.sorted[j][widget.orderByField] = j;
 			}
 
 			childToMove = noThumbnailViewer.find(".no-thumbnail.dndDraggingSource");
@@ -2558,10 +2558,16 @@
 
 			if(!state.data.pristine) state.data.pristine = state.data.unsorted;
 
+
 			if (state.data.unsorted && !!state.data.unsorted.length) {
-				state.data.sorted = state.data.unsorted.sort(function (a, b) {
+				var sorted = state.data.unsorted.sort(function (a, b) {
 					return a[widget.orderByField] - b[widget.orderByField];
 				});
+
+                if(state.data.sorted[0]  && sorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])
+                    return;
+                else
+                    state.data.sorted = sorted;
 
 				if (state.data.sorted[0] && (state.data.unsorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])) {
 					_render(ctx, scope, state.element);
@@ -2617,7 +2623,7 @@
 			var pubSubID = PubSub.subscribe("noTabs::change", function (ctx, scope, tabInfo) {
 				var state = scope[ctx.componentType];
 
-				state.data.sorted = state.grid.dataSource.data().toJSON();
+				state.data.sorted = [];
 			}.bind(null, ctx, scope));
 
 
