@@ -2351,7 +2351,7 @@
 			state.data.sorted.splice(spliceIndex, 0, photoThatWillBeReplaced);
 
 			for (var j = 0; j < state.data.sorted.length; j++) {
-				state.data.sorted[j].OrderBy = j;
+				state.data.sorted[j][widget.orderByField] = j;
 			}
 
 			childToMove = noThumbnailViewer.find(".no-thumbnail.dndDraggingSource");
