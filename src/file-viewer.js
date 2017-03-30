@@ -104,10 +104,14 @@
 					//removeViewerContainer(el);
 
 					try{
-						if(noMimeTypes.isImage(n.fileObj ? n.fileObj.type : n.type)) {
-							renderImage4(el, url);
+						if(angular.isString(n)) {
+							el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '>" + (n || "File Not Found") + "</h3></div>");
 						} else {
-							renderIframe4(el, url);
+							if(noMimeTypes.isImage(n.fileObj ? n.fileObj.type : n.type)) {
+								renderImage4(el, url);
+							} else {
+								renderIframe4(el, url);
+							}
 						}
 					} catch(err) {
 						console.error(err);
@@ -131,7 +135,7 @@
 						if(!!file) {
 							_render(el, file);
 						} else {
-							_render(el, "FILE_NOT_FOUND");
+							_render(el, "FILE_NOT_FOUND", notFoundMessage);
 						}
 					})
 					.catch(function(err){
@@ -168,8 +172,7 @@
 								_render(el, result);
 							})
 							.catch(function(err){
-								console.error(err);
-								_render(el, "FILE_NOT_FOUND");
+								_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
 							});
 						//render(el, noLocalFileSystem.getUrl(attrs.fileId), !!attrs.showAsImage);
 					} else {
@@ -178,14 +181,12 @@
 							//if(n && noInfoPath.isGuid(n.ID)) {
 							if(n) {
 
-								noLocalFileSystem.read({fileId: n[attrs.fileId], type: n.type}, "fileId")
+								noLocalFileSystem.read({fileId: noInfoPath.getItem(n, attrs.fileId), type: noInfoPath.getItem(n, attrs.type)}, "fileId")
 									.then(function(result){
-										console.warn(result);
 										_render(el, result);
 									})
 									.catch(function(err){
-										console.error(err);
-										_render(el, "FILE_NOT_FOUND");
+										_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
 									});
 							} else {
 								_clear();

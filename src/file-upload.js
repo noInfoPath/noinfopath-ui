@@ -1,7 +1,7 @@
 //file-upload.js
 (function (angular, undefined) {
 
-	function NoFileUploadDirective1($q, $state, noLocalFileStorage, noFormConfig) {
+	function NoFileUploadDirective1($q, $state, noFileSystem, noFormConfig) {
 		function _done(comp, scope, el, blob) {
 			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
 
@@ -49,17 +49,14 @@
 						for(var i = 0; i < type.length; i++) {
 							var item = type[i];
 
-							promises.push(noLocalFileStorage.read(item, comp).finally(_progress, _progress));
-							// promises.push(noLocalFileStorage.read(item, comp)
-							// 	.then(_done.bind(null, comp, scope, el))
-							// 	.catch(_fault));
+							promises.push(noFileSystem.getBinaryString(item).finally(_progress, _progress));
 						}
 					}
 				} else {
 					var files = e.originalEvent.srcElement.files;
 					for(var fi = 0; fi < files.length; fi++) {
 						var file = files[fi];
-						promises.push(noLocalFileStorage.read(file, comp).finally(_progress, _progress));
+						promises.push(noFileSystem.getBinaryString(file).finally(_progress, _progress));
 					}
 				}
 
@@ -181,7 +178,7 @@
 		};
 	}
 
-	function NoFileUploadDirective2($q, $state, noLocalFileSystem, noLocalFileStorage, noFormConfig) {
+	function NoFileUploadDirective2($q, $state, noLocalFileSystem, noFormConfig) {
 		function _done(comp, scope, el, blob) {
 			var allScopeDocs = noInfoPath.getItem(scope, comp.ngModel);
 
@@ -343,6 +340,5 @@
 	}
 
 	angular.module("noinfopath.ui")
-//		.directive("noFileUpload", ["$q", "$state", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective2]);
-		.directive("noFileUpload", ["$q", "$state", "noLocalFileSystem", "noLocalFileStorage", "noFormConfig", NoFileUploadDirective2]);
+		.directive("noFileUpload", ["$q", "$state", "noLocalFileSystem", "noFormConfig", NoFileUploadDirective2]);
 })(angular);

@@ -97,7 +97,7 @@
 							//noInfoPath.setItem(tmpScope, compKey, {}); //Possible BUG
 
 							var unwatch = scope.$watch(compKey, function(unwatch, n, o, s){
-								console.log(n, o);
+								//console.log(n, o);
 								if(n) {
 									noInfoPath.setItem(s, compKey, n);
 									if(unwatch) unwatch();
