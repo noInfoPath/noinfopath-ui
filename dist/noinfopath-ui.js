@@ -2620,7 +2620,7 @@
 			var pubSubID = PubSub.subscribe("noTabs::change", function (ctx, scope, tabInfo) {
 				var state = scope[ctx.componentType];
 
-				state.data.sorted = [];
+				// state.data.sorted = [];
 			}.bind(null, ctx, scope));
 
 
