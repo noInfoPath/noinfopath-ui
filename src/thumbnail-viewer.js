@@ -3,7 +3,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.37 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.40 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -385,7 +385,7 @@
 			var pubSubID = PubSub.subscribe("noTabs::change", function (ctx, scope, tabInfo) {
 				var state = scope[ctx.componentType];
 
-				state.data.sorted = [];
+				// state.data.sorted = [];
 			}.bind(null, ctx, scope));
 
 
