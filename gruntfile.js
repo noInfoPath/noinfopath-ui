@@ -59,7 +59,8 @@ module.exports = function(grunt) {
             "src/thumbnail-viewer.js",
             "src/dnd-cover.js",
             "src/notify.js",
-			"src/prompt.js"
+			"src/prompt.js",
+			"src/checkbox.js"
           ],
           dest: "dist/<%= pkg.shortName %>.js"
         },
