@@ -101,10 +101,12 @@
 						url = n.blob;
 					}
 
+
 					//removeViewerContainer(el);
 
 					try{
 						if(angular.isString(n)) {
+							console.log(url, type);
 							el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '>" + (n || "File Not Found") + "</h3></div>");
 						} else {
 							if(noMimeTypes.isImage(n.fileObj ? n.fileObj.type : n.type)) {

@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.40* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.41* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.40 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.41 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -1904,10 +1904,12 @@
 						url = n.blob;
 					}
 
+
 					//removeViewerContainer(el);
 
 					try{
 						if(angular.isString(n)) {
+							console.log(url, type);
 							el.html("<div class='flex-center flex-middle no-flex no-flex-item size-1 vertical'><h3 class='no-flex-item '>" + (n || "File Not Found") + "</h3></div>");
 						} else {
 							if(noMimeTypes.isImage(n.fileObj ? n.fileObj.type : n.type)) {
@@ -2238,7 +2240,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.40 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.41 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -2487,8 +2489,10 @@
 	function NoThumbnailViewerDirective($compile, $state, noFormConfig, noThumbnailViewerService, PubSub, $timeout) {
 
 		// TOO SPECIFIC TO RM RIGHT NOW!
-
+		var cnt = 0;
 		function _render(ctx, scope, el) {
+			cnt--;
+			
 			var state = scope[ctx.componentType],
 				widget = ctx.widget,
 				children = el.find(".no-thumbnail"), //???
@@ -2496,6 +2500,7 @@
 
 				state.hash = {};
 
+				console.log("state.data.sorted", !!state.data.sorted.length);
 				noFileViewersHtml = _createFileViewers(state.data.sorted.map(function (fileObj, index) {
 					var fid = fileObj[widget.fileIdField];
 
@@ -2541,30 +2546,40 @@
 				html += "<no-file-viewer height=\"" + (widget.height || "50%") + "\" width=\"" + (widget.width || "50%") + "\" show-as-image=\"yes\" file-id=\"" + fileIds[i][widget.fileIdField] + "\" type=\"" + fileIds[i][widget.typeField]  + "\">";
 				html += "</no-file-viewer>";
 				// html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
-				html += "<input class=\"form-control\" ng-model=\"noThumbnailViewer.hash['" + fileIds[i][widget.fileIdField] + "']." + widget.descriptionField +  "\" placeholder=\"Description\">";
+				html += "<input class=\"form-control\" ng-model=\"noThumbnailViewer.hash['" + fileIds[i][widget.fileIdField] + "']." + widget.descriptionField +  "\" placeholder=\"" + (!!fileIds[i][widget.descriptionField] ?  fileIds[i][widget.descriptionField] : fileIds[i].name) + "\">";
 				html += "</div>";
 			}
 			return html;
 		}
 
+
 		function _prerender(ctx, scope) {
+			console.log("noThumbnailViewer::_prerender", cnt++);
+
 			var state = scope[ctx.componentType],
 				widget = ctx.widget;
 
 			state.data.unsorted = state.grid.dataSource.data().toJSON();
 
-			if(!state.data.pristine) state.data.pristine = state.data.unsorted;
 
+			//if(!state.data.pristine)
+			state.data.pristine = state.data.unsorted;
+
+			console.log("state.data.unsorted", !!state.data.unsorted.length);
 
 			if (state.data.unsorted && !!state.data.unsorted.length) {
 				var sorted = state.data.unsorted.sort(function (a, b) {
 					return a[widget.orderByField] - b[widget.orderByField];
 				});
 
-                if(state.data.sorted[0]  && sorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])
-                    return;
-                else
-                    state.data.sorted = sorted;
+                // if(state.data.sorted[0]  && sorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])
+                // {
+				// 	console.log(cnt++);
+				// 	//return;
+				// } else {
+				// 	console.log(cnt--);
+				// }
+				state.data.sorted = sorted;
 
 				if (state.data.sorted[0] && (state.data.unsorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])) {
 					_render(ctx, scope, state.element);
@@ -2614,6 +2629,7 @@
 
 			}
 
+			console.log("XXXX");
 			state.grid.bind("dataBound", _prerender.bind(null, ctx, scope));
 
 
