@@ -2,7 +2,7 @@
 
 ___
 
-[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.41 *
+[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.42 *
 
 [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 
