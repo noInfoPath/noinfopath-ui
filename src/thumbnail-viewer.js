@@ -255,7 +255,7 @@
 		var cnt = 0;
 		function _render(ctx, scope, el) {
 			cnt--;
-			
+
 			var state = scope[ctx.componentType],
 				widget = ctx.widget,
 				children = el.find(".no-thumbnail"), //???
@@ -317,8 +317,6 @@
 
 
 		function _prerender(ctx, scope) {
-			console.log("noThumbnailViewer::_prerender", cnt++);
-
 			var state = scope[ctx.componentType],
 				widget = ctx.widget;
 
@@ -392,7 +390,6 @@
 
 			}
 
-			console.log("XXXX");
 			state.grid.bind("dataBound", _prerender.bind(null, ctx, scope));
 
 

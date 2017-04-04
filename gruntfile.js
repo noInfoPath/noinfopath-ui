@@ -60,7 +60,8 @@ module.exports = function(grunt) {
             "src/dnd-cover.js",
             "src/notify.js",
 			"src/prompt.js",
-			"src/checkbox.js"
+			"src/checkbox.js",
+			"src/no-list-source.js"
           ],
           dest: "dist/<%= pkg.shortName %>.js"
         },

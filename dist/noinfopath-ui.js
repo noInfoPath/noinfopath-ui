@@ -1043,10 +1043,11 @@
 
 		function _placeModelOnScope(schema, scopeKey, scope, noWrapper) {
 			var srcModel = noInfoPath.getItem(scope, scopeKey),
-				wrappedModel;
+				wrappedModel,
+				entityCfg = noInfoPath.getItem(scope, "noDbSchema_" + schema.databaseName).entity(schema.entityName);
 
 			if(srcModel) {
-				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(entityCfg, srcModel);
 				noInfoPath.setItem(scope, scopeKey, wrappedModel);
 			}
 		}
@@ -1244,11 +1245,14 @@
 					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
 
 					if(model) {
-						model.current = data;
-						model.commit();
-
 						if(ctx.widget.saveOnScopeUnfollowedAs) {
-							scope[ctx.widget.saveOnScopeUnfollowedAs] = _unfollow_data(_schema, model.current);
+							model.current = _unfollow_data(_schema, data);
+							model.commit();
+							//scope[ctx.widget.saveOnScopeUnfollowedAs] =  data;
+						} else {
+							model.current = data;
+							model.commit();
+
 						}
 					} else {
 						noInfoPath.setItem(scope, ctx.component.scopeKey, data);
@@ -2492,7 +2496,7 @@
 		var cnt = 0;
 		function _render(ctx, scope, el) {
 			cnt--;
-			
+
 			var state = scope[ctx.componentType],
 				widget = ctx.widget,
 				children = el.find(".no-thumbnail"), //???
@@ -2554,8 +2558,6 @@
 
 
 		function _prerender(ctx, scope) {
-			console.log("noThumbnailViewer::_prerender", cnt++);
-
 			var state = scope[ctx.componentType],
 				widget = ctx.widget;
 
@@ -2629,7 +2631,6 @@
 
 			}
 
-			console.log("XXXX");
 			state.grid.bind("dataBound", _prerender.bind(null, ctx, scope));
 
 
@@ -3314,7 +3315,7 @@
 		}
 
 		return {
-			restrict: "AE",
+			restrict: "E",
 			link: _link
 		};
 
@@ -3322,5 +3323,89 @@
 
 	angular.module("noinfopath.ui")
 		.directive("noCheckbox", ["$state", "noFormConfig", "noActionQueue", NoCheckboxDirective])
+	;
+})(angular);
+
+//btn-group.js
+(function(angular, undefined) {
+	/**
+	*	### NoCheckboxDirective
+	*
+	*	Extands a standard checkbox element to support noActionQueue configurations
+	*	that are store in `area.json` files.
+	*
+	*
+	*	#### Configuration
+	*
+	*	```json
+	*
+	*	{
+	*		myButtonConfig: {
+				"actions": [
+	*				{
+	*					"provider": "$state",
+	*					"method": "go",
+	*					"noContextParams": true,
+	*					"params": [
+	*						"efr.project.search",
+	*						{
+	*							"provider": "noStateHelper",
+	*							"method": "makeStateParams",
+	*							"params": [
+	*								{
+	*									"key": "id",
+	*									"provider": "scope",
+	*									"property": "document.ProjectID.ID"
+	*								}
+	*							],
+	*							"passLocalScope": true
+	*						}
+	*					]
+	*				}
+	*			]
+	*		}
+	*	}
+	*
+	*	```
+	*
+	*/
+	function NoListSourceDirective($state, noFormConfig, noDataSource){
+		function _link(scope, el, attrs, select) {
+			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noListSource", attrs.noForm),
+				lookup = ctx.component.noLookup,
+				dataSource = noDataSource.create(ctx.component.noDataSource, scope),
+				sel = el
+				;
+
+			dataSource.read()
+				.then(function(data) {
+					//scope[form.scopeKey] = data;
+					sel.empty();
+					//select.addOption("", sel.append("<option value=\"\" selected></option>"));
+					data.paged.forEach(function(data){
+						select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
+					});
+				})
+				.catch(function(err) {
+					console.error(err);
+					throw new Error(err);
+					// scope.waitingForError = {
+					// 	error: err,
+					// 	src: config
+					// };
+				});
+
+		}
+
+		return {
+			restrict: "A",
+			require: "?select",
+			link: _link
+		};
+
+	}
+
+	angular.module("noinfopath.ui")
+		.directive("noListSource", ["$state", "noFormConfig", "noDataSource", NoListSourceDirective])
 	;
 })(angular);

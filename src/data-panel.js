@@ -124,10 +124,11 @@
 
 		function _placeModelOnScope(schema, scopeKey, scope, noWrapper) {
 			var srcModel = noInfoPath.getItem(scope, scopeKey),
-				wrappedModel;
+				wrappedModel,
+				entityCfg = noInfoPath.getItem(scope, "noDbSchema_" + schema.databaseName).entity(schema.entityName);
 
 			if(srcModel) {
-				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(schema, srcModel);
+				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(entityCfg, srcModel);
 				noInfoPath.setItem(scope, scopeKey, wrappedModel);
 			}
 		}
@@ -325,11 +326,14 @@
 					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
 
 					if(model) {
-						model.current = data;
-						model.commit();
-
 						if(ctx.widget.saveOnScopeUnfollowedAs) {
-							scope[ctx.widget.saveOnScopeUnfollowedAs] = _unfollow_data(_schema, model.current);
+							model.current = _unfollow_data(_schema, data);
+							model.commit();
+							//scope[ctx.widget.saveOnScopeUnfollowedAs] =  data;
+						} else {
+							model.current = data;
+							model.commit();
+
 						}
 					} else {
 						noInfoPath.setItem(scope, ctx.component.scopeKey, data);
