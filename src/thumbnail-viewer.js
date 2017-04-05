@@ -81,7 +81,7 @@
 		var SELF = this;
 
 		function _dragstart (ctx, event, scope, element, droppedInfo, datasource) {
-			var fileid = element.children().attr("file-id");
+			var fileid = element.attr("file-id");
 			console.log("we dragging");
 			return fileid;
 		}
@@ -281,7 +281,7 @@
 
 			// Deal with the annoying stretching we need position: static, but we need position: absolute if there
 			// are a lot of thumbnails to prevent smooshing and overflow
-			state.element.toggleClass("lots-of-pictures", state.data.sorted.length > 3);
+			state.element.toggleClass("lots-of-pictures", state.data.sorted.length > 6);
 
 			el.find("input[type=\"text\"]").change(function (ctx, scope, e) {
 				var THAT = e.currentTarget,
@@ -320,14 +320,13 @@
 				var fileId = fileIds[i][widget.fileIdField];
 				// lol
 				html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileId + "\">";
-				html += "<no-file-viewer height=\"" + (widget.height || "50%") + "\" width=\"" + (widget.width || "50%") + "\" show-as-image=\"yes\" file-id=\"" + fileId + "\" type=\"" + fileIds[i][widget.typeField]  + "\">";
-				html += "</no-file-viewer>";
-				// html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
-				html += "<div>";
-				html += "<input class=\"form-control\" type=\"checkbox\">";
-				html += "<button type=\"button\" class=\"btn btn-clear btn-xs\" ui-sref=\"efr.report.document({id:'"+ fileId+ "'})\"><span class=\"glyphicon glyphicon-zoom-in\"></span></button>";
-				html += "<input type=\"text\" class=\"form-control\" ng-model=\"noThumbnailViewer.hash['" + fileId + "']." + widget.descriptionField +  "\" placeholder=\"" + (!!fileIds[i][widget.descriptionField] ?  fileIds[i][widget.descriptionField] : fileIds[i].name) + "\">";
-				html += "</div>";
+					html += "<div class=\"toolbar\">";
+						html += "<input\ tabindex=\"-1\" type=\"checkbox\">";
+						html += "<button type=\"button\" class=\"btn btn-clear btn-xs\" tabindex=\"-1\" ui-sref=\"efr.report.document({id:'"+ fileId+ "'})\"><span class=\"glyphicon glyphicon-zoom-in\"></span></button>";
+					html += "</div>";
+					html += "<no-file-viewer height=\"" + (widget.height || "50%") + "\" width=\"" + (widget.width || "50%") + "\" show-as-image=\"yes\" file-id=\"" + fileId + "\" type=\"" + fileIds[i][widget.typeField]  + "\">";
+					html += "</no-file-viewer>";
+					html += "<input type=\"text\" class=\"form-control\" ng-model=\"noThumbnailViewer.hash['" + fileId + "']." + widget.descriptionField +  "\" placeholder=\"" + (!!fileIds[i][widget.descriptionField] ?  fileIds[i][widget.descriptionField] : fileIds[i].name) + "\">";
 				html += "</div>";
 			}
 			return html;
