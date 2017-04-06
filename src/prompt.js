@@ -224,6 +224,10 @@
 					// a 'transition prevented' error
 				});
 
+				if(options.beforeShow) {
+					options.beforeShow(box.scope(), box);
+				}
+
 				cover.removeClass("ng-hide");
 			}
 
