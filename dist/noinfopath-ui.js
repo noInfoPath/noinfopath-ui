@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.42* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.43* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.42 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.43 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -1245,15 +1245,29 @@
 					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
 
 					if(model) {
-						if(ctx.widget.saveOnScopeUnfollowedAs) {
-							model.current = _unfollow_data(_schema, data);
-							model.commit();
-							//scope[ctx.widget.saveOnScopeUnfollowedAs] =  data;
-						} else {
-							model.current = data;
-							model.commit();
 
+						//save new data to the scope, with object values resolved.
+						model.current = noInfoPath.data.NoDataModel.clean(data, _schema);
+						model.commit();
+						noInfoPath.setItem(scope, ctx.component.scopeKey, model);
+
+						if(ctx.widget.saveFollowed) {
+							noInfoPath.setItem(scope, ctx.component.scopeKey, data);
 						}
+
+						for(var c in _schema.columns) {
+							var col = _schema.columns[c],
+								ctrl = model[c];
+
+
+							if(ctrl) {
+								if(ctrl.$viewValue === "[object Object]") {
+									noInfoPath.data.NoDataModel.ngModelHack(ctrl, data[c]);
+								}
+								console.log(c, ctrl, ctrl.$viewValue, data[c]);
+							}
+						}
+
 					} else {
 						noInfoPath.setItem(scope, ctx.component.scopeKey, data);
 					}
@@ -2244,7 +2258,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.42 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.43 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
