@@ -165,7 +165,7 @@ module.exports = function(grunt) {
   grunt.registerTask("test-menu", ["karma:menu"]);
   grunt.registerTask("build", ["karma:continuous", "bumpup","version","concat:noinfopath","nodocs:internal","concat:readme"]);
   grunt.registerTask("document", ["concat:noinfopath", "nodocs:wiki"]);
-  grunt.registerTask("release", ["bumpup", "version", "updateWiki", "concat:dexie", "copy:wiki", "concat:wikiHome", "concat:readme"]);
+  grunt.registerTask("release", ["bumpup", "version", "updateWiki", "concat:noinfopath", "copy:wiki", "concat:wikiHome", "concat:readme"]);
   grunt.registerTask("updateWiki", ["document", "wikiWack"]);
   grunt.registerTask("wikiWack", ["shell:wiki1", "concat:wikiHome", "copy:wiki", "shell:wiki2"]);
 };
