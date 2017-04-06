@@ -2277,7 +2277,7 @@
 (function (angular, undefined) {
 	"use strict";
 
-	var _idList, backupData, droppedId, scopeVal, ctx, grid, formControlName, isDirty = false,
+	var _idList, backupData, droppedId, scopeVal, ctx, formControlName, isDirty = false,
 		renderFn;
 
 
@@ -2336,7 +2336,7 @@
 		var SELF = this;
 
 		function _dragstart (ctx, event, scope, element, droppedInfo, datasource) {
-			var fileid = element.children().attr("file-id");
+			var fileid = element.attr("file-id");
 			console.log("we dragging");
 			return fileid;
 		}
@@ -2534,7 +2534,11 @@
 
 			el.html($compile(noFileViewersHtml)(scope));
 
-			el.find("input").change(function (ctx, scope, e) {
+			// Deal with the annoying stretching we need position: static, but we need position: absolute if there
+			// are a lot of thumbnails to prevent smooshing and overflow
+			state.element.toggleClass("lots-of-pictures", state.data.sorted.length > 6);
+
+			el.find("input[type=\"text\"]").change(function (ctx, scope, e) {
 				var THAT = e.currentTarget,
 					state = scope[ctx.componentType],
 					widget = ctx.widget,
@@ -2554,17 +2558,30 @@
 				}
 			}.bind(null, ctx, scope));
 
+			el.find("input[type=\"checkbox\"]").change(function() {
+				var fileId = this.parentElement.parentElement.attributes['file-id'].value;
+				angular.element("grid input[value=\"" + fileId + "\"]").prop("checked", this.checked);
+				var grid = state.grid.element,
+					allCheckBoxes = grid.find('tbody input:checkbox:checked');
+
+				PubSub.publish("noGrid::rowsChecked", {grid: grid, allCheckBoxes: allCheckBoxes});
+			});
+
 		}
 
 		function _createFileViewers(fileIds, formControlName) {
 			var html = "", widget = ctx.component.noThumbnailViewer;
 			for (var i = 0; i < fileIds.length; i++) {
+				var fileId = fileIds[i][widget.fileIdField];
 				// lol
-				html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileIds[i][widget.fileIdField] + "\">";
-				html += "<no-file-viewer height=\"" + (widget.height || "50%") + "\" width=\"" + (widget.width || "50%") + "\" show-as-image=\"yes\" file-id=\"" + fileIds[i][widget.fileIdField] + "\" type=\"" + fileIds[i][widget.typeField]  + "\">";
-				html += "</no-file-viewer>";
-				// html += '<input class="form-control" name=\"'+ fileIds[i] + '\" ng-model=\"' + scopeVal + '[fileIdOrderMap[\'' + fileIds[i] + '\']].Description\" placeholder="Description">';
-				html += "<input class=\"form-control\" ng-model=\"noThumbnailViewer.hash['" + fileIds[i][widget.fileIdField] + "']." + widget.descriptionField +  "\" placeholder=\"" + (!!fileIds[i][widget.descriptionField] ?  fileIds[i][widget.descriptionField] : fileIds[i].name) + "\">";
+				html += "<div class=\"no-thumbnail\" dnd-draggable file-id=\"" + fileId + "\">";
+					html += "<div class=\"toolbar\">";
+						html += "<input\ tabindex=\"-1\" type=\"checkbox\">";
+						html += "<button type=\"button\" class=\"btn btn-clear btn-xs\" tabindex=\"-1\" ui-sref=\"efr.report.document({id:'"+ fileId+ "'})\"><span class=\"glyphicon glyphicon-zoom-in\"></span></button>";
+					html += "</div>";
+					html += "<no-file-viewer height=\"" + (widget.height || "50%") + "\" width=\"" + (widget.width || "50%") + "\" show-as-image=\"yes\" file-id=\"" + fileId + "\" type=\"" + fileIds[i][widget.typeField]  + "\">";
+					html += "</no-file-viewer>";
+					html += "<input type=\"text\" class=\"form-control\" ng-model=\"noThumbnailViewer.hash['" + fileId + "']." + widget.descriptionField +  "\" placeholder=\"" + (!!fileIds[i][widget.descriptionField] ?  fileIds[i][widget.descriptionField] : fileIds[i].name) + "\">";
 				html += "</div>";
 			}
 			return html;
@@ -2588,13 +2605,11 @@
 					return a[widget.orderByField] - b[widget.orderByField];
 				});
 
-                // if(state.data.sorted[0]  && sorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])
-                // {
-				// 	console.log(cnt++);
-				// 	//return;
-				// } else {
-				// 	console.log(cnt--);
-				// }
+				// We do not want to cause a rerender if what is already rendered is fine
+                if(state.data.sorted[0] && state.data.sorted.length === sorted.length && sorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])
+					return;
+
+
 				state.data.sorted = sorted;
 
 				if (state.data.sorted[0] && (state.data.unsorted[0][widget.fileIdField] === state.data.sorted[0][widget.fileIdField])) {
@@ -2608,6 +2623,7 @@
 
 				//scope[scopeVal] = sorted;
 			} else {
+				state.data.sorted = [];
 				state.element.html("No Photos!");
 			}
 		}
