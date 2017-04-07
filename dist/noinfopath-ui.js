@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.45* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.46* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -905,7 +905,7 @@
 		}
 
 		return {
-			restrict: "AE",
+			restrict: "A",
 			link: _link
 		};
 
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.45 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.46 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -2050,7 +2050,7 @@
 		//.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
 		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", "noMimeTypes", NoFileViewer2Directive])
 	;
-})(angular /*, PDFJS, odf experimental code dependencies*/ );
+})(angular /*, PDFJS, odf experimental code dependencies*/ );
 //show.js
 (function(angular, undefined){
 	"use strict";
@@ -2258,7 +2258,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.45 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.46 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -3332,7 +3332,7 @@
 		function _link(scope, el, attrs) {
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noCheckbox", attrs.noForm);
 
-			el.change(function (e) {
+			el.click(function (e) {
 				e.preventDefault();
 
 				var execQueue = noActionQueue.createQueue(ctx, scope, el, ctx.component.actions);
@@ -3349,7 +3349,7 @@
 		}
 
 		return {
-			restrict: "E",
+			restrict: "A",
 			link: _link
 		};
 

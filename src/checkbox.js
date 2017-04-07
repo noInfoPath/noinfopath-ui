@@ -47,7 +47,7 @@
 		function _link(scope, el, attrs) {
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noCheckbox", attrs.noForm);
 
-			el.change(function (e) {
+			el.click(function (e) {
 				e.preventDefault();
 
 				var execQueue = noActionQueue.createQueue(ctx, scope, el, ctx.component.actions);
@@ -64,7 +64,7 @@
 		}
 
 		return {
-			restrict: "E",
+			restrict: "A",
 			link: _link
 		};
 

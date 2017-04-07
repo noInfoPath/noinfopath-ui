@@ -140,7 +140,7 @@
 		}
 
 		return {
-			restrict: "AE",
+			restrict: "A",
 			link: _link
 		};
 
