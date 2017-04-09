@@ -2050,7 +2050,7 @@
 		//.directive("noPdfViewer", ["$state", "noFormConfig", NoInfoPathPDFViewerDirective])
 		.directive("noFileViewer", ["$compile", "$state", "$timeout", "noLocalFileSystem", "noMimeTypes", NoFileViewer2Directive])
 	;
-})(angular /*, PDFJS, odf experimental code dependencies*/ );
+})(angular /*, PDFJS, odf experimental code dependencies*/ );
 //show.js
 (function(angular, undefined){
 	"use strict";
@@ -3333,17 +3333,17 @@
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noCheckbox", attrs.noForm);
 
 			el.click(function (e) {
-				e.preventDefault();
+				//e.preventDefault();
 
-				var execQueue = noActionQueue.createQueue(ctx, scope, el, ctx.component.actions);
-
-				return noActionQueue.synchronize(execQueue)
-					.then(function (results) {
-						//console.log(results);
-					})
-					.catch(function (err) {
-						throw err;
-					});
+				// var execQueue = noActionQueue.createQueue(ctx, scope, el, ctx.component.actions);
+				//
+				// return noActionQueue.synchronize(execQueue)
+				// 	.then(function (results) {
+				// 		//console.log(results);
+				// 	})
+				// 	.catch(function (err) {
+				// 		throw err;
+				// 	});
 
 			});
 		}
