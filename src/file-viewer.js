@@ -99,6 +99,8 @@
 					} else if(n.blob) {
 						type = n.type;
 						url = n.blob;
+					} else if(n.url) {
+						url = n.url;
 					}
 
 
@@ -182,28 +184,33 @@
 							//console.info("file-viewer watch: ", n, o);
 							//if(n && noInfoPath.isGuid(n.ID)) {
 							if(n) {
+								if(attrs.useLocalFileSystem === false) {
+									_render(el, {url: n, type: noMimeTypes.fromFileName(n)});
+								} else {
+									noLocalFileSystem.read({fileId: noInfoPath.getItem(n, attrs.fileId), type: noInfoPath.getItem(n, attrs.type)}, "fileId")
+										.then(function(result){
+											_render(el, result);
+										})
+										.catch(function(err){
+											_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
+										});
+								}
 
-								noLocalFileSystem.read({fileId: noInfoPath.getItem(n, attrs.fileId), type: noInfoPath.getItem(n, attrs.type)}, "fileId")
-									.then(function(result){
-										_render(el, result);
-									})
-									.catch(function(err){
-										_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
-									});
 							} else {
 								_clear();
 							}
 						}.bind(null, attrs.fileId, attrs.notFoundMessage));
 					}
 				}else{
-					// unWatch = scope.$watch(attrs.waitFor, function(n, o){
-					// 	if(n) {
-					// 		noLocalFileSystem.read({fileId: n, type: attrs.type}, "fileId")
-					// 			.then(function(result){
-					// 				render(el, result);
-					// 			});
-					// 	}
-					// });
+					unWatch = scope.$watch(attrs.waitFor, function(key, msg, n, o){
+						//console.info("file-viewer watch: ", n, o);
+						//if(n && noInfoPath.isGuid(n.ID)) {
+						if(n) {
+							_render(el, {url: n, type: noMimeTypes.fromFileName(n)});
+						} else {
+							_clear();
+						}
+					}.bind(null, attrs.fileId, attrs.notFoundMessage));
 
 					console.warn("Possible dead code area.");
 				}
