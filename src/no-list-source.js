@@ -51,10 +51,12 @@
 
 			dataSource.read()
 				.then(function(data) {
-					//scope[form.scopeKey] = data;
+					scope[ctx.component.scopeKey] = data;
 					sel.empty();
 					//select.addOption("", sel.append("<option value=\"\" selected></option>"));
-					data.paged.forEach(function(data){
+					data.paged.forEach(function(data, k){
+						var selected = k === 0 ? " selected" : "";
+
 						select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
 					});
 				})
