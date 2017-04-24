@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.49* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.50* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -921,7 +921,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.49 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.50 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -1264,7 +1264,7 @@
 								if(ctrl.$viewValue === "[object Object]") {
 									noInfoPath.data.NoDataModel.ngModelHack(ctrl, data[c]);
 								}
-								console.log(c, ctrl, ctrl.$viewValue, data[c]);
+								//console.log(c, ctrl, ctrl.$viewValue, data[c]);
 							}
 						}
 
@@ -2008,13 +2008,20 @@
 								if(attrs.useLocalFileSystem === false) {
 									_render(el, {url: n, type: noMimeTypes.fromFileName(n)});
 								} else {
-									noLocalFileSystem.read({fileId: noInfoPath.getItem(n, attrs.fileId), type: noInfoPath.getItem(n, attrs.type)}, "fileId")
-										.then(function(result){
-											_render(el, result);
-										})
-										.catch(function(err){
-											_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
-										});
+									var fileID  = noInfoPath.getItem(n, attrs.fileId);
+
+									if(fileID) {
+										noLocalFileSystem.read({fileId: fileID, type: noInfoPath.getItem(n, attrs.type)}, "fileId")
+											.then(function(result){
+												_render(el, result);
+											})
+											.catch(function(err){
+												_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
+											});
+									} else {
+										_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
+									}
+
 								}
 
 							} else {
@@ -2265,7 +2272,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.49 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.50 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *

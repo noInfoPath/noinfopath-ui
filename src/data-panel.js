@@ -2,7 +2,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.49 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.50 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -345,7 +345,7 @@
 								if(ctrl.$viewValue === "[object Object]") {
 									noInfoPath.data.NoDataModel.ngModelHack(ctrl, data[c]);
 								}
-								console.log(c, ctrl, ctrl.$viewValue, data[c]);
+								//console.log(c, ctrl, ctrl.$viewValue, data[c]);
 							}
 						}
 

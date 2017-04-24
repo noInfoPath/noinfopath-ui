@@ -187,13 +187,20 @@
 								if(attrs.useLocalFileSystem === false) {
 									_render(el, {url: n, type: noMimeTypes.fromFileName(n)});
 								} else {
-									noLocalFileSystem.read({fileId: noInfoPath.getItem(n, attrs.fileId), type: noInfoPath.getItem(n, attrs.type)}, "fileId")
-										.then(function(result){
-											_render(el, result);
-										})
-										.catch(function(err){
-											_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
-										});
+									var fileID  = noInfoPath.getItem(n, attrs.fileId);
+
+									if(fileID) {
+										noLocalFileSystem.read({fileId: fileID, type: noInfoPath.getItem(n, attrs.type)}, "fileId")
+											.then(function(result){
+												_render(el, result);
+											})
+											.catch(function(err){
+												_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
+											});
+									} else {
+										_render(el, attrs.notFoundMessage || "FILE_NOT_FOUND");
+									}
+
 								}
 
 							} else {
