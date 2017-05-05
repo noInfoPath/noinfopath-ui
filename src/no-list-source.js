@@ -61,8 +61,7 @@
 					});
 				})
 				.catch(function(err) {
-					console.error(err);
-					throw new Error(err);
+					return err;
 					// scope.waitingForError = {
 					// 	error: err,
 					// 	src: config

@@ -149,19 +149,19 @@
 			return unbinders;
 		}
 
-		function _resolveTemplate(scope, templateUrl, refresh) {
-			if (templateUrl) {
-				noTemplateCache.get(templateUrl)
+		function _resolveTemplate(scope, dataPanel, refresh) {
+			if (dataPanel.templateUrl) {
+				noTemplateCache.get(dataPanel.templateUrl)
 					.then(function (tpl) {
 						var t = $compile(tpl),
 							params = [],
 							c = t(scope);
 
 						el.append(c);
-						refresh();
+						if(!dataPanel.refresh) refresh();
 					});
 			} else {
-				refresh();
+				if(!dataPanel.refresh) refresh();
 			}
 		}
 
@@ -298,7 +298,7 @@
 			_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, dataPanel, _dataSource, scope, _curriedRefresh);
 
 
-			_resolveTemplate(scope, dataPanel.templateUrl, _curriedRefresh);
+			_resolveTemplate(scope, dataPanel, _curriedRefresh);
 
 
 			noForm_ready(ctx.form);
@@ -396,6 +396,7 @@
 
 			_resultType = _resolveResultType(_dataPanel.resultType);
 
+			console.log(ctx);
 			return _resolveScope(_dataPanel.saveOnRootScope, scope, ctx.component.scopeKey)
 				.then(function(scope) {
 					_scope = scope;
@@ -412,7 +413,7 @@
 
 					_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, _dataPanel, _dataSource, scope, _curriedRefresh);
 
-					_resolveTemplate(scope, _dataPanel.templateUrl, _curriedRefresh);
+					_resolveTemplate(scope, _dataPanel, _curriedRefresh);
 
 					return _unbinders;
 				})
