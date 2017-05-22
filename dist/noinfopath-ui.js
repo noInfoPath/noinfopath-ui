@@ -136,6 +136,111 @@
         }]);
 })(angular);
 
+/*
+ *	[NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
+ *
+ *	___
+ *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.51 *
+ *
+ * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+ *
+ *	Copyright (c) 2017 The NoInfoPath Group, LLC.
+ *
+ *	Licensed under the MIT License. (MIT)
+ *
+ *	___
+ *
+ * noAutoComplete Directive
+ * ------------------------
+ *	<no-auto-complate ng-model="courtLU" placeholder="Find a Court" class="form-control" no-data-source="" />
+ */
+
+
+//autocomplete.js
+(function (angular, undefined) {
+	function NoAutoCompleteDirective() {
+		function _compile(el, attrs) {
+
+			var input = $('<input type="text" uib-typeahead="datum as datum.' + attrs.noTextField +  ' for datum in getData($viewValue)" typeahead-editable="true" typeahead-loading="loading" typeahead-no-results="noResults" typeahead-input-formatter="formatter()" typeahead-min-length="3">'),
+				loading = $('<i ng-show="loading" class="glyphicon glyphicon-refresh"></i>'),
+				noResults = $('<div ng-show="noResults"><i class="glyphicon glyphicon-remove"></i>No Results Found</div>');
+
+			input.attr("ng-model", attrs.ngModel);
+			input.attr("placeholder", attrs.placeholder);
+			input.css("width", "100%");
+			input.css("height", "100%");
+
+			el.addClass("no-p-a-z");
+			//el.removeAttr("ng-model");
+
+			el.append(input);
+			el.append(loading);
+			el.append(noResults);
+
+			return _link;
+		}
+
+		function _link(scope, el, attrs) {
+			if(!attrs.noDataSource) throw "Need to supply a no-data-source attribute. (i.e. noHTTP_SOPDB.courts)";
+			if(!attrs.noTextField) throw "Need to supply a no-text-field attribute.";
+
+			var unWatch_ngModel = scope.$watch(attrs.ngModel, function(n, o, s){
+				s.$parent[attrs.noModel] = n;
+			});
+
+			var unWatch_noResults = scope.$watch("noResults", function(n, o, s){
+				if(n) {
+					s.noResults = false;
+					s[attrs.noModel] = s[attrs.noModel];
+				}
+			});
+
+			scope.getData = function(value) {
+				var ds = noInfoPath.getItem(scope, attrs.noDataSource),
+					filters = new noInfoPath.data.NoFilters();
+				filters.quickAdd(attrs.noTextField, "contains", value);
+				return ds.noRead(filters)
+					.then(function(results){
+						return results;
+					})
+					.catch(function(err){
+						if(err.status !== 404) console.error(err);
+						return err;
+					});
+
+			};
+
+			scope.formatter = function(a) {
+				var tmp = noInfoPath.getItem(scope, attrs.ngModel),
+					text = noInfoPath.getItem(tmp, attrs.noTextField);
+
+				return text;
+			};
+
+			// scope.noResults = function(e){
+			// 	console.log(e);
+			// 	scope[attrs.ngModel] = {};
+			// 	return false;
+			// };
+
+			scope.$on("$destroy", function(){
+				unWatch_ngModel();
+			});
+		}
+
+		return {
+			restrict: "E",
+			scope: true,
+			compile: _compile
+		};
+	}
+
+	angular.module("noinfopath.ui")
+		.directive("noAutoComplete", [NoAutoCompleteDirective])
+		;
+})(angular);
+
 //breadcrumb.js
 (function(angular, undefined) {
 	angular.module("noinfopath.ui")
@@ -1115,7 +1220,7 @@
 		}
 
 		function _watch(dsConfig, filterCfg, value, n, o, s) {
-			// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+			console.log("noDataPanel::watch", dsConfig, filterCfg, value, n, o, s);
 		}
 
 		function _resolveResultType(resultType) {
@@ -1249,7 +1354,7 @@
 						//save new data to the scope, with object values resolved.
 						model.current = noInfoPath.data.NoDataModel.clean(data, _schema);
 						model.commit();
-						noInfoPath.setItem(scope, ctx.component.scopeKey, model);
+						noInfoPath.setItem(scope, ctx.component.scopeKey, model.current);
 
 						if(ctx.widget.saveFollowed) {
 							noInfoPath.setItem(scope, ctx.component.scopeKey, data);
@@ -1320,7 +1425,7 @@
 				.then(function(scope) {
 					_scope = scope;
 
-					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, angular.noop);
+					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, _watch);
 
 					_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope);
 
@@ -3170,7 +3275,8 @@
 
 	function NoPromptService($compile, $rootScope, $timeout, PubSub, noTemplateCache) {
 		var pubSubId;
-		this.show = function (title, message, cb, inOptions) {
+
+		function _show(title, message, cb, inOptions) {
 			var b = $("body", window.top.document),
 				cover = $("<div class=\"no-modal-container ng-hide\"></div>"),
 				box = $("<no-message-box></no-message-box>"),
@@ -3248,7 +3354,7 @@
 					// a 'transition prevented' error
 				});
 
-				if(options.beforeShow) {
+				if (options.beforeShow) {
 					options.beforeShow(box.scope(), box);
 				}
 
@@ -3259,10 +3365,10 @@
 				scope: options.scope
 			};
 
-			if(options.messageIsTemplateUrl) {
+			if (options.messageIsTemplateUrl) {
 				noTemplateCache.get(message)
 					.then(_render)
-					.catch(function(err){
+					.catch(function (err) {
 						throw new Error("Error rendering template.", err);
 					});
 			} else {
@@ -3271,7 +3377,8 @@
 
 
 
-		};
+		}
+		this.show = _show;
 
 		function _hide(to) {
 			if (to) {
@@ -3290,11 +3397,32 @@
 
 		}
 		this.hide = _hide;
+
+		function _dialog(title, message, cb, inOptions) {
+			var options = Object.assign({
+				showCloseButton: true,
+				showFooter: {
+					showCancel: true,
+					cancelLabel: "Cancel",
+					showOK: true,
+					okLabel: "OK",
+					okValue: "OK",
+					okAutoHide: true
+				},
+				width: "60%",
+				height: "35%",
+			}, inOptions);
+
+			_show(title, message, cb, options);
+
+		}
+		this.dialog = _dialog;
+
+
 	}
 
 	angular.module("noinfopath.ui")
-		.service("noPrompt", ["$compile", "$rootScope", "$timeout", "PubSub", "noTemplateCache", NoPromptService])
-	;
+		.service("noPrompt", ["$compile", "$rootScope", "$timeout", "PubSub", "noTemplateCache", NoPromptService]);
 
 })(angular);
 

@@ -38,7 +38,7 @@ module.exports = function(grunt) {
           src: [
             "src/home.js",
             "src/progressbar.js",
-            //"src/autocomplete.js",
+        	"src/autocomplete.js",
             "src/breadcrumb.js",
             //"src/editable-grid.js",
             //"src/grid.js",

@@ -146,7 +146,8 @@
 
 	function NoPromptService($compile, $rootScope, $timeout, PubSub, noTemplateCache) {
 		var pubSubId;
-		this.show = function (title, message, cb, inOptions) {
+
+		function _show(title, message, cb, inOptions) {
 			var b = $("body", window.top.document),
 				cover = $("<div class=\"no-modal-container ng-hide\"></div>"),
 				box = $("<no-message-box></no-message-box>"),
@@ -224,7 +225,7 @@
 					// a 'transition prevented' error
 				});
 
-				if(options.beforeShow) {
+				if (options.beforeShow) {
 					options.beforeShow(box.scope(), box);
 				}
 
@@ -235,10 +236,10 @@
 				scope: options.scope
 			};
 
-			if(options.messageIsTemplateUrl) {
+			if (options.messageIsTemplateUrl) {
 				noTemplateCache.get(message)
 					.then(_render)
-					.catch(function(err){
+					.catch(function (err) {
 						throw new Error("Error rendering template.", err);
 					});
 			} else {
@@ -247,7 +248,8 @@
 
 
 
-		};
+		}
+		this.show = _show;
 
 		function _hide(to) {
 			if (to) {
@@ -266,10 +268,31 @@
 
 		}
 		this.hide = _hide;
+
+		function _dialog(title, message, cb, inOptions) {
+			var options = Object.assign({
+				showCloseButton: true,
+				showFooter: {
+					showCancel: true,
+					cancelLabel: "Cancel",
+					showOK: true,
+					okLabel: "OK",
+					okValue: "OK",
+					okAutoHide: true
+				},
+				width: "60%",
+				height: "35%",
+			}, inOptions);
+
+			_show(title, message, cb, options);
+
+		}
+		this.dialog = _dialog;
+
+
 	}
 
 	angular.module("noinfopath.ui")
-		.service("noPrompt", ["$compile", "$rootScope", "$timeout", "PubSub", "noTemplateCache", NoPromptService])
-	;
+		.service("noPrompt", ["$compile", "$rootScope", "$timeout", "PubSub", "noTemplateCache", NoPromptService]);
 
 })(angular);

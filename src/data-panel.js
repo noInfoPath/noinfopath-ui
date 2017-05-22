@@ -196,7 +196,7 @@
 		}
 
 		function _watch(dsConfig, filterCfg, value, n, o, s) {
-			// console.log("noDataPanel::watch", this, dsConfig, filterCfg, value, n, o, s);
+			console.log("noDataPanel::watch", dsConfig, filterCfg, value, n, o, s);
 		}
 
 		function _resolveResultType(resultType) {
@@ -330,7 +330,7 @@
 						//save new data to the scope, with object values resolved.
 						model.current = noInfoPath.data.NoDataModel.clean(data, _schema);
 						model.commit();
-						noInfoPath.setItem(scope, ctx.component.scopeKey, model);
+						noInfoPath.setItem(scope, ctx.component.scopeKey, model.current);
 
 						if(ctx.widget.saveFollowed) {
 							noInfoPath.setItem(scope, ctx.component.scopeKey, data);
@@ -401,7 +401,7 @@
 				.then(function(scope) {
 					_scope = scope;
 
-					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, angular.noop);
+					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, _watch);
 
 					_placeModelOnScope(ctx.datasource, ctx.component.scopeKey, _scope);
 
