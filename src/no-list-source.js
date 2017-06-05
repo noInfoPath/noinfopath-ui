@@ -49,31 +49,40 @@
 				sel = el
 				;
 
-			dataSource.read()
-				.then(function(data) {
-					scope[ctx.component.scopeKey] = data;
-					sel.empty();
-					//select.addOption("", sel.append("<option value=\"\" selected></option>"));
-					data.paged.forEach(function(data, k){
-						var selected = k === 0 ? " selected" : "";
+			scope.$parent[ctx.component.scopeKey] = {
+				refresh: function(dataSource, sel, lookup, select) {
+					return dataSource.read()
+						.then(function(data) {
+							scope.$parent[ctx.component.scopeKey].data = data;
+							sel.empty();
+							//select.addOption("", sel.append("<option value=\"\" selected></option>"));
+							data.paged.forEach(function(data, k){
+								var selected = k === 0 ? " selected" : "";
 
-						select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
-					});
-				})
-				.catch(function(err) {
-					return err;
-					// scope.waitingForError = {
-					// 	error: err,
-					// 	src: config
-					// };
-				});
+								select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
+							});
+						})
+						.catch(function(err) {
+							return err;
+							// scope.waitingForError = {
+							// 	error: err,
+							// 	src: config
+							// };
+						});
+				}.bind(null, dataSource, sel, lookup, select)
+			}
+
+			scope.$parent[ctx.component.scopeKey].refresh();
 
 		}
 
 		return {
 			restrict: "A",
 			require: "?select",
-			link: _link
+			link: _link,
+			scope: {
+				"ngModel": "="
+			}
 		};
 
 	}
