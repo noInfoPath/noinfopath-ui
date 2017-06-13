@@ -14,7 +14,7 @@ Displays the prompt configuring it with the parameters and options provided.
 |Name|Type|Description|
 |----|----|-----------|
 |title|String|The text that is displayed in the dialog boxes header sections|
-|message|String|HTML or plain text that is displayed in the body of the dialog box.|
+|message|String|HTML or plain text that is displayed in the body of the dialog box. If messageIsTemplateUrl is true within the options object, message is a URL to a html template.|
 |cb|Function|A callback function that noPrompt will call when any button is clicked. In order for a button to trigger the  callback it must be decorated with special CSS classes.  (See `CSS Classes` section below)|
 |options|Object|Allows for serveral optional setting to be provided.|
 
@@ -50,6 +50,7 @@ call to the `hide` method.
 |Name|Type|Description|
 |----|----|-----------|
 |height|String|Any valid CSS `min-height` value.  If ommited then `10%` is used.|
+ |messageIsTemplateUrl|Boolean|Treats the message as a template URL instead of raw html or plain text.|
 |scope|Object|Reference to the scope object associated with the context of the noPrompt callee.|
 |showFooter|Object|When provided causes the noPrompt to display the footer section. Typically this used with an `OK` and/or `Cancel` button is desired.|
 |showFooter.cancelLabel|String|Text to display on the button|

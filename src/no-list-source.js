@@ -4,9 +4,9 @@
 	*	### NoListSource Directive
 	*
 	*	Extends a standard select element to support noDataSource configuration
-	* 
+	*
 	*   #### HTML
-	* 
+	*
 	*   ```HTML
 	*   <select no-list-source no-form="noForm.noComponents.states" class="form-control no-m-r-sm" ng-model="addressVw.state" name="state" placeholder="State" required style="width: 3.25em;"></select>
 	*   ```

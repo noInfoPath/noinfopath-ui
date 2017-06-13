@@ -30,8 +30,11 @@
 
 			input.attr("ng-model", attrs.ngModel);
 			input.attr("placeholder", attrs.placeholder);
+			//if(attrs.required) input.attr("required", "");
 			input.css("width", "100%");
 			input.css("height", "100%");
+
+
 
 			el.addClass("no-p-a-z");
 			//el.removeAttr("ng-model");

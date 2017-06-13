@@ -168,8 +168,11 @@
 
 			input.attr("ng-model", attrs.ngModel);
 			input.attr("placeholder", attrs.placeholder);
+			//if(attrs.required) input.attr("required", "");
 			input.css("width", "100%");
 			input.css("height", "100%");
+
+
 
 			el.addClass("no-p-a-z");
 			//el.removeAttr("ng-model");
@@ -1103,10 +1106,10 @@
 (function (angular, undefined) {
 	"use strict";
 
-	function NoDataPanelDirective($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader) {
+	function NoDataPanelDirective($injector, $q, $compile, noFormConfig, noDataSource, noTemplateCache, $state, noParameterParser, PubSub, noAreaLoader, noActionQueue) {
 		function _resolveScope(saveOnRootScope, scope, compKey) {
-			return $q(function(resolve, reject){
-				try{
+			return $q(function (resolve, reject) {
+				try {
 					var tmpScope = scope,
 						tmpVal, tmpApi;
 
@@ -1117,14 +1120,14 @@
 						if (tmpVal) {
 							noInfoPath.setItem(tmpScope, compKey, tmpVal);
 							resolve(tmpScope);
-						}else {
+						} else {
 							//noInfoPath.setItem(tmpScope, compKey, {}); //Possible BUG
 
-							var unwatch = scope.$watch(compKey, function(unwatch, n, o, s){
+							var unwatch = scope.$watch(compKey, function (unwatch, n, o, s) {
 								//console.log(n, o);
-								if(n) {
+								if (n) {
 									noInfoPath.setItem(s, compKey, n);
-									if(unwatch) unwatch();
+									if (unwatch) unwatch();
 								}
 							}.bind(null, unwatch));
 
@@ -1151,7 +1154,7 @@
 				wrappedModel,
 				entityCfg = noInfoPath.getItem(scope, "noDbSchema_" + schema.databaseName).entity(schema.entityName);
 
-			if(srcModel) {
+			if (srcModel) {
 				wrappedModel = noWrapper ? srcModel : new noInfoPath.data.NoDataModel(entityCfg, srcModel);
 				noInfoPath.setItem(scope, scopeKey, wrappedModel);
 			}
@@ -1182,10 +1185,10 @@
 							c = t(scope);
 
 						el.append(c);
-						if(!dataPanel.refresh) refresh();
+						if (!dataPanel.refresh) refresh();
 					});
 			} else {
-				if(!dataPanel.refresh) refresh();
+				if (!dataPanel.refresh) refresh();
 			}
 		}
 
@@ -1198,11 +1201,24 @@
 
 		}
 
-		function _refresh(resultType, dataSource, noDataPanel, finish, error) {
+		function _refresh(scope, resultType, dataSource, noDataPanel, finish, error) {
 			return dataSource[resultType]()
+				.then(function (data) {
+					if (noDataPanel.actions) {
+						var queue = noActionQueue.createQueue(data, scope, null, noDataPanel.actions);
+
+						return noActionQueue.synchronize(queue)
+							.then(function (results) {
+								return results[0];
+							});
+					} else {
+						return data;
+					}
+
+				})
 				.then(finish)
-				.catch(function(err){
-					if(noDataPanel.httpBadRequestAllowed){
+				.catch(function (err) {
+					if (noDataPanel.httpBadRequestAllowed) {
 						finish({});
 					} else {
 						throw err;
@@ -1317,7 +1333,7 @@
 
 			_curriedError = _error.bind(null, scope, _config);
 
-			_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
+			_curriedRefresh = _refresh.bind(null, scope, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
 
 			_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, dataPanel, _dataSource, scope, _curriedRefresh);
 
@@ -1349,24 +1365,24 @@
 				if (resultType === "one") {
 					var model = noInfoPath.getItem(_scope, ctx.component.scopeKey);
 
-					if(model) {
+					if (model) {
 
 						//save new data to the scope, with object values resolved.
 						model.current = noInfoPath.data.NoDataModel.clean(data, _schema);
 						model.commit();
 						noInfoPath.setItem(scope, ctx.component.scopeKey, model.current);
 
-						if(ctx.widget.saveFollowed) {
+						if (ctx.widget.saveFollowed) {
 							noInfoPath.setItem(scope, ctx.component.scopeKey, data);
 						}
 
-						for(var c in _schema.columns) {
+						for (var c in _schema.columns) {
 							var col = _schema.columns[c],
 								ctrl = model[c];
 
 
-							if(ctrl) {
-								if(ctrl.$viewValue === "[object Object]") {
+							if (ctrl) {
+								if (ctrl.$viewValue === "[object Object]") {
 									noInfoPath.data.NoDataModel.ngModelHack(ctrl, data[c]);
 								}
 								//console.log(c, ctrl, ctrl.$viewValue, data[c]);
@@ -1422,7 +1438,7 @@
 
 			console.log(ctx);
 			return _resolveScope(_dataPanel.saveOnRootScope, scope, ctx.component.scopeKey)
-				.then(function(scope) {
+				.then(function (scope) {
 					_scope = scope;
 
 					_dataSource = _resolveDataSource(ctx.component.noDataSource, scope, _watch);
@@ -1433,7 +1449,7 @@
 
 					_curriedError = _error.bind(null, scope, _config);
 
-					_curriedRefresh = _refresh.bind(null, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
+					_curriedRefresh = _refresh.bind(null, scope, _resultType, _dataSource, _dataPanel, _curriedFinish, _curriedError);
 
 					_unbinders = _setupWatches(_resultType, ctx.component.scopeKey, _dataPanel, _dataSource, scope, _curriedRefresh);
 
@@ -1441,7 +1457,7 @@
 
 					return _unbinders;
 				})
-				.catch(function(err){
+				.catch(function (err) {
 					console.error(err);
 				});
 
@@ -1452,7 +1468,8 @@
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noDataPanel", attrs.noForm),
 				ver = angular.extend({}, {
 					version: 1
-				}, ctx.component.noDataPanel).version, promise;
+				}, ctx.component.noDataPanel).version,
+				promise;
 
 			if (Number(ver) === 1) {
 				promise = version1($state.current.name, scope, el, attrs, ctx);
@@ -1461,9 +1478,9 @@
 				promise = version2($state.current.name, scope, el, attrs, ctx);
 			}
 
-			promise.then(function(unbinders){
+			promise.then(function (unbinders) {
 				scope.$on("$destroy", function (unbinders) {
-					if(unbinders) {
+					if (unbinders) {
 						unbinders.forEach(function (unbind) {
 							unbind();
 						});
@@ -1481,7 +1498,7 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", NoDataPanelDirective]);
+		.directive("noDataPanel", ["$injector", "$q", "$compile", "noFormConfig", "noDataSource", "noTemplateCache", "$state", "noParameterParser", "PubSub", "noAreaLoader", "noActionQueue", NoDataPanelDirective]);
 })(angular);
 
 //alpha-filter.js
@@ -3144,7 +3161,7 @@
  *	|Name|Type|Description|
  *	|----|----|-----------|
  *	|title|String|The text that is displayed in the dialog boxes header sections|
- *	|message|String|HTML or plain text that is displayed in the body of the dialog box.|
+ *	|message|String|HTML or plain text that is displayed in the body of the dialog box. If messageIsTemplateUrl is true within the options object, message is a URL to a html template.|
  *	|cb|Function|A callback function that noPrompt will call when any button is clicked. In order for a button to trigger the  callback it must be decorated with special CSS classes.  (See `CSS Classes` section below)|
  *	|options|Object|Allows for serveral optional setting to be provided.|
  *
@@ -3180,6 +3197,7 @@
  *	|Name|Type|Description|
  *	|----|----|-----------|
  *	|height|String|Any valid CSS `min-height` value.  If ommited then `10%` is used.|
+ *  |messageIsTemplateUrl|Boolean|Treats the message as a template URL instead of raw html or plain text.|
  *	|scope|Object|Reference to the scope object associated with the context of the noPrompt callee.|
  *	|showFooter|Object|When provided causes the noPrompt to display the footer section. Typically this used with an `OK` and/or `Cancel` button is desired.|
  *	|showFooter.cancelLabel|String|Text to display on the button|
@@ -3506,40 +3524,41 @@
 //btn-group.js
 (function(angular, undefined) {
 	/**
-	*	### NoCheckboxDirective
+	*	### NoListSource Directive
 	*
-	*	Extands a standard checkbox element to support noActionQueue configurations
-	*	that are store in `area.json` files.
+	*	Extends a standard select element to support noDataSource configuration
 	*
+	*   #### HTML
+	*
+	*   ```HTML
+	*   <select no-list-source no-form="noForm.noComponents.states" class="form-control no-m-r-sm" ng-model="addressVw.state" name="state" placeholder="State" required style="width: 3.25em;"></select>
+	*   ```
 	*
 	*	#### Configuration
 	*
 	*	```json
 	*
 	*	{
-	*		myButtonConfig: {
-				"actions": [
-	*				{
-	*					"provider": "$state",
-	*					"method": "go",
-	*					"noContextParams": true,
-	*					"params": [
-	*						"efr.project.search",
-	*						{
-	*							"provider": "noStateHelper",
-	*							"method": "makeStateParams",
-	*							"params": [
-	*								{
-	*									"key": "id",
-	*									"provider": "scope",
-	*									"property": "document.ProjectID.ID"
-	*								}
-	*							],
-	*							"passLocalScope": true
-	*						}
-	*					]
-	*				}
-	*			]
+	*		"states": {
+	*           "scopeKey": "states",
+	*			"noDataSource": {
+	*			    "dataProvider": "noHTTP",
+	*			    "databaseName": "SOPDB",
+	*			    "entityName": "us_states",
+	*			    "primaryKey": "id",
+	*			    "sort": [
+	*                   {
+	*					    "field": "code"
+	*				    }
+	*               ]
+	*			},
+	*			"noLookup": {
+	*				"textField": "code",
+	*				"valueField": "code",
+	*				"ngModel": "newCompany.state",
+	*				"name": "state",
+	*				"required": true
+	*			}
 	*		}
 	*	}
 	*
