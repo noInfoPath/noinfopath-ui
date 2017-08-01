@@ -167,9 +167,12 @@
 
 				body.append($compile(msg)(options.scope));
 
-				box.append(header);
+				if(options.header !== false) box.append(header);
+
 
 				box.append(body);
+
+				if(options.bodyClass) box.addClass(options.bodyClass);
 
 
 				if (options.showFooter) {

@@ -409,7 +409,7 @@
 
 			_resultType = _resolveResultType(_dataPanel.resultType);
 
-			console.log(ctx);
+			//console.log(ctx);
 			return _resolveScope(_dataPanel.saveOnRootScope, scope, ctx.component.scopeKey)
 				.then(function (scope) {
 					_scope = scope;
