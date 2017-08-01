@@ -2,7 +2,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.54 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.55 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -409,7 +409,7 @@
 
 			_resultType = _resolveResultType(_dataPanel.resultType);
 
-			console.log(ctx);
+			//console.log(ctx);
 			return _resolveScope(_dataPanel.saveOnRootScope, scope, ctx.component.scopeKey)
 				.then(function (scope) {
 					_scope = scope;
