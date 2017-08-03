@@ -209,8 +209,8 @@
 
 				b.append(cover);
 
-				box.css("min-width", options.width || "60%");
-				box.css("min-height", options.height || "10%");
+				// box.css("min-width", options.width || "60%");
+				// box.css("min-height", options.height || "10%");
 
 				box.find("button.btn-callback.btn-auto-hide").click(function (cb, e) {
 					_hide();
