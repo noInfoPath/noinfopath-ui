@@ -184,10 +184,16 @@
 						} else {
 							ok.addClass("btn-no-auto-hide");
 						}
+
+						if(!!options.showFooter.okClass) {
+							ok.addClass(options.showFooter.okClass);
+						}
+
 						if (!!options.showFooter.okDisabled) {
 							$rootScope.noPrompt.okDisable = options.showFooter.okDisabled;
 							ok.attr("ng-disabled", options.showFooter.okDisabled);
 						}
+
 						footer.append($compile(ok)(options.scope || $rootScope));
 					}
 
@@ -198,6 +204,9 @@
 					if (options.showFooter.showCancel) {
 						cancel.attr("value", "Cancel");
 						cancel.text(options.showFooter.cancelLabel || "Cancel");
+						if(!!options.showFooter.cancelClass) {
+							cancel.addClass(options.showFooter.cancelClass);
+						}
 						footer.append(cancel);
 					}
 
