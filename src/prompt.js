@@ -155,8 +155,8 @@
 				header = $("<no-box-header></no-box-header>"),
 				body = $("<no-box-body class=\"page-body\"></no-box-body>"),
 				footer = $("<no-box-footer class=\"no-flex horizontal flex-center no-m-b-md no-p-t-md\"></no-box-footer>"),
-				ok = $("<button type=\"button\" class=\"btn btn-primary btn-sm btn-callback no-m-r-md\"></button>"),
-				cancel = $("<button type=\"button\" class=\"btn btn-primary btn-sm btn-callback btn-auto-hide\"></button>"),
+				ok = $("<button type=\"button\" class=\"btn btn-sm btn-callback no-m-r-md\"></button>"),
+				cancel = $("<button type=\"button\" class=\"btn btn-sm btn-callback btn-auto-hide\"></button>"),
 				options = angular.extend({}, {
 					scope: $rootScope
 				}, inOptions);
