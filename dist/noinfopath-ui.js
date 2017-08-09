@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.57* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.58* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -141,7 +141,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.57 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.58 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -1029,7 +1029,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.57 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.58 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -2395,7 +2395,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.57 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.58 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -3301,8 +3301,8 @@
 				header = $("<no-box-header></no-box-header>"),
 				body = $("<no-box-body class=\"page-body\"></no-box-body>"),
 				footer = $("<no-box-footer class=\"no-flex horizontal flex-center no-m-b-md no-p-t-md\"></no-box-footer>"),
-				ok = $("<button type=\"button\" class=\"btn btn-primary btn-sm btn-callback no-m-r-md\"></button>"),
-				cancel = $("<button type=\"button\" class=\"btn btn-primary btn-sm btn-callback btn-auto-hide\"></button>"),
+				ok = $("<button type=\"button\" class=\"btn btn-sm btn-callback no-m-r-md\"></button>"),
+				cancel = $("<button type=\"button\" class=\"btn btn-sm btn-callback btn-auto-hide\"></button>"),
 				options = angular.extend({}, {
 					scope: $rootScope
 				}, inOptions);
