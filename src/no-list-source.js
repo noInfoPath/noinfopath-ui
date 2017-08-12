@@ -42,7 +42,7 @@
 	*	```
 	*
 	*/
-	function NoListSourceDirective($state, noFormConfig, noDataSource){
+	function NoListSourceDirective($q, $state, noFormConfig, noDataSource){
 		function _link(scope, el, attrs, select) {
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noListSource", attrs.noForm),
 				lookup = ctx.component.noLookup,
@@ -52,24 +52,29 @@
 
 			scope.$parent[ctx.component.scopeKey] = {
 				refresh: function(dataSource, sel, lookup, select) {
-					return dataSource.read()
-						.then(function(data) {
-							scope.$parent[ctx.component.scopeKey].data = data;
-							sel.empty();
-							//select.addOption("", sel.append("<option value=\"\" selected></option>"));
-							data.paged.forEach(function(data, k){
-								var selected = k === 0 ? " selected" : "";
+					function __render(data) {
+						scope.$parent[ctx.component.scopeKey].data = data;
+						sel.empty();
+						//select.addOption("", sel.append("<option value=\"\" selected></option>"));
+						data.paged.forEach(function(data, k){
+							var selected = k === 0 ? " selected" : "";
 
-								select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
-							});
-						})
-						.catch(function(err) {
-							return err;
-							// scope.waitingForError = {
-							// 	error: err,
-							// 	src: config
-							// };
+							select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
 						});
+
+					}
+
+					if(lookup.useRefData) {
+						__render(new noInfoPath.data.NoResults(scope.$root.refData[lookup.useRefData]));
+						return $q.when(true);
+					} else {
+						return dataSource.read()
+							.then(__render)
+							.catch(function(err) {
+								return err;
+							});
+
+					}
 				}.bind(null, dataSource, sel, lookup, select)
 			}
 
@@ -89,6 +94,6 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noListSource", ["$state", "noFormConfig", "noDataSource", NoListSourceDirective])
+		.directive("noListSource", ["$q", "$state", "noFormConfig", "noDataSource", NoListSourceDirective])
 	;
 })(angular);

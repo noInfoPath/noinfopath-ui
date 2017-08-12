@@ -4,7 +4,7 @@
 	*	NoInfoPath UI (noinfopath-ui)
 	*	=============================================
 	*
-	*	*@version 2.0.58* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
+	*	*@version 2.0.59* [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
 	*
 	*	Copyright (c) 2017 The NoInfoPath Group, LLC.
 	*
@@ -141,7 +141,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.58 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.59 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -1029,7 +1029,7 @@
  *  [NoInfoPath Home](http://gitlab.imginconline.com/noinfopath/noinfopath/wikis/home)
  *  ___
  *
- *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.58 *
+ *  [NoInfoPath UI (noinfopath-ui)](home) * @version 2.0.59 *
  *
  *  [![Build Status](http://gitlab.imginconline.com:8081/buildStatus/icon?job=noinfopath-ui&build=6)](http://gitlab.imginconline.com/job/noinfopath-data/6/)
  *
@@ -2395,7 +2395,7 @@
  *
  *	___
  *
- *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.58 *
+ *	[NoInfoPath UI (noinfopath-ui)](home)  *@version 2.0.59 *
  *
  * [![build status](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/badges/master/build.svg)](http://gitlab.imginconline.com/noinfopath/noinfopath-ui/commits/master)
  *
@@ -3577,7 +3577,7 @@
 	*	```
 	*
 	*/
-	function NoListSourceDirective($state, noFormConfig, noDataSource){
+	function NoListSourceDirective($q, $state, noFormConfig, noDataSource){
 		function _link(scope, el, attrs, select) {
 			var ctx = noFormConfig.getComponentContextByRoute($state.current.name, $state.params.entity, "noListSource", attrs.noForm),
 				lookup = ctx.component.noLookup,
@@ -3587,24 +3587,29 @@
 
 			scope.$parent[ctx.component.scopeKey] = {
 				refresh: function(dataSource, sel, lookup, select) {
-					return dataSource.read()
-						.then(function(data) {
-							scope.$parent[ctx.component.scopeKey].data = data;
-							sel.empty();
-							//select.addOption("", sel.append("<option value=\"\" selected></option>"));
-							data.paged.forEach(function(data, k){
-								var selected = k === 0 ? " selected" : "";
+					function __render(data) {
+						scope.$parent[ctx.component.scopeKey].data = data;
+						sel.empty();
+						//select.addOption("", sel.append("<option value=\"\" selected></option>"));
+						data.paged.forEach(function(data, k){
+							var selected = k === 0 ? " selected" : "";
 
-								select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
-							});
-						})
-						.catch(function(err) {
-							return err;
-							// scope.waitingForError = {
-							// 	error: err,
-							// 	src: config
-							// };
+							select.addOption(data[lookup.valueField], sel.append("<option value=\"" + data[lookup.valueField] + "\">" + data[lookup.textField] + "</option>"));
 						});
+
+					}
+
+					if(lookup.useRefData) {
+						__render(new noInfoPath.data.NoResults(scope.$root.refData[lookup.useRefData]));
+						return $q.when(true);
+					} else {
+						return dataSource.read()
+							.then(__render)
+							.catch(function(err) {
+								return err;
+							});
+
+					}
 				}.bind(null, dataSource, sel, lookup, select)
 			}
 
@@ -3624,6 +3629,6 @@
 	}
 
 	angular.module("noinfopath.ui")
-		.directive("noListSource", ["$state", "noFormConfig", "noDataSource", NoListSourceDirective])
+		.directive("noListSource", ["$q", "$state", "noFormConfig", "noDataSource", NoListSourceDirective])
 	;
 })(angular);
